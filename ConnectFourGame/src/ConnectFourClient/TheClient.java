@@ -1,6 +1,9 @@
 package ConnectFourClient;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -41,14 +44,45 @@ public class TheClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		Socket connection =null;
 		 try {
-			Socket connection = new Socket(address, serverPort);
+		 connection = new Socket(address, serverPort);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		 
-		 
+		PrintWriter out =null;
+		BufferedReader stdin= null;
+		try{
+		 out = new PrintWriter(connection.getOutputStream(), true);
+	     stdin = new BufferedReader(new InputStreamReader(System.in));
+	    String inputLine;
+		StringBuilder sb = new StringBuilder();
+		System.out.println("Please Enter Your Message :");
+		//read the command from the user
+		  while ((inputLine = stdin.readLine()) != null) 
+		  {
+			  sb.append(inputLine);
+		  } 
+		System.out.println("\nSending your message to the server...");  
+		//send the command to the server
+		out.print(sb.toString());
+		//get server's response
+		stdin= new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		sb =new StringBuilder();
+		while ((inputLine = stdin.readLine()) != null) 
+		  {
+			  sb.append(inputLine);
+		  } 
+		System.out.println("\n\n Server Response is:"+sb.toString());
+		
+		stdin.close();
+		out.close();
+		}
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+		}
 	}
 
 
