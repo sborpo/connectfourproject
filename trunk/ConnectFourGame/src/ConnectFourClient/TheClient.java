@@ -54,19 +54,25 @@ public class TheClient {
 		PrintWriter out =null;
 		BufferedReader stdin= null;
 		try{
-		 out = new PrintWriter(connection.getOutputStream(), true);
+		 out = new PrintWriter(connection.getOutputStream());
 	     stdin = new BufferedReader(new InputStreamReader(System.in));
 	    String inputLine;
 		StringBuilder sb = new StringBuilder();
-		System.out.println("Please Enter Your Message :");
+		System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
 		//read the command from the user
 		  while ((inputLine = stdin.readLine()) != null) 
 		  {
-			  sb.append(inputLine);
+			  sb.append(inputLine+"\n");
+			  if (inputLine.equals(""))
+			  {
+				  break;
+			  }
 		  } 
+		
 		System.out.println("\nSending your message to the server...");  
 		//send the command to the server
 		out.print(sb.toString());
+		out.flush();
 		//get server's response
 		stdin= new BufferedReader(new InputStreamReader(connection.getInputStream()));
 		sb =new StringBuilder();
@@ -77,7 +83,6 @@ public class TheClient {
 		System.out.println("\n\n Server Response is:"+sb.toString());
 		
 		stdin.close();
-		out.close();
 		}
 		catch (IOException ex)
 		{
