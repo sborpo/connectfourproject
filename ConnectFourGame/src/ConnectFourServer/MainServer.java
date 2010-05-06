@@ -21,6 +21,7 @@ public class MainServer {
 	{
 		parseServerArguments(args);
 		connectionsPool= Executors.newCachedThreadPool();
+		printer= new LogPrinter();
 		
 	}
 	
@@ -35,7 +36,7 @@ public class MainServer {
 	 * @param args
 	 */
 	private void parseServerArguments(String[] args) {
-		serverPort=Integer.parseInt(args[1]);
+		serverPort=Integer.parseInt(args[0]);
 		
 	}
 	

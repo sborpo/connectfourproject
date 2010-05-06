@@ -18,6 +18,7 @@ public class RequestHandler implements Runnable {
 	public RequestHandler(Socket clientSocket, MainServer server)
 	{
 		clientSock=clientSocket;
+		this.server=server;
 	}
 	
 	
@@ -36,9 +37,14 @@ public class RequestHandler implements Runnable {
 		  while ((inputLine = in.readLine()) != null) 
 		  {
 			  sb.append(inputLine);
+			  if (inputLine.equals(""))
+				  break;
 		  }
 		  String logMessage="Client with name :"+clientName+" IP: "+clientIP+" Recieved This Message: \n -------------\n"+sb.toString()+"\n-------------\n\n\n";
 		  server.printLog(logMessage);
+		  out.print("Server: I've Recieved Your Message");
+		  out.flush();
+		  out.close();
 		}
 		catch (IOException ex)
 		{
