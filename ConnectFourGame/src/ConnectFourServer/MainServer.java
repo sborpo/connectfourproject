@@ -1,6 +1,8 @@
 package ConnectFourServer;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 
@@ -16,12 +18,35 @@ public class MainServer {
 	//The server's log
 	private LogPrinter printer;
 	
+	private HashMap<String,ConnectedClient> connectedClients;
+	
+	private int clientUdp;
+	
+	public int getClientUdp()
+	{
+		return clientUdp;
+	}
+	
+	public int getServerPort()
+	{
+		return serverPort;
+	}
+	public void addConnectedClient(String name,InetAddress ipAddress,int udpPort)
+	{
+		ConnectedClient c =new ConnectedClient(ipAddress, udpPort, this);
+		connectedClients.put(name, c);
+		c.start();
+	}
+	
+	
+	
 	
 	public MainServer(String [] args)
 	{
 		parseServerArguments(args);
 		connectionsPool= Executors.newCachedThreadPool();
 		printer= new LogPrinter();
+		connectedClients = new HashMap<String, ConnectedClient>();
 		
 	}
 	
@@ -37,6 +62,7 @@ public class MainServer {
 	 */
 	private void parseServerArguments(String[] args) {
 		serverPort=Integer.parseInt(args[0]);
+		clientUdp=Integer.parseInt(args[1]);
 		
 	}
 	

@@ -16,14 +16,44 @@ import java.net.UnknownHostException;
  */
 public class TheClient {
 
+	private int serverUdpPort;
 	private int serverPort;
 	private String serverHost;
 	private String clientName;
+	private int clientUdp;
+	private InetAddress address;
+	
+	
+	public InetAddress getServerAddress()
+	{
+		return address;
+	}
+	
+	/**
+	 * 
+	 * @return The UDP port that the client listens on to the server
+	 */
+	public int listenToServerPort()
+	{
+		return clientUdp;
+	}
+	
+	public int serverUDPPort()
+	{
+		return serverUdpPort;
+	}
+	
 	
 	
 	public TheClient(String [] args)
 	{
 		parseArguments(args);
+		try {
+			address = InetAddress.getByName(serverHost);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -31,19 +61,16 @@ public class TheClient {
 		serverHost= args[0];
 		serverPort = Integer.parseInt(args[1]);
 		clientName = args[2];
+		clientUdp= Integer.parseInt(args[3]);
+		serverUdpPort = Integer.parseInt(args[4]);
 		
 		
 	}
 	
 	public void start()
 	{
-		 InetAddress address=null;
-		try {
-			address = InetAddress.getByName(serverHost);
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		ServerListener echoServerListener= new ServerListener(this);
+		echoServerListener.start();
 		Socket connection =null;
 		 try {
 		 connection = new Socket(address, serverPort);
@@ -83,10 +110,14 @@ public class TheClient {
 		System.out.println("\n\n Server Response is:"+sb.toString());
 		
 		stdin.close();
+		echoServerListener.join();
 		}
 		catch (IOException ex)
 		{
 			ex.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

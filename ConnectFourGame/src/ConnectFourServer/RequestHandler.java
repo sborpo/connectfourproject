@@ -43,6 +43,7 @@ public class RequestHandler implements Runnable {
 		  String logMessage="Client with name :"+clientName+" IP: "+clientIP+" Recieved This Message: \n -------------\n"+sb.toString()+"\n-------------\n\n\n";
 		  server.printLog(logMessage);
 		  out.print("Server: I've Recieved Your Message");
+		  server.addConnectedClient(clientName, clientSock.getInetAddress(), server.getClientUdp());
 		  out.flush();
 		  out.close();
 		}
