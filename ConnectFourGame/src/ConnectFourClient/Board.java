@@ -71,8 +71,9 @@ public class Board {
 	
 	public GameState playColumn(int colNum,Player.Color color) throws IllegalMove
 	{
+
 		//Checks that the columns is not full
-		if ((columnsFil[colNum]+1)==height)
+		if ((colNum<0) || (colNum>(width-1)) ||((columnsFil[colNum]+1)==height))
 		{
 			throw new IllegalMove();
 		}
