@@ -24,6 +24,16 @@ public class ServerListener extends Thread {
 			e.printStackTrace();
 		}
 		
+		String response = "UDP Client To Server!";
+		byte [] buffer=response.getBytes();
+		try {
+			socket.send(new DatagramPacket(buffer, buffer.length,client.getServerAddress(),client.serverUDPPort()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		byte [] message = new byte[100000];
 		DatagramPacket mes = new DatagramPacket(message, message.length);
 		try {
@@ -40,15 +50,7 @@ public class ServerListener extends Thread {
 		String str= new String(serverMessage);
 		System.out.println(str);
 		
-		String response = "UDP Client To Server!";
-		byte [] buffer=response.getBytes();
-		try {
-			socket.send(new DatagramPacket(buffer, buffer.length,client.getServerAddress(),client.serverUDPPort()));
-			socket.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		
 	}
 

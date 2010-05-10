@@ -25,14 +25,7 @@ public class ConnectedClient extends Thread {
 	@Override
 	public void run() {
 
-		String message = "Udp To Client!";
-		byte [] buffer=message.getBytes();
-		try {
-			socket.send(new DatagramPacket(buffer, buffer.length,clientAddress,clientUdpPort));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		byte [] ans = new byte[100000];
 		DatagramPacket answer = new DatagramPacket(ans, ans.length);
 		try {
@@ -48,6 +41,17 @@ public class ConnectedClient extends Thread {
 		}
 		String str= new String(ans2);
 		server.printLog("UDP recieved : Client: "+clientAddress.toString()+" The message is:\n----------------------------\n"+str);
+		
+		
+		String message = "Udp To Client!";
+		byte [] buffer=message.getBytes();
+		try {
+			socket.send(new DatagramPacket(buffer, buffer.length,answer.getAddress(),answer.getPort()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		
 	}
 	
