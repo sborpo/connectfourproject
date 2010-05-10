@@ -44,6 +44,7 @@ public class ServerListener extends Thread {
 		byte [] buffer=response.getBytes();
 		try {
 			socket.send(new DatagramPacket(buffer, buffer.length,client.getServerAddress(),client.serverUDPPort()));
+			socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

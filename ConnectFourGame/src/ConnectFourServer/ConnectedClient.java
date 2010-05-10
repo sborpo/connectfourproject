@@ -52,7 +52,7 @@ public class ConnectedClient extends Thread {
 		}
 		String str= new String(ans2);
 		server.printLog("UDP recieved : Client: "+clientAddress.toString()+" The message is:\n----------------------------\n"+str);
-		
+		socket.close();
 		
 	}
 	
