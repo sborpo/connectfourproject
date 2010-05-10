@@ -30,12 +30,12 @@ public class Board {
 			{
 				if (board[i][j].equals(Cell.BLUE))
 				{
-					System.out.print("| 1 |");
+					System.out.print("| B |");
 					continue;
 				}
 				if (board[i][j].equals(Cell.RED))
 				{
-					System.out.print("| 2 |");
+					System.out.print("| R |");
 					continue;
 				}
 				System.out.print("| 0 |");
