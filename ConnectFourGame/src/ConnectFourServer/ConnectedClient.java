@@ -12,23 +12,19 @@ public class ConnectedClient extends Thread {
 	private int clientUdpPort;
 	private int serverPort;
 	private MainServer server;
+	private DatagramSocket socket;
 	public ConnectedClient(InetAddress ipAddress,int udpPort,MainServer server)
 	{
 		clientAddress=ipAddress;
 		clientUdpPort=udpPort;
 		this.server=server;
 		serverPort= server.getServerPort();
+		socket= server.getUdpSocket();
 		
 	}
 	@Override
 	public void run() {
-		DatagramSocket socket=null;
-		try {
-			socket = new DatagramSocket(serverPort);
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 		String message = "Udp To Client!";
 		byte [] buffer=message.getBytes();
 		try {
@@ -52,7 +48,6 @@ public class ConnectedClient extends Thread {
 		}
 		String str= new String(ans2);
 		server.printLog("UDP recieved : Client: "+clientAddress.toString()+" The message is:\n----------------------------\n"+str);
-		socket.close();
 		
 	}
 	

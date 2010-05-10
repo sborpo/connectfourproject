@@ -1,7 +1,9 @@
 package ConnectFourServer;
 import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
@@ -21,6 +23,8 @@ public class MainServer {
 	private HashMap<String,ConnectedClient> connectedClients;
 	
 	private int clientUdp;
+	
+	private DatagramSocket serverUdp;
 	
 	public int getClientUdp()
 	{
@@ -47,6 +51,12 @@ public class MainServer {
 		connectionsPool= Executors.newCachedThreadPool();
 		printer= new LogPrinter();
 		connectedClients = new HashMap<String, ConnectedClient>();
+		try {
+			serverUdp = new DatagramSocket(serverPort);
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -104,6 +114,10 @@ public class MainServer {
 		MainServer server = new MainServer(args);
 		server.start();
 		
+	}
+
+	public DatagramSocket getUdpSocket() {
+		return serverUdp;
 	}
 	
 
