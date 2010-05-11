@@ -4,9 +4,17 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Datastructure of the current online games.
+ * @author Boris
+ *
+ */
 public class OnlineGames {
 	
+	//The current online client (their udp addresses)
 	ArrayList<Client> udpClients;
+	
+	//This way we can know if the client was alive
 	HashMap<String, Boolean> isAlive;
 	
 	public static class Client
