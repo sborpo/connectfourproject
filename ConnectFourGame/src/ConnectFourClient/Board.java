@@ -41,8 +41,21 @@ public class Board {
 				System.out.print("| 0 |");
 
 			}
-			System.out.println();
+			System.out.println();		
+			if (i==0)
+			{
+				for (int j = 0; j < width; j++)
+				{
+					System.out.print("-----");
+				}
+				System.out.println();
+			}
 		}
+		for (int i=0; i<width; i++)
+		{
+			System.out.print("| "+i+" |");
+		}
+		System.out.println();
 	}
 
 	/**

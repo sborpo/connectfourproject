@@ -7,6 +7,10 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+/**
+ * Handles the TCP requests
+ *
+ */
 public class RequestHandler implements Runnable {
 
 	// The client's socket from where we should read the
