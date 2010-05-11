@@ -10,9 +10,8 @@ import java.net.UnknownHostException;
 
 /**
  * 
- * @author Valeriy Leykin
- * The client class, represents a player which can play the game
- * with another player P2P
+ * @author Valeriy Leykin The client class, represents a player which can play
+ *         the game with another player P2P
  */
 public class TheClient {
 
@@ -25,34 +24,31 @@ public class TheClient {
 	private String opponentGameHost;
 	private int opponentGamePort;
 	private boolean clientStartsGame;
-	
-	
+
 	private InetAddress address;
-	
-	
-	public InetAddress getServerAddress()
-	{
+
+	public InetAddress getServerAddress() {
 		return address;
 	}
 	
+	public String getClientName()
+	{
+		return clientName;
+	}
+
 	/**
 	 * 
 	 * @return The UDP port that the client listens on to the server
 	 */
-	public int listenToServerPort()
-	{
+	public int listenToServerPort() {
 		return clientUdp;
 	}
-	
-	public int serverUDPPort()
-	{
+
+	public int serverUDPPort() {
 		return serverUdpPort;
 	}
-	
-	
-	
-	public TheClient(String [] args)
-	{
+
+	public TheClient(String[] args) {
 		parseArguments(args);
 		try {
 			address = InetAddress.getByName(serverHost);
@@ -61,82 +57,83 @@ public class TheClient {
 			e.printStackTrace();
 		}
 	}
-	
-	
+
 	private void parseArguments(String[] args) {
-		serverHost= args[0];
+		serverHost = args[0];
 		serverPort = Integer.parseInt(args[1]);
 		clientName = args[2];
-		clientUdp= Integer.parseInt(args[3]);
+		clientUdp = Integer.parseInt(args[3]);
 		serverUdpPort = Integer.parseInt(args[4]);
-		clientGamePort =  Integer.parseInt(args[5]);
+		clientGamePort = Integer.parseInt(args[5]);
 		opponentGameHost = args[6];
 		opponentGamePort = Integer.parseInt(args[7]);
 		clientStartsGame = args[8].equals("TRUE") ? true : false;
-		
+
 	}
-	
-	public void start()
-	{
-		ServerListener echoServerListener= new ServerListener(this);
+
+	public void start() {
+		ServerListener echoServerListener = new ServerListener(this);
 		echoServerListener.start();
-		Socket connection =null;
-		 try {
-		 connection = new Socket(address, serverPort);
+		Socket connection = null;
+		try {
+			connection = new Socket(address, serverPort);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		PrintWriter out =null;
-		BufferedReader stdin= null;
-		try{
-		 out = new PrintWriter(connection.getOutputStream());
-	     stdin = new BufferedReader(new InputStreamReader(System.in));
-	    String inputLine;
-		StringBuilder sb = new StringBuilder();
-		System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
-		//read the command from the user
-		  while ((inputLine = stdin.readLine()) != null) 
-		  {
-			  sb.append(inputLine+"\n");
-			  if (inputLine.equals(""))
-			  {
-				  break;
-			  }
-		  } 
-		
-		System.out.println("\nSending your message to the server...");  
-		//send the command to the server
-		out.print(sb.toString());
-		out.flush();
-		//get server's response
-		stdin= new BufferedReader(new InputStreamReader(connection.getInputStream()));
-		sb =new StringBuilder();
-		while ((inputLine = stdin.readLine()) != null) 
-		  {
-			  sb.append(inputLine);
-		  } 
-		System.out.println("\n\n Server Response is:"+sb.toString());
-		
-		stdin.close();
-		echoServerListener.join();
-		
-		}
-		catch (IOException ex)
-		{
+		PrintWriter out = null;
+		BufferedReader stdin = null;
+		try {
+			out = new PrintWriter(connection.getOutputStream());
+			stdin = new BufferedReader(new InputStreamReader(System.in));
+			String inputLine;
+			StringBuilder sb = new StringBuilder();
+			
+			//sending to the server the clientUDP port
+			out.println(clientUdp);
+			out.flush();
+			System.out.println("Sent To The Server Your UDP port\n");
+			
+			//now ask from the client a message, and send it to the server
+			System.out
+					.println("Please Enter Your Message (End the message by leaving new empty line):");
+			// read the command from the user
+			while ((inputLine = stdin.readLine()) != null) {
+				sb.append(inputLine + "\n");
+				if (inputLine.equals("")) {
+					break;
+				}
+			}
+			System.out.println("\nSending your message to the server...");
+			// send the command to the server
+			out.print(sb.toString());
+			out.flush();
+			
+			// get server's response
+			stdin = new BufferedReader(new InputStreamReader(connection
+					.getInputStream()));
+			sb = new StringBuilder();
+			while ((inputLine = stdin.readLine()) != null) {
+				sb.append(inputLine);
+			}
+			System.out.println("\n\n Server Response is:" + sb.toString()+"\n\n");
+
+			stdin.close();
+			
+			while(true)
+			{
+				
+			}
+
+		} catch (IOException ex) {
 			ex.printStackTrace();
-		} 
-		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-//		Game game = new Game();
-//		game.startOnlineGame(clientGamePort, opponentGameHost, opponentGamePort, clientStartsGame);
+		// Game game = new Game();
+		// game.startOnlineGame(clientGamePort, opponentGameHost,
+		// opponentGamePort, clientStartsGame);
 	}
 
-
-	public static void main(String[] args)
-	{
+	public static void main(String[] args) {
 		TheClient client = new TheClient(args);
 		client.start();
 	}

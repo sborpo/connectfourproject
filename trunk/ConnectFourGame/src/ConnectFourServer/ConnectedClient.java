@@ -13,20 +13,20 @@ public class ConnectedClient extends Thread {
 	private int serverPort;
 	private MainServer server;
 	private DatagramSocket socket;
-	public ConnectedClient(InetAddress ipAddress,int udpPort,MainServer server)
-	{
-		clientAddress=ipAddress;
-		clientUdpPort=udpPort;
-		this.server=server;
-		serverPort= server.getServerPort();
-		socket= server.getUdpSocket();
-		
+
+	public ConnectedClient(InetAddress ipAddress, int udpPort, MainServer server) {
+		clientAddress = ipAddress;
+		clientUdpPort = udpPort;
+		this.server = server;
+		serverPort = server.getServerPort();
+		socket = server.getUdpSocket();
+
 	}
+
 	@Override
 	public void run() {
 
-		
-		byte [] ans = new byte[100000];
+		byte[] ans = new byte[100000];
 		DatagramPacket answer = new DatagramPacket(ans, ans.length);
 		try {
 			socket.receive(answer);
@@ -34,26 +34,24 @@ public class ConnectedClient extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		byte [] ans2 = new byte[answer.getLength()];
-		for (int i=0; i<ans2.length; i++)
-		{
-			ans2[i]=ans[i];
+		byte[] ans2 = new byte[answer.getLength()];
+		for (int i = 0; i < ans2.length; i++) {
+			ans2[i] = ans[i];
 		}
-		String str= new String(ans2);
-		server.printLog("UDP recieved : Client: "+clientAddress.toString()+" The message is:\n----------------------------\n"+str);
-		
-		
+		String str = new String(ans2);
+		server.printLog("UDP recieved : Client: " + clientAddress.toString()
+				+ " The message is:\n----------------------------\n" + str);
+
 		String message = "Udp To Client!";
-		byte [] buffer=message.getBytes();
+		byte[] buffer = message.getBytes();
 		try {
-			socket.send(new DatagramPacket(buffer, buffer.length,answer.getAddress(),answer.getPort()));
+			socket.send(new DatagramPacket(buffer, buffer.length, answer
+					.getAddress(), answer.getPort()));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		
 	}
-	
 
 }

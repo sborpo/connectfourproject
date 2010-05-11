@@ -7,34 +7,25 @@ import java.net.InetAddress;
 import java.net.SocketException;
 
 public class ServerListener extends Thread {
-	
+
 	private TheClient client;
-	public ServerListener(TheClient client)
-	{
-		this.client=client;
+
+	public ServerListener(TheClient client) {
+		this.client = client;
 	}
-	
-	public void run()
-	{
-		DatagramSocket socket=null;
+
+	public void run() {
+		DatagramSocket socket = null;
 		try {
 			socket = new DatagramSocket(client.listenToServerPort());
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		String response = "UDP Client To Server!";
-		byte [] buffer=response.getBytes();
-		try {
-			socket.send(new DatagramPacket(buffer, buffer.length,client.getServerAddress(),client.serverUDPPort()));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		byte [] message = new byte[100000];
+
+		byte[] message = new byte[100000];
+		while (true)
+		{
 		DatagramPacket mes = new DatagramPacket(message, message.length);
 		try {
 			socket.receive(mes);
@@ -42,16 +33,24 @@ public class ServerListener extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		byte [] serverMessage = new byte[mes.getLength()];
-		for (int i=0; i<serverMessage.length; i++)
-		{
-			serverMessage[i]=message[i];
+		byte[] serverMessage = new byte[mes.getLength()];
+		for (int i = 0; i < serverMessage.length; i++) {
+			serverMessage[i] = message[i];
 		}
-		String str= new String(serverMessage);
+		String str = new String(serverMessage);
 		System.out.println(str);
 		
-		
-		
+		String response = client.getClientName()+": I'm Alive!";
+		byte[] buffer = response.getBytes();
+		try {
+			socket.send(new DatagramPacket(buffer, buffer.length, client
+					.getServerAddress(), client.serverUDPPort()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		}
+
 	}
 
 }
