@@ -1,15 +1,18 @@
 package ConnectFourClient;
 
 public class Player {
-	
-	public static enum Color{BLUE,RED};
+
+	public static enum Color {
+		BLUE, RED
+	};
+
 	private Color playerCol;
-	
+
 	public Player(Color col) {
-		playerCol=col;
+		playerCol = col;
 	}
-	public Color getColor()
-	{
+
+	public Color getColor() {
 		return playerCol;
 	}
 
