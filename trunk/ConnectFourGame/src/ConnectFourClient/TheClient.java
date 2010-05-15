@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import theProtocol.ClientServerProtocol;
+import theProtocol.ClientServerProtocol.msgType;
 
 /**
  * 
@@ -19,16 +21,17 @@ public class TheClient {
 	private int serverPort;
 	private String serverHost;
 	private String clientName;
-	private int clientUdp;
-	private int clientGamePort;
-	private String opponentGameHost;
-	private int opponentGamePort;
+	private int clientUdp = -1;
+	private int clientGamePort = -1;
+	private String opponentGameHost = "";
+	private int opponentGamePort = -1;
+	private int clientWatchPort = 1;
 	private boolean clientStartsGame;
 
-	private InetAddress address;
+	private InetAddress serverAddress;
 
 	public InetAddress getServerAddress() {
-		return address;
+		return serverAddress;
 	}
 	
 	public String getClientName()
@@ -50,8 +53,9 @@ public class TheClient {
 
 	public TheClient(String[] args) {
 		parseArguments(args);
+
 		try {
-			address = InetAddress.getByName(serverHost);
+			serverAddress = InetAddress.getByName(serverHost);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -60,79 +64,159 @@ public class TheClient {
 
 	private void parseArguments(String[] args) {
 		serverHost = args[0];
+		System.out.println("Server: " + serverHost);
 		serverPort = Integer.parseInt(args[1]);
+		System.out.println("Server port: "+serverPort);
 		clientName = args[2];
-		clientUdp = Integer.parseInt(args[3]);
-		serverUdpPort = Integer.parseInt(args[4]);
-		clientGamePort = Integer.parseInt(args[5]);
-		opponentGameHost = args[6];
-		opponentGamePort = Integer.parseInt(args[7]);
-		clientStartsGame = args[8].equals("TRUE") ? true : false;
+		System.out.println("Clent name: "+clientName);
+		//clientUdp = Integer.parseInt(args[3]);
+		//System.out.println("Clent UDP: " +clientUdp);
+		//serverUdpPort = Integer.parseInt(args[4]);
+		//System.out.println(serverUdpPort);
+		//clientGamePort = Integer.parseInt(args[3]);
+		//System.out.println("Game port: " +clientGamePort);
+		//VALERIY: That are optional parameters, they will come only after game is created, not here
+		//opponentGameHost = args[6];
+		//System.out.println(opponentGameHost);
+		//opponentGamePort = Integer.parseInt(args[7]);
+		//System.out.println(opponentGamePort);
+		//clientStartsGame = args[8].equals("TRUE") ? true : false;
+		//System.out.println(clientStartsGame);
 
 	}
 
 	public void start() {
 		ServerListener echoServerListener = new ServerListener(this);
 		echoServerListener.start();
-		Socket connection = null;
+		Socket serverConnection = null;
+		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 		try {
-			connection = new Socket(address, serverPort);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		PrintWriter out = null;
-		BufferedReader stdin = null;
-		try {
-			out = new PrintWriter(connection.getOutputStream());
-			stdin = new BufferedReader(new InputStreamReader(System.in));
-			String inputLine;
-			StringBuilder sb = new StringBuilder();
-			
-			//sending to the server the clientUDP port
-			out.println(clientUdp);
-			out.flush();
-			System.out.println("Sent To The Server Your UDP port\n");
-			
-			//now ask from the client a message, and send it to the server
-			System.out
-					.println("Please Enter Your Message (End the message by leaving new empty line):");
-			// read the command from the user
-			while ((inputLine = stdin.readLine()) != null) {
-				sb.append(inputLine + "\n");
-				if (inputLine.equals("")) {
-					break;
-				}
-			}
-			System.out.println("\nSending your message to the server...");
-			// send the command to the server
-			out.print(sb.toString());
-			out.flush();
-			
-			// get server's response
-			stdin = new BufferedReader(new InputStreamReader(connection
-					.getInputStream()));
-			sb = new StringBuilder();
-			while ((inputLine = stdin.readLine()) != null) {
-				sb.append(inputLine);
-			}
-			System.out.println("\n\n Server Response is:" + sb.toString()+"\n\n");
-
-			stdin.close();
-			
+			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 			while(true)
-			{
+			{		
+				String inputLine;			
 				
+				//now ask from the client a message, and send it to the server
+				System.out.println("--------------------------------------------------------------------");
+				System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
+				// read the command from the user
+				while ((inputLine = stdin.readLine()) != null) {
+					
+					String[] commandPar = parseCommand(inputLine,parser);
+					if(commandPar == null){
+						System.out.println("Wrong command, please try again");
+						break;
+					}
+					
+					System.out.println("Sending your message: "+ inputLine +" to the server...");
+					// send the command to the server
+					serverConnection = new Socket(serverAddress, serverPort);
+					PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
+					BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
+					out.println(inputLine);
+					out.println();
+					
+					System.out.println("READING socket...");
+					// get server's response
+					while((inputLine = response.readLine()) != null) {
+						if(inputLine.equals("")){
+							break;
+						}
+						parseResponse(inputLine);
+						System.out.println("\n\nServer Response is:" + inputLine);
+					}
+					
+					if(out != null){
+						out.close();
+					}
+					if(response!= null){
+						response.close();
+					}
+					
+					//now ask from the client a message, and send it to the server
+					System.out.println("--------------------------------------------------------------------");
+					System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
+				}
+				
+				serverConnection.close();
 			}
-
-		} catch (IOException ex) {
+			
+			
+			// Game game = new Game();
+			// game.startOnlineGame(clientGamePort, opponentGameHost,
+			// opponentGamePort, clientStartsGame);
+		}
+		catch (IOException ex) {
 			ex.printStackTrace();
 		}
-		// Game game = new Game();
-		// game.startOnlineGame(clientGamePort, opponentGameHost,
-		// opponentGamePort, clientStartsGame);
+		finally{
+			if(stdin!= null){
+				try {
+					stdin.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
+	private String[] parseCommand(String command,ClientServerProtocol parser){
+		String[] params = parser.parseCommand(command);
+		
+		if(params == null){
+			return null;
+		}
+		else if(params[0].equals(ClientServerProtocol.MEETME)){
+			clientUdp = Integer.parseInt(params[1]);
+		}
+		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
+			clientGamePort = Integer.parseInt(params[1]);
+		}
+		else if(params[0].equals(ClientServerProtocol.PLAY)){
+			clientGamePort = Integer.parseInt(params[1]);
+		}
+		else if(params[0].equals(ClientServerProtocol.WATCH)){
+			clientWatchPort = Integer.parseInt(params[1]);
+		}
+		
+		return params;
+	}
+	private boolean parseResponse(String message){
+		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
+		String[] params = parser.parseCommand(message);
+		boolean responseRes = true;
+
+		String command = params[0];
+
+		if(command.equals(ClientServerProtocol.NICETM)){
+			 serverUdpPort = Integer.parseInt(params[1]);
+		}
+		else if(command.equals(ClientServerProtocol.WANNA)){
+			
+		}
+		else if(command.equals(ClientServerProtocol.GAME)){
+			
+		}
+		else if(command.equals(ClientServerProtocol.NOCONN)){
+			responseRes = false;
+		}
+		else if(command.equals(ClientServerProtocol.DENIED)){
+			responseRes = false;
+		}
+		else if(command.equals(ClientServerProtocol.KNOWYA)){
+			responseRes = false;
+		}
+		else if(command.equals(ClientServerProtocol.TAKE)){
+			
+		}
+		else if(command.equals(ClientServerProtocol.WHAT)){
+			responseRes = false;
+		}
+		
+		return responseRes;
+	}
+	
 	public static void main(String[] args) {
 		TheClient client = new TheClient(args);
 		client.start();

@@ -12,7 +12,7 @@ import java.net.SocketException;
  */
 public class ServerListener extends Thread {
 
-	// the client to wich the listenet is bing to
+	// the client to which the listener is bind to
 	private TheClient client;
 
 	public ServerListener(TheClient client) {
@@ -21,8 +21,18 @@ public class ServerListener extends Thread {
 
 	public void run() {
 		DatagramSocket socket = null;
+		//wait till the client gets from server udp port
+		while(client.serverUDPPort() <= 0){
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		// open a UDP socket , from which we will do the communications
 		// with the server
+		System.out.println("Client starting listening to udp alive messages on: "+client.listenToServerPort());
 		try {
 			socket = new DatagramSocket(client.listenToServerPort());
 		} catch (SocketException e) {
@@ -46,16 +56,16 @@ public class ServerListener extends Thread {
 			for (int i = 0; i < serverMessage.length; i++) {
 				serverMessage[i] = message[i];
 			}
-			//print the recieved message from the server
+			//print the received message from the server
 			String str = new String(serverMessage);
-			System.out.println(str);
+			System.out.println("Server say: " + str);
 
 			//respond to server , that the client is Alive!
 			String response = client.getClientName() + ": I'm Alive!";
+			System.out.println("I answer: " + response + "to port: " + client.serverUDPPort());
 			byte[] buffer = response.getBytes();
 			try {
-				socket.send(new DatagramPacket(buffer, buffer.length, client
-						.getServerAddress(), client.serverUDPPort()));
+				socket.send(new DatagramPacket(buffer, buffer.length, client.getServerAddress(), client.serverUDPPort()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
