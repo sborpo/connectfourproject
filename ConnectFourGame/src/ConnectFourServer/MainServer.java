@@ -14,20 +14,26 @@ public class MainServer {
 	// connection is handled by this thread pool
 	private ExecutorService connectionsPool;
 
-	// the port which the server listens to
-	private int serverPort;
+	// the port which the server listens to 
+	private int serverTCPPort;
+	
+	// the port that the server sends/receives alive UDP messages to 
+	private int serverUDPPort;
 
 	// The server's log
 	private LogPrinter printer;
 
+	private DatagramSocket serverUdp;
+
 	//Data structure which manages the OnlineGames
 	public OnlineGames games;
 
-	private DatagramSocket serverUdp;
-
-
-	public int getServerPort() {
-		return serverPort;
+	public int getServerTCPPort() {
+		return serverTCPPort;
+	}
+	
+	public int getServerUDPPort() {
+		return serverUDPPort;
 	}
 
 //	public void addConnectedClient(String name, InetAddress ipAddress,
@@ -41,10 +47,11 @@ public class MainServer {
 		parseServerArguments(args);
 		connectionsPool = Executors.newCachedThreadPool();
 		printer = new LogPrinter();
+		this.printLog("TCP: "+serverTCPPort+"\nUDP: "+serverUDPPort);
 		games = new OnlineGames();
 		//connectedClients = new HashMap<String, ConnectedClient>();
 		try {
-			serverUdp = new DatagramSocket(getServerPort());
+			serverUdp = new DatagramSocket(getServerUDPPort());
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -55,7 +62,7 @@ public class MainServer {
 	public void printLog(String logPrint) {
 		printer.print(logPrint);
 	}
-
+	
 	/**
 	 * The method parses the given arguments and initializes the fields of the
 	 * server
@@ -63,8 +70,8 @@ public class MainServer {
 	 * @param args
 	 */
 	private void parseServerArguments(String[] args) {
-		serverPort = Integer.parseInt(args[0]);
-
+		serverTCPPort = Integer.parseInt(args[0]);
+		serverUDPPort = Integer.parseInt(args[1]);
 	}
 
 	/**
@@ -74,7 +81,7 @@ public class MainServer {
 	public void start() {
 		ServerSocket serverSocket = null;
 		try {
-			serverSocket = new ServerSocket(serverPort);
+			serverSocket = new ServerSocket(serverTCPPort);
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
@@ -92,7 +99,7 @@ public class MainServer {
 			// TODO: we need to build another state when the server checks his
 			// open Games data structure
 			// and acts according to the algorithms of the game (checking that
-			// the client is still connection and ect')
+			// the client is still connection and etc..)
 			try {
 				connectionsPool.execute(new RequestHandler(serverSocket
 						.accept(), this));

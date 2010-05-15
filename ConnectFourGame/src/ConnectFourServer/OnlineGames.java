@@ -12,29 +12,33 @@ import java.util.HashMap;
 public class OnlineGames {
 	
 	//The current online client (their udp addresses)
-	ArrayList<Client> udpClients;
+	private ArrayList<Client> udpClients;
 	
 	//This way we can know if the client was alive
-	HashMap<String, Boolean> isAlive;
+	private HashMap<String, Boolean> isAlive;
 	
 	public static class Client
 	{
 		private InetAddress address;
-		private int port;
-		public Client(InetAddress host, int port)
+		private String name;
+		private int UDPport;
+		public Client(InetAddress host, int UDPport,String name)
 		{
 			address=host;
-			this.port=port;
+			this.UDPport=UDPport;
+			this.name = name;
 		}
-		public int getPort()
+		public int getUDPPort()
 		{
-			return port;
+			return UDPport;
 		}
 		public InetAddress getAddress()
 		{
 			return address;
 		}
-		
+		public String getName(){
+			return name;
+		}
 	}
 	
 	public OnlineGames()
@@ -46,8 +50,10 @@ public class OnlineGames {
 	
 	 public synchronized void addClientToUdpList(Client client)
 	 {
-		 udpClients.add(client);
-		 isAlive.put(client.getAddress().toString(),new Boolean( true));
+		 if(!udpClients.contains(client)){
+			 udpClients.add(client);	
+			 isAlive.put(client.getName(),new Boolean( true));
+		 }
 	 }
 	 
 	 public synchronized ArrayList<Client> getUdpList()
