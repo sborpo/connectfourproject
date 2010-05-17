@@ -22,7 +22,7 @@ public class ServerListener extends Thread {
 	public void run() {
 		DatagramSocket socket = null;
 		//wait till the client gets from server udp port
-		while(client.serverUDPPort() <= 0){
+		while(client.serverUDPPort() == client.unDEFport && client.listenToServerPort() == client.unDEFport){
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
