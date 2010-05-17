@@ -1,11 +1,15 @@
 package ConnectFourServer;
 
+import gameManager.Player;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
@@ -52,10 +56,9 @@ public class RequestHandler implements Runnable {
 				
 				//get the response
 				response = respondToMessage(inputLine);
-				System.out.println("Send to client: "+response);
+				System.out.println("Send to client: " + response);
 				out.println(response);
 				out.println();
-				System.out.println("NEXT LAP?");
 			}
 			System.out.println("------------------FINISHED-----------------");
 			if (out != null) {
@@ -98,19 +101,13 @@ public class RequestHandler implements Runnable {
 				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2]); 
 			}
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
-				respondMsg = newGameTreat(params[1]);
+				respondMsg = newGameTreat(Integer.parseInt(params[1]),params[2]);
 			}
 			else if(command.equals(ClientServerProtocol.PLAY)){
-				respondMsg = playTreat(Integer.parseInt(params[1]),params[2]);
+				respondMsg = playTreat(Integer.parseInt(params[1]),params[2],params[3]);
 			}
 			else if(command.equals(ClientServerProtocol.WATCH)){
 				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2]);
-			}
-			else if(command.equals(ClientServerProtocol.YES)){
-				respondMsg = yesStartTreat(Integer.parseInt(params[1]),params[2]);
-			}
-			else if(command.equals(ClientServerProtocol.NO)){
-				respondMsg = noGameTreat(Integer.parseInt(params[1]),params[2]);
 			}
 			else if(command.equals(ClientServerProtocol.OK)){
 				respondMsg = okOnWatchTreat(Integer.parseInt(params[1]),params[2]);
@@ -126,36 +123,82 @@ public class RequestHandler implements Runnable {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
-	private String noGameTreat(int parseInt, String string) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	private String yesStartTreat(int parseInt, String string) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	private String watchTreat(int parseInt, String string) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private String playTreat(int parseInt, String string) {
-		// TODO Auto-generated method stub
-		return null;
+	private String playTreat(int gamePort, String gameId,String clientName) {
+		String response = ClientServerProtocol.KNOWYA;
+		//check if the client is in the list and not in a game
+		OnlineClients.Client theClient = server.clients.getClient(clientName);
+		if(theClient != null){
+			if(theClient.getGame() == null){
+				//check if the game exists 
+				OnlineGames.Game theGame = server.games.getGame(gameId);
+				if(theGame != null){
+					//and has no second player
+					Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
+					if(thePlayer == null){
+						theGame.addPlayer(clientName);
+						OnlineClients.Client enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
+						if(enemy != null){
+							response = ClientServerProtocol.GOGOGO + " " 
+										+ enemy.getTCPPort() + " " 
+										+ enemy.getAddress().getHostAddress() + " " 
+										+ enemy.getName();
+							server.printLog("Player has been added to the game: " + gameId + "\n");
+							theClient.setGameForClient(gameId);
+						}
+						else{
+							server.printLog("WE HAVE PROBLEM IN SERVER MAN\n");
+							response = ClientServerProtocol.SERVPROB;
+						}
+					}
+					else{
+						server.printLog("Other man playing..." + thePlayer.getName() +"\n");
+						response = ClientServerProtocol.DENIED;
+					}
+				}
+				else{
+					server.printLog("WE HAVE PROBLEM IN SERVER MAN\n");
+					response = ClientServerProtocol.SERVPROB;
+				}
+			}
+			else{
+				response = ClientServerProtocol.DENIED;
+			}
+		}
+		return response;
 	}
 
-	private String newGameTreat(String playerName) {
-		//TODO: generate game id
-		//TODO: check if the client is in the list
-		String response = ClientServerProtocol.DENIED; 
+	private String newGameTreat(int gamePort,String playerName) {
+		String response = ClientServerProtocol.KNOWYA;
+		//generate game id
+		String gameId = playerName + Long.toString(System.currentTimeMillis());
+		//check if the client is in the list 
+		OnlineClients.Client theClient = server.clients.getClient(playerName);
+		if(theClient != null){
+			//and not in a game
+			if(theClient.getGame() == null){
+				//create new game
+				theClient.setTCPPort(gamePort);
+				OnlineGames.Game newGame = null;
+				newGame = new OnlineGames.Game(playerName, null, gameId);
+				server.games.addGame(newGame);
+				theClient.setGameForClient(gameId);
+				response = ClientServerProtocol.GAME + " " + gameId;
+				server.printLog("The game has been created: " + theClient.getGame() + "\n");
+			}
+			else{
+				response = ClientServerProtocol.DENIED;
+			}
+		}
 		return response;
 	}
 
 	private String meetMeTreat(int clientUDPPort,String clientName){
-		server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName));
+		server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,-1));
 		String response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort()); 
 		return response; 
 	}

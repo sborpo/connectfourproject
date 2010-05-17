@@ -21,15 +21,13 @@ public class ClientServerProtocol {
 	public static final String OK = "OK";
 	public static final String GAME = "GAME";
 	public static final String NOCONN = "NO_CONNECTION";
-	public static final String WANNA = "WANNA";
-	public static final String YES = "YES";
-	public static final String NO = "NO";
 	public static final String TAKE = "TAKE";
 	public static final String KNOWYA = "KNOW_YOU?";
 	public static final String WHAT = "DON'T_UNDERSTAND";
 	public static final String DENIED = "DENIED";
 	public static final String NICETM = "NICE_TO_MEET_YOU";
 	public static final String GOGOGO = "GOGOGO";
+	public static final String SERVPROB = "SERVER_INTERNAL_PROBLEMS";
 	
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
@@ -49,13 +47,10 @@ public class ClientServerProtocol {
 			legalCommands.add(NEWGAME);
 			legalCommands.add(PLAY);
 			legalCommands.add(WATCH);
-			legalCommands.add(YES);
-			legalCommands.add(NO);
 			legalCommands.add(OK);
 			legalCommands.add(WHAT);
 		}
 		else{
-			legalCommands.add(WANNA);
 			legalCommands.add(NOCONN);
 			legalCommands.add(TAKE);
 			legalCommands.add(KNOWYA);
@@ -64,26 +59,25 @@ public class ClientServerProtocol {
 			legalCommands.add(NICETM);
 			legalCommands.add(GAME);
 			legalCommands.add(GOGOGO);
+			legalCommands.add(SERVPROB);
 		}
 	}
 	
 	private void mapInit(){
 		numOfParametersForCmd.put(MEETME, 2);
-		numOfParametersForCmd.put(NEWGAME, 1);
+		numOfParametersForCmd.put(NEWGAME, 2);
 		numOfParametersForCmd.put(PLAY, 3);
 		numOfParametersForCmd.put(WATCH, 3);
-		numOfParametersForCmd.put(YES, 1);
-		numOfParametersForCmd.put(NO, 0);
 		numOfParametersForCmd.put(OK, 0);
-		numOfParametersForCmd.put(WANNA, 3);
 		numOfParametersForCmd.put(NOCONN, 0);
 		numOfParametersForCmd.put(TAKE, 2);
 		numOfParametersForCmd.put(KNOWYA, 0);
 		numOfParametersForCmd.put(WHAT, 0);
 		numOfParametersForCmd.put(DENIED, 0);
 		numOfParametersForCmd.put(NICETM, 1);
-		numOfParametersForCmd.put(GAME, 2);
+		numOfParametersForCmd.put(GAME, 1);
 		numOfParametersForCmd.put(GOGOGO, 3);
+		numOfParametersForCmd.put(SERVPROB, 0);
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");

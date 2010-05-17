@@ -14,25 +14,21 @@ import java.net.UnknownHostException;
 import java.util.Random;
 
 import ConnectFourServer.MainServer;
-import ConnectFourServer.OnlineClients.Client;
 
 public class Game {
 
-	private String gameId;
 	private Player red;
 	private Player blue;
 	private Board gameBoard;
 	private Player plays;
 
-	public Game(Client client1,Client client2,String gameId) {
-		red = new Player(Player.Color.RED,client1);
-		blue = new Player(Player.Color.BLUE,client2);
+	public Game(String name1,String name2) {
+		red = new Player(Player.Color.RED,name1);
+		blue = new Player(Player.Color.BLUE,name2);
 		gameBoard = new Board();
-		this.gameId = gameId;
 	}
 
-	public void startOnlineGame(int clientPort, String opponentHost,
-			int opponentPort, boolean startsGame) {
+	public void startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame) {
 		Player clientPlayer;
 
 		ServerSocket serverSocket = null;
@@ -161,15 +157,9 @@ public class Game {
 		} else {
 			plays = red;
 		}
-	}
-	
-	public Player getPlayer(Player.Color pColor){
-		return pColor.equals(Player.Color.RED) ? red : blue;
+
 	}
 
-	public String getId(){
-		return gameId;
-	}
 //	public static void main(String[] args) {
 //		Game game = new Game();
 //		game.startGame();
