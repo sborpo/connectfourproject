@@ -23,11 +23,14 @@ public class TheClient {
 	private String serverHost;
 	private String clientName;
 	private int clientUdp = unDEFport;
+
 	private int clientGamePort = unDEFport;
 	private String opponentGameHost = "";
 	private int opponentGamePort = unDEFport;
-	private int clientWatchPort = unDEFport;
+	private String opponentName = "";
+	private int clientWatchPort = unDEFport;	
 	private boolean clientStartsGame;
+	private String gameId = "";
 
 	private InetAddress serverAddress;
 
@@ -189,17 +192,32 @@ public class TheClient {
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
 		String[] params = parser.parseCommand(message);
 		boolean responseRes = true;
+		
+		if(params == null){
+			System.out.println("I don't understand what server say...");
+			responseRes = false;
+			return responseRes;
+		}
+		
 
 		String command = params[0];
 
 		if(command.equals(ClientServerProtocol.NICETM)){
 			 serverUdpPort = Integer.parseInt(params[1]);
 		}
-		else if(command.equals(ClientServerProtocol.WANNA)){
-			
-		}
 		else if(command.equals(ClientServerProtocol.GAME)){
-			
+			gameId = params[1];
+			System.out.println("Received game: " + gameId + ", starting waiting on game port...");
+			//TODO implement game listener class and start it here
+		}
+		else if(command.equals(ClientServerProtocol.GOGOGO)){
+			opponentGamePort = Integer.parseInt(params[1]);
+			opponentGameHost = params[2];
+			opponentName = params[3];
+			System.out.println("Accepted game with: " + opponentName + 
+								" host: " + opponentGameHost + 
+								" port: " + opponentGamePort);
+			//TODO implement beginning of the game
 		}
 		else if(command.equals(ClientServerProtocol.NOCONN)){
 			responseRes = false;

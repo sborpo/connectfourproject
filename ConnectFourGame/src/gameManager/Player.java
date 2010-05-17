@@ -9,18 +9,18 @@ public class Player {
 	};
 
 	private Color playerCol;
-	private Client client;
+	private String playerName;
 
-	public Player(Color col,Client theClient) {
-		client = theClient;
+	public Player(Color col,String name){ 
+		playerName = name;
 		playerCol = col;
 	}
 
 	public Color getColor() {
 		return playerCol;
 	}
-
-	public Client getClient(){
-		return client;
+	
+	public String getName(){
+		return playerName;
 	}
 }

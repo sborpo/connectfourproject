@@ -51,8 +51,8 @@ public class MainServer {
 		connectionsPool = Executors.newCachedThreadPool();
 		printer = new LogPrinter();
 		this.printLog("TCP: "+serverTCPPort+"\nUDP: "+serverUDPPort);
-		games = new OnlineGames();
-		clients = new OnlineClients();
+		games = new OnlineGames(this);
+		clients = new OnlineClients(this);
 		//connectedClients = new HashMap<String, ConnectedClient>();
 		try {
 			serverUdp = new DatagramSocket(getServerUDPPort());
