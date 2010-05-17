@@ -1,4 +1,4 @@
-package ConnectFourClient;
+package gameManager;
 
 public class Board {
 	public static class IllegalMove extends Exception {

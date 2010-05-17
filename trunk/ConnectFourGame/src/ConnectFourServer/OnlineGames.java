@@ -1,9 +1,10 @@
 package ConnectFourServer;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import gameManager.Game;
+import gameManager.Player;
+import ConnectFourServer.OnlineClients.Client;;
 /**
  * Datastructure of the current online games.
  * @author Boris
@@ -11,84 +12,41 @@ import java.util.HashMap;
  */
 public class OnlineGames {
 	
-	//The current online client (their udp addresses)
-	private HashMap<String,Client> udpClients;
-	
-	//This way we can know if the client was alive
-	private HashMap<String, Boolean> isAlive;
-	
-	public static class Client
-	{
-		private InetAddress address;
-		private String name;
-		private int UDPport;
-		public Client(InetAddress host, int UDPport,String name)
-		{
-			address=host;
-			this.UDPport=UDPport;
-			this.name = name;
-		}
-		public int getUDPPort()
-		{
-			return UDPport;
-		}
-		public InetAddress getAddress()
-		{
-			return address;
-		}
-		public String getName(){
-			return name;
-		}
-	}
+	//The current online games (game ID to game hash)
+	private HashMap<String,Game> playingGames;
 	
 	public OnlineGames()
 	{
-		udpClients= new HashMap<String,Client>();
-		isAlive= new HashMap<String, Boolean>();
+		playingGames = new HashMap<String,Game>();		
+	}	
+	
+	public synchronized ArrayList<Game> getOnlineGames(){
+		ArrayList<Game> onlineGames = new ArrayList<Game>();
 		
-	}
-	
-	public synchronized void resetIsAliveMap(){
-		for(String key : isAlive.keySet()){
-			isAlive.put(key, false);
+		for(String gameId : playingGames.keySet()){
+			onlineGames.add(playingGames.get(gameId));
 		}
+		
+		return onlineGames;
 	}
 	
-	 public synchronized void addClientToUdpList(Client client)
-	 {
-		 String clientName = client.getName();
-		 if(!udpClients.containsKey(clientName)){
-			 udpClients.put(clientName,client);	
-			 isAlive.put(client.getName(),new Boolean( true));
-		 }
-	 }
-	 
-	 public synchronized ArrayList<Client> getUdpList()
-	 {
-		 ArrayList<Client> clients = new ArrayList<Client>();
-		 for(String key : udpClients.keySet()){
-			 clients.add(udpClients.get(key));
-			}
-		 return clients;
-	 }
-	 
-	 public synchronized boolean setAliveIfExists(String clientName){
-		 if(isAlive.containsKey(clientName)){
-			 isAlive.put(clientName,true);
-			 return true;
-		 }
-		 return false;
-	 }
-	
-	public synchronized void removeIfNotAlive(){
-		for(String key : isAlive.keySet()){
-			boolean alive = isAlive.get(key);
-			if(!alive){
-				System.out.println("Removing: "+ key +"...");
-				udpClients.remove(key);
-			}
+	public synchronized ArrayList<String> getDownGames(ArrayList<Client> onlineClients){
+		ArrayList<String> downGamesIds = new ArrayList<String>();
+		
+		for(String gameId : playingGames.keySet()){
+			Game currGame = playingGames.get(gameId); 
+			Client player1 = currGame.getPlayer(Player.Color.RED).getClient();
+			Client player2 = currGame.getPlayer(Player.Color.BLUE).getClient();
+			
+			if(!onlineClients.contains(player1) && !onlineClients.contains(player2))
+				downGamesIds.add(currGame.getId());
 		}
+		
+		return downGamesIds;
 	}
 	
+	public synchronized Game getGame(String gameId){
+		return playingGames.get(gameId);
+	}
 
 }

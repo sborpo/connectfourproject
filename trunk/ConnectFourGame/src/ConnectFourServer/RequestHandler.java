@@ -155,7 +155,7 @@ public class RequestHandler implements Runnable {
 	}
 
 	private String meetMeTreat(int clientUDPPort,String clientName){
-		server.games.addClientToUdpList(new OnlineGames.Client(clientSock.getInetAddress(), clientUDPPort,clientName));
+		server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName));
 		String response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort()); 
 		return response; 
 	}
