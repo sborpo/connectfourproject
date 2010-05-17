@@ -1,4 +1,7 @@
-package ConnectFourClient;
+package gameManager;
+
+import gameManager.Board.GameState;
+import gameManager.Board.IllegalMove;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,21 +13,22 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Random;
 
-import ConnectFourClient.Board.GameState;
-import ConnectFourClient.Board.IllegalMove;
 import ConnectFourServer.MainServer;
+import ConnectFourServer.OnlineClients.Client;
 
 public class Game {
 
+	private String gameId;
 	private Player red;
 	private Player blue;
 	private Board gameBoard;
 	private Player plays;
 
-	public Game() {
-		red = new Player(Player.Color.RED);
-		blue = new Player(Player.Color.BLUE);
+	public Game(Client client1,Client client2,String gameId) {
+		red = new Player(Player.Color.RED,client1);
+		blue = new Player(Player.Color.BLUE,client2);
 		gameBoard = new Board();
+		this.gameId = gameId;
 	}
 
 	public void startOnlineGame(int clientPort, String opponentHost,
@@ -157,11 +161,17 @@ public class Game {
 		} else {
 			plays = red;
 		}
-
+	}
+	
+	public Player getPlayer(Player.Color pColor){
+		return pColor.equals(Player.Color.RED) ? red : blue;
 	}
 
-	public static void main(String[] args) {
-		Game game = new Game();
-		game.startGame();
+	public String getId(){
+		return gameId;
 	}
+//	public static void main(String[] args) {
+//		Game game = new Game();
+//		game.startGame();
+//	}
 }

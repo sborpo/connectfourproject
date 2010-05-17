@@ -26,7 +26,7 @@ public class UdpListener implements Runnable {
 		//now do it infinitely
 		while (true) {
 			//get the clients which opened a game
-			ArrayList<OnlineGames.Client> clientsList = server.games.getUdpList();
+			ArrayList<OnlineClients.Client> clientsList = server.clients.getUdpList();
 			//if there are no clients , sleep for a 5 seconds and retry
 			if (clientsList.size()==0)
 			{
@@ -42,7 +42,7 @@ public class UdpListener implements Runnable {
 			
 			server.printLog("SENDING ALIVE MESSAGES...\n");
 			//send to each client the message to check if he is alive
-			for (OnlineGames.Client client : clientsList) {
+			for (OnlineClients.Client client : clientsList) {
 				try {
 					server.printLog("To: "+client.getName()+", port: "+client.getUDPPort()+"\n");
 					socket.send(new DatagramPacket(buffer, buffer.length,
@@ -64,7 +64,7 @@ public class UdpListener implements Runnable {
 				e1.printStackTrace();
 			}
 			//reset the alive map
-			server.games.resetIsAliveMap();
+			server.clients.resetIsAliveMap();
 			server.printLog("UDP:Waiting for client response...\n");
 			while (true) {
 				try {
@@ -83,7 +83,7 @@ public class UdpListener implements Runnable {
 									+ " The message is:\n----------------------------\n"
 									+ clientMessage);
 					//set the client alive
-					if(!server.games.setAliveIfExists(clientName)){
+					if(!server.clients.setAliveIfExists(clientName)){
 						server.printLog("Client with name: "+ clientName + " doesn't exists\n");
 					}
 					//sleep for 20 seconds and then start over.
@@ -101,7 +101,7 @@ public class UdpListener implements Runnable {
 					// The minute was exceeded now don't wait for answers, analyze the 
 					//result , which client returned an answer
 					System.out.println("TIMEOUT, remove unresponded clients");
-					server.games.removeIfNotAlive();
+					server.clients.removeIfNotAlive();
 					break;
 				} catch (IOException e) {
 					// TODO Auto-generated catch block

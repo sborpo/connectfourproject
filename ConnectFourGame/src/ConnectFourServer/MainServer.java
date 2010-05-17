@@ -27,6 +27,9 @@ public class MainServer {
 
 	//Data structure which manages the OnlineGames
 	public OnlineGames games;
+	
+	//Data structure which manages the OnlineClients
+	public OnlineClients clients;
 
 	public int getServerTCPPort() {
 		return serverTCPPort;
@@ -49,6 +52,7 @@ public class MainServer {
 		printer = new LogPrinter();
 		this.printLog("TCP: "+serverTCPPort+"\nUDP: "+serverUDPPort);
 		games = new OnlineGames();
+		clients = new OnlineClients();
 		//connectedClients = new HashMap<String, ConnectedClient>();
 		try {
 			serverUdp = new DatagramSocket(getServerUDPPort());
