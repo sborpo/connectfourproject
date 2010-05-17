@@ -17,15 +17,16 @@ import theProtocol.ClientServerProtocol.msgType;
  */
 public class TheClient {
 
-	private int serverUdpPort;
+	public int unDEFport = -1; 
+	private int serverUdpPort = unDEFport;
 	private int serverPort;
 	private String serverHost;
 	private String clientName;
-	private int clientUdp = -1;
-	private int clientGamePort = -1;
+	private int clientUdp = unDEFport;
+	private int clientGamePort = unDEFport;
 	private String opponentGameHost = "";
-	private int opponentGamePort = -1;
-	private int clientWatchPort = 1;
+	private int opponentGamePort = unDEFport;
+	private int clientWatchPort = unDEFport;
 	private boolean clientStartsGame;
 
 	private InetAddress serverAddress;
@@ -66,7 +67,7 @@ public class TheClient {
 		serverHost = args[0];
 		System.out.println("Server: " + serverHost);
 		serverPort = Integer.parseInt(args[1]);
-		System.out.println("Server port: "+serverPort);
+		System.out.println("Server TCP port: "+serverPort);
 		clientName = args[2];
 		System.out.println("Clent name: "+clientName);
 		//clientUdp = Integer.parseInt(args[3]);
@@ -138,7 +139,9 @@ public class TheClient {
 					System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
 				}
 				
-				serverConnection.close();
+				if(serverConnection != null){
+					serverConnection.close();
+				}
 			}
 			
 			
