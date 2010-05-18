@@ -1,5 +1,7 @@
 package ConnectFourClient;
 
+import gameManager.Game;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -29,8 +31,8 @@ public class TheClient {
 	private int opponentGamePort = unDEFport;
 	private String opponentName = "";
 	private int clientWatchPort = unDEFport;	
-	private boolean clientStartsGame;
 	private String gameId = "";
+	private Game game;
 
 	private InetAddress serverAddress;
 
@@ -112,9 +114,15 @@ public class TheClient {
 						break;
 					}
 					
-					System.out.println("Sending your message: "+ inputLine +" to the server...");
 					// send the command to the server
-					serverConnection = new Socket(serverAddress, serverPort);
+					try{
+						serverConnection = new Socket(serverAddress, serverPort);
+					}
+					catch (IOException ex){
+						System.out.println("Connection problems with server: "+ ex.getMessage());
+						break;
+					}
+					System.out.println("Sending your message: "+ inputLine +" to the server...");
 					PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
 					BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
 					out.println(inputLine);
@@ -126,8 +134,8 @@ public class TheClient {
 						if(inputLine.equals("")){
 							break;
 						}
-						parseResponse(inputLine);
 						System.out.println("\n\nServer Response is:" + inputLine);
+						parseResponse(inputLine);
 					}
 					
 					if(out != null){
@@ -147,10 +155,6 @@ public class TheClient {
 				}
 			}
 			
-			
-			// Game game = new Game();
-			// game.startOnlineGame(clientGamePort, opponentGameHost,
-			// opponentGamePort, clientStartsGame);
 		}
 		catch (IOException ex) {
 			ex.printStackTrace();
@@ -181,6 +185,7 @@ public class TheClient {
 		}
 		else if(params[0].equals(ClientServerProtocol.PLAY)){
 			clientGamePort = Integer.parseInt(params[1]);
+			gameId = params[2];
 		}
 		else if(params[0].equals(ClientServerProtocol.WATCH)){
 			clientWatchPort = Integer.parseInt(params[1]);
@@ -208,7 +213,8 @@ public class TheClient {
 		else if(command.equals(ClientServerProtocol.GAME)){
 			gameId = params[1];
 			System.out.println("Received game: " + gameId + ", starting waiting on game port...");
-			//TODO implement game listener class and start it here
+			game = new Game(clientName, null,gameId);
+			game.startOnlineGame(clientGamePort, null,-1, true);
 		}
 		else if(command.equals(ClientServerProtocol.GOGOGO)){
 			opponentGamePort = Integer.parseInt(params[1]);
@@ -216,8 +222,10 @@ public class TheClient {
 			opponentName = params[3];
 			System.out.println("Accepted game with: " + opponentName + 
 								" host: " + opponentGameHost + 
-								" port: " + opponentGamePort);
-			//TODO implement beginning of the game
+								" port: " + opponentGamePort +
+								" game: " + gameId);
+			game = new Game(opponentName, clientName,gameId);
+			game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false);			
 		}
 		else if(command.equals(ClientServerProtocol.NOCONN)){
 			responseRes = false;

@@ -13,18 +13,23 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Random;
 
-import ConnectFourServer.MainServer;
-
 public class Game {
 
+	private String gameId;
 	private Player red;
 	private Player blue;
 	private Board gameBoard;
 	private Player plays;
 
-	public Game(String name1,String name2) {
+	public Game(String name1,String name2,String gameId) {
 		red = new Player(Player.Color.RED,name1);
-		blue = new Player(Player.Color.BLUE,name2);
+		if(name2 != null){
+			blue = new Player(Player.Color.BLUE,name2);
+		}
+		else{
+			blue = null;
+		}
+		this.gameId = gameId;
 		gameBoard = new Board();
 	}
 
@@ -40,10 +45,10 @@ public class Game {
 			if (startsGame == true) {
 				serverSocket = new ServerSocket(clientPort);
 				// can be a timeout how much to wait for an opponent
+				System.out.println("Waiting for opponent to connect ...\n");
 				opponentSocket = serverSocket.accept();
 				clientPlayer = red;
-				System.out.println("Waiting for opponent to connect \n");
-				System.out.println("Opponent Was Connected \n\n");
+				System.out.println("Opponent Was Connected \n");
 				System.out.println("You Are The Red Player \n");
 			} else {
 				InetAddress address = null;
@@ -59,10 +64,17 @@ public class Game {
 				System.out.println("You Are The Blue Player \n");
 			}
 			stdin = new BufferedReader(new InputStreamReader(System.in));
-			opponentIn = new BufferedReader(new InputStreamReader(
-					opponentSocket.getInputStream()));
+			opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
 			clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
-
+			if(clientPlayer.equals(blue)){
+				clientToOpponent.println(clientPlayer.getName());
+			}
+			else{
+				String name2 = opponentIn.readLine();
+				if( name2 != null){
+					addPlayer(name2);
+				}
+			}
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
@@ -70,12 +82,14 @@ public class Game {
 		}
 
 		plays = red;
-		String playerStr;
+		//String playerStr;
 		GameState state = GameState.PROCEED;
 		while (state.equals(GameState.PROCEED)) {
 			gameBoard.PrintBoard();
 			int colnum = -1;
 			try {
+				System.out.println("The client is: "+ clientPlayer.getName());
+				System.out.println("Plays: " + plays.getName());
 				if (plays.equals(clientPlayer)) {
 					System.out.println("Please Enter Your Move:\n");
 					colnum = Integer.parseInt(stdin.readLine());
@@ -152,12 +166,26 @@ public class Game {
 	}
 
 	private void nextPlayer() {
+		System.out.println("Current player: "+plays.getName());
 		if (plays.getColor().equals(Player.Color.RED)) {
 			plays = blue;
 		} else {
 			plays = red;
 		}
+		System.out.println("Changed to player: "+plays.getName());
+	}
+	
+	public void addPlayer(String player2){
+		System.out.println("Adding player: " + player2);
+		blue = new Player(Player.Color.BLUE,player2);
+	}
+	 
+	public Player getPlayer(Player.Color pColor){
+		return pColor.equals(Player.Color.RED) ? red : blue;
+	}
 
+	public String getId(){
+		return gameId;
 	}
 
 //	public static void main(String[] args) {
