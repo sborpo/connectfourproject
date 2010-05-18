@@ -119,13 +119,18 @@ public class Game {
 
 		System.out.println(won + " player has won the game!\n\n");
 		
-		if( opponentSocket != null){
-			try {
+		
+		try {
+			if( opponentSocket != null){
 				opponentSocket.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
+			
+			if(serverSocket != null){
+				serverSocket.close();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return;
 
