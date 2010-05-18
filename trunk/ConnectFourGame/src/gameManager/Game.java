@@ -118,6 +118,15 @@ public class Game {
 		String won = state.equals(GameState.RED_WON) ? "Red" : "Blue";
 
 		System.out.println(won + " player has won the game!\n\n");
+		
+		if( opponentSocket != null){
+			try {
+				opponentSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return;
 
 	}
@@ -161,6 +170,7 @@ public class Game {
 		String won = state.equals(GameState.RED_WON) ? "Red" : "Blue";
 
 		System.out.println(won + " player has won the game!\n\n");
+		
 		return;
 
 	}
