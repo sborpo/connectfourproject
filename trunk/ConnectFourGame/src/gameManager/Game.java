@@ -87,12 +87,21 @@ public class Game {
 		while (state.equals(GameState.PROCEED)) {
 			gameBoard.PrintBoard();
 			int colnum = -1;
+			String inLine = null;
 			try {
 				System.out.println("The client is: "+ clientPlayer.getName());
 				System.out.println("Plays: " + plays.getName());
 				if (plays.equals(clientPlayer)) {
 					System.out.println("Please Enter Your Move:\n");
-					colnum = Integer.parseInt(stdin.readLine());
+					while(colnum == -1){
+						inLine = stdin.readLine();
+						if(inLine.equals("")){
+							System.out.println("Empty move, try again...");
+						}
+						else{
+							colnum	=	Integer.parseInt(inLine);
+						}
+					}
 				} else {
 					System.out.println("Waiting For Opponent Move!:\n");
 					colnum = Integer.parseInt(opponentIn.readLine());
