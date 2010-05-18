@@ -1,5 +1,6 @@
 package ConnectFourServer;
 
+import gameManager.Game;
 import gameManager.Player;
 
 import java.net.InetAddress;
@@ -123,7 +124,7 @@ public class OnlineClients {
 				if(theClient == null){
 					server.printLog("SOME PROBLEM WHILE REMOVING\n");
 				}
-				OnlineGames.Game game = server.games.getGame(theClient.getGame());
+				Game game = server.games.getGame(theClient.getGame());
 				if(game != null){
 					server.printLog("Removing game : "+ game.getId() +"...\n");
 					server.games.removeGame(game.getId());

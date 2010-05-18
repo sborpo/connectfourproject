@@ -22,40 +22,7 @@ public class OnlineGames {
 	{
 		this.server = server;
 		playingGames = new HashMap<String,Game>();		
-	}	
-	
-	
-	public static class Game
-	{
-		private String gameId;
-		private Player red = null;
-		private Player blue = null;
-		
-		public Game(String client1,String client2,String gameId){
-			red = new Player(Player.Color.RED,client1);
-			if(client2 != null){
-				blue = new Player(Player.Color.BLUE,client2);
-			}
-			else{
-				blue = null;
-			}
-			this.gameId = gameId;
-		}
-		
-		public void addPlayer(String player2){
-			blue = new Player(Player.Color.BLUE,player2);
-		}
-		 
-		public Player getPlayer(Player.Color pColor){
-			return pColor.equals(Player.Color.RED) ? red : blue;
-		}
-
-		public String getId(){
-			return gameId;
-		}
-		
-	}
-	
+	}		
 	
 	public synchronized void addGame(Game game){
 		playingGames.put(game.getId(), game);
@@ -79,7 +46,7 @@ public class OnlineGames {
 		ArrayList<String> downGamesIds = new ArrayList<String>();
 		
 		for(String gameId : playingGames.keySet()){
-			OnlineGames.Game currGame = playingGames.get(gameId); 
+			Game currGame = playingGames.get(gameId); 
 			String player1 = currGame.getPlayer(Player.Color.RED).getName();
 			String player2 = currGame.getPlayer(Player.Color.BLUE).getName();
 			

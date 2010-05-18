@@ -1,5 +1,6 @@
 package ConnectFourServer;
 
+import gameManager.Game;
 import gameManager.Player;
 
 import java.io.BufferedReader;
@@ -135,7 +136,7 @@ public class RequestHandler implements Runnable {
 		if(theClient != null){
 			if(theClient.getGame() == null){
 				//check if the game exists 
-				OnlineGames.Game theGame = server.games.getGame(gameId);
+				Game theGame = server.games.getGame(gameId);
 				if(theGame != null){
 					//and has no second player
 					Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
@@ -183,8 +184,8 @@ public class RequestHandler implements Runnable {
 			if(theClient.getGame() == null){
 				//create new game
 				theClient.setTCPPort(gamePort);
-				OnlineGames.Game newGame = null;
-				newGame = new OnlineGames.Game(playerName, null, gameId);
+				Game newGame = null;
+				newGame = new Game(playerName, null, gameId);
 				server.games.addGame(newGame);
 				theClient.setGameForClient(gameId);
 				response = ClientServerProtocol.GAME + " " + gameId;
