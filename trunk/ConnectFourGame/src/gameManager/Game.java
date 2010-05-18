@@ -115,7 +115,7 @@ public class Game {
 		if (state.equals(GameState.TIE)) {
 			System.out.println("The game ended with Tie!\n\n");
 		}
-		String won = state.equals(GameState.RED_WON) ? "Red" : "Blue";
+		String won = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
 
 		System.out.println(won + " player has won the game!\n\n");
 		
