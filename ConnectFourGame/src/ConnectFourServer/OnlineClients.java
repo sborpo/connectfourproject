@@ -114,6 +114,10 @@ public class OnlineClients {
 		 return false;
 	 }
 	
+	 
+	 
+	 
+	 
 	public synchronized void removeIfNotAlive(){
 		ArrayList<String> toRemove = new ArrayList<String>();
 		for(String key : isAlive.keySet()){
@@ -133,11 +137,14 @@ public class OnlineClients {
 				toRemove.add(key);
 			}
 		}
-		
+
 		for(String key : toRemove){
 			isAlive.remove(key);
 		}
 	}
+		
+		
+
 	
 
 
