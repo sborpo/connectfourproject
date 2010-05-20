@@ -72,7 +72,10 @@ public class Timer implements Runnable
 		}
 	}
 
-	
+	public int getElapsed()
+	{
+		return m_elapsed;
+	}
 	private void timeout()
 	{
 		return;

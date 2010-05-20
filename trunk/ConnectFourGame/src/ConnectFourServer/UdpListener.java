@@ -25,8 +25,16 @@ public class UdpListener implements Runnable {
 		
 		//now do it infinitely
 		while (true) {
-			//get the clients which opened a game
-			ArrayList<String> clientsList = server.clients.getClients();
+			ArrayList<String> clientsList=null;
+			
+			
+			synchronized (server.clients) {
+				//reset the alive map
+				server.clients.resetIsAliveMap();
+				//get the clients which opened a game
+				clientsList = server.clients.getClients();
+			}
+			
 			//if there are no clients , sleep for a 5 seconds and retry
 			if (clientsList.size()==0)
 			{
@@ -64,15 +72,20 @@ public class UdpListener implements Runnable {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			//reset the alive map
-			server.clients.resetIsAliveMap();
+			
 			server.printLog("UDP:Waiting for client response...\n");
 			int receivedAns = 0;
+			//start a 30 seconds timer
+			Timer timer= new Timer(30);
+			timer.start();
 			while (true) {
 				try {
-					//set the receive timeout to be one minute(in milliseconds)
-					//VALERIY: it is a problem here, the minute must be private to each client.
+
 					socket.receive(answer);
+					//update the socket timeout accorfing to the Timer elapsed time. if it passed 
+					//the 30 seconds , so put 1 milisecond timeout , this way in the next iteration
+					//socket timeout will be thrown
+					socket.setSoTimeout((30000-timer.getElapsed())>0 ? (30000-timer.getElapsed()) : 1);
 					byte[] ans2 = new byte[answer.getLength()];
 					for (int i = 0; i < ans2.length; i++) {
 						ans2[i] = ans[i];
@@ -122,6 +135,14 @@ public class UdpListener implements Runnable {
 
 			}
 			//server.printLog("No clients yet, waiting...\n");
+			
+			//after checking , sleep for 30 seconds , and then start over
+			try {
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
