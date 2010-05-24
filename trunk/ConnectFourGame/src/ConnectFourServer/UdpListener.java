@@ -7,6 +7,9 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 
+import theProtocol.ClientServerProtocol;
+import theProtocol.ClientServerProtocol.msgType;
+
 public class UdpListener implements Runnable {
 
 	private MainServer server;
@@ -20,7 +23,7 @@ public class UdpListener implements Runnable {
 	@Override
 	public void run() {
 		//Set the message that will be sent to the clients
-		String message = "Are You Alive?\n";
+		String message = ClientServerProtocol.YOUALIVE;
 		byte[] buffer = message.getBytes();
 		
 		//now do it infinitely
@@ -90,9 +93,17 @@ public class UdpListener implements Runnable {
 					for (int i = 0; i < ans2.length; i++) {
 						ans2[i] = ans[i];
 					}
-					String str = new String(ans2);
-					String clientName = str.split(":")[0];
-					String clientMessage = str.split(":")[1];
+					String aliveResponse = new String(ans2);
+					ClientServerProtocol prot= new ClientServerProtocol(msgType.SERVER);
+					String[] theResponse = prot.parseCommand(aliveResponse);
+					
+					if(theResponse == null){
+						server.printLog("I don't understand clients respond to alive message\n");
+						break;
+					}
+					
+					String clientName = theResponse[1];
+					String clientMessage = theResponse[0];
 					server.printLog("\n----------------------------\nUDP recieved From Client: "+clientName
 									+ ", "+answer.getAddress().toString()
 									+ " The message is:\n----------------------------\n"

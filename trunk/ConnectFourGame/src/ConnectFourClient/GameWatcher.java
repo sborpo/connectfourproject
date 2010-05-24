@@ -25,7 +25,7 @@ public class GameWatcher implements Runnable{
 		}
 		byte[] message = new byte[100000];
 		while (true) {
-			//wait to an echo message from the server
+			//wait to an echo message from the player
 			DatagramPacket mes = new DatagramPacket(message, message.length);
 			try {
 				socket.receive(mes);
@@ -35,11 +35,11 @@ public class GameWatcher implements Runnable{
 			}
 			
 			//copy the message to a buffer , in order to print later
-			byte[] serverMessage = new byte[mes.getLength()];
-			for (int i = 0; i < serverMessage.length; i++) {
-				serverMessage[i] = message[i];
+			byte[] playerMessage = new byte[mes.getLength()];
+			for (int i = 0; i < playerMessage.length; i++) {
+				playerMessage[i] = message[i];
 			}
-			String str = new String(serverMessage);
+			String str = new String(playerMessage);
 			System.out.println("Got This Move: "+str);
 		
 		}
