@@ -113,16 +113,16 @@ public class UdpListener implements Runnable {
 						server.printLog("Client with name: "+ clientName + " doesn't exists\n");
 					}
 					receivedAns++;
-					if(receivedAns >= clientsList.size()){
-						//sleep for 5 seconds and then start over.
-						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						break;
-					}
+//					if(receivedAns >= clientsList.size()){
+//						//sleep for 5 seconds and then start over.
+//						try {
+//							Thread.sleep(5000);
+//						} catch (InterruptedException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//						break;
+//					}
 					
 					//break;
 					// TODO: here we should write to server.OnlineGames that
@@ -132,7 +132,6 @@ public class UdpListener implements Runnable {
 					// The minute was exceeded now don't wait for answers, analyze the 
 					//result , which client returned an answer
 					server.printLog("TimeOUT...\n");
-					server.printLog("Remove died clients from online list and remove their games from playing games...\n");
 					server.clients.removeIfNotAlive();					
 					break;
 				} catch (IOException e) {
