@@ -28,6 +28,8 @@ public class ClientServerProtocol {
 	public static final String NICETM = "NICE_TO_MEET_YOU";
 	public static final String GOGOGO = "GOGOGO";
 	public static final String SERVPROB = "SERVER_INTERNAL_PROBLEMS";
+	//server to client
+	public static final String VIEWERTRANSMIT ="VIEWER_TRANSMIT";
 	
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
@@ -60,6 +62,7 @@ public class ClientServerProtocol {
 			legalCommands.add(GAME);
 			legalCommands.add(GOGOGO);
 			legalCommands.add(SERVPROB);
+			legalCommands.add(VIEWERTRANSMIT);
 		}
 	}
 	
@@ -78,6 +81,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GAME, 1);
 		numOfParametersForCmd.put(GOGOGO, 3);
 		numOfParametersForCmd.put(SERVPROB, 0);
+		numOfParametersForCmd.put(VIEWERTRANSMIT, 3);
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");

@@ -2,14 +2,19 @@ package ConnectFourServer;
 
 import gameManager.Game;
 import gameManager.Player;
+import gameManager.Player.Color;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Random;
+
+import ConnectFourServer.OnlineClients.Client;
 
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
@@ -108,7 +113,7 @@ public class RequestHandler implements Runnable {
 				respondMsg = playTreat(Integer.parseInt(params[1]),params[2],params[3]);
 			}
 			else if(command.equals(ClientServerProtocol.WATCH)){
-				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2]);
+				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3]);
 			}
 			else if(command.equals(ClientServerProtocol.OK)){
 				respondMsg = okOnWatchTreat(Integer.parseInt(params[1]),params[2]);
@@ -124,9 +129,34 @@ public class RequestHandler implements Runnable {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	private String watchTreat(int parseInt, String string) {
-		// TODO Auto-generated method stub
-		return null;
+	private String watchTreat(int watcherPort, String gameId,String watcherName) {
+		//TODO: handle KNOWYA
+		Random random= new Random();
+		int num=random.nextInt(2);
+		Color r = (num==0) ? Color.RED : Color.BLUE;
+		String playerName=server.games.getGame(gameId).getPlayer(r).getName();
+		Client client=server.clients.getClient(playerName);
+		InetAddress clientAddr=client.getAddress();
+		int clientPort= client.getUDPPort();
+		Client viewer=server.clients.getClient(watcherName);
+		InetAddress viewerAddr= viewer.getAddress();
+		SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
+		return ClientServerProtocol.OK;
+	}
+
+	private void SendToClient(InetAddress clientAddr, int clientPort,
+			InetAddress viewerAddr, int watcherPort, String watcherName ) {
+		byte[] buffer = (ClientServerProtocol.VIEWERTRANSMIT+" "+String.valueOf(watcherPort)+" "+viewerAddr.getHostAddress()+" "+watcherName).getBytes();
+		try {
+			server.getUdpSocket().send(new DatagramPacket(buffer, buffer.length,
+					clientAddr, clientPort));
+		} catch (IOException e) {
+			// TODO Client Didn't recieve
+			e.printStackTrace();
+		}
+		
+		
+		
 	}
 
 	private String playTreat(int gamePort, String gameId,String clientName) {
