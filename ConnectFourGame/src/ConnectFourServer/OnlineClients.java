@@ -9,12 +9,16 @@ import java.util.HashMap;
 
 public class OnlineClients {
 	private MainServer server;
-	
 	//The current online client (their udp addresses)
 	private HashMap<String,Client> udpClients;
 	
 	//This way we can know if the client was alive
 	private HashMap<String, Boolean> isAlive;
+	
+	
+	
+	
+	
 	
 	public static class Client
 	{

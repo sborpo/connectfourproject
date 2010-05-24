@@ -2,6 +2,7 @@ package gameManager;
 
 import gameManager.Board.GameState;
 import gameManager.Board.IllegalMove;
+import gameManager.Player.Color;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Random;
+
+import ConnectFourClient.TheClient;
 
 public class Game {
 
@@ -33,7 +36,7 @@ public class Game {
 		gameBoard = new Board();
 	}
 
-	public void startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame) {
+	public void startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 		Player clientPlayer;
 
 		ServerSocket serverSocket = null;
@@ -114,6 +117,10 @@ public class Game {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			//send the move to the viewers
+			String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
+			theClient.sendMoveToViewers(colorStr+" "+String.valueOf(colnum));
+			
 			if (plays.equals(clientPlayer)) {
 				// write your move
 				clientToOpponent.println(colnum);
@@ -124,11 +131,9 @@ public class Game {
 		if (state.equals(GameState.TIE)) {
 			System.out.println("The game ended with Tie!\n\n");
 		}
+		
 		String won = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
-
 		System.out.println(won + " player has won the game!\n\n");
-		
-		
 		try {
 			if( opponentSocket != null){
 				opponentSocket.close();
