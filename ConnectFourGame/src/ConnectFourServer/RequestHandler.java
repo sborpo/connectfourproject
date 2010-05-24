@@ -130,18 +130,32 @@ public class RequestHandler implements Runnable {
 		return null;
 	}
 	private String watchTreat(int watcherPort, String gameId,String watcherName) {
-		//TODO: handle KNOWYA
-		Random random= new Random();
-		int num=random.nextInt(2);
-		Color r = (num==0) ? Color.RED : Color.BLUE;
-		String playerName=server.games.getGame(gameId).getPlayer(r).getName();
-		Client client=server.clients.getClient(playerName);
-		InetAddress clientAddr=client.getAddress();
-		int clientPort= client.getUDPPort();
+		String response = ClientServerProtocol.KNOWYA;
 		Client viewer=server.clients.getClient(watcherName);
-		InetAddress viewerAddr= viewer.getAddress();
-		SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
-		return ClientServerProtocol.OK;
+		if(viewer != null)
+		{
+			Random random= new Random();
+			int num=random.nextInt(2);
+			Color r = (num==0) ? Color.RED : Color.BLUE;
+			Game theGame = server.games.getGame(gameId);
+			if(theGame != null)
+			{
+				String playerName=theGame.getPlayer(r).getName();
+			
+				Client client=server.clients.getClient(playerName);
+				InetAddress clientAddr=client.getAddress();
+				int clientPort= client.getUDPPort();
+				
+				InetAddress viewerAddr= viewer.getAddress();
+				server.printLog("Sending transmit command to: " + client.getName() + "\n");
+				SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
+				response = ClientServerProtocol.OK;
+			}
+			else{
+				response = ClientServerProtocol.DENIED;
+			}
+		}
+		return response;
 	}
 
 	private void SendToClient(InetAddress clientAddr, int clientPort,
@@ -151,7 +165,7 @@ public class RequestHandler implements Runnable {
 			server.getUdpSocket().send(new DatagramPacket(buffer, buffer.length,
 					clientAddr, clientPort));
 		} catch (IOException e) {
-			// TODO Client Didn't recieve
+			// TODO Client Didn't receive
 			e.printStackTrace();
 		}
 		

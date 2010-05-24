@@ -27,7 +27,7 @@ import theProtocol.ClientServerProtocol.msgType;
  */
 public class TheClient {
 
-	public int unDEFport = -1; 
+	static public int unDEFport = -1; 
 	private int serverUdpPort = unDEFport;
 	private int serverPort;
 	private String serverHost;
@@ -54,12 +54,13 @@ public class TheClient {
 		byte[] buffer = move.getBytes();
 		Collection<Viewer> viewers=viewersList.values();
 		for (Viewer viewer : viewers) {
-		try {
-			socket.send(new DatagramPacket(buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			try {
+				System.out.println("Sending to: " + viewer.getName()+ " move: " + move);
+				socket.send(new DatagramPacket(buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		
@@ -69,6 +70,7 @@ public class TheClient {
 	{
 		return clientWatchPort;
 	}
+	
 	public void addToViewerList(Viewer viewer)
 	{
 		String name = viewer.getName();
@@ -76,6 +78,7 @@ public class TheClient {
 		{
 			return;
 		}
+		System.out.println("Adding viewer: "+ viewer.getName());
 		viewersList.put(name, viewer);
 	}
 	
@@ -84,9 +87,7 @@ public class TheClient {
 	{
 
 		public Viewer(InetAddress host, int UDPport, String name) {
-			super(host, UDPport, name, 0);
-			
-			
+			super(host, UDPport, name, TheClient.unDEFport);
 		}
 		
 	}
@@ -246,10 +247,6 @@ public class TheClient {
 		}
 		else if(params[0].equals(ClientServerProtocol.WATCH)){
 			clientWatchPort = Integer.parseInt(params[1]);
-			GameWatcher watcher = new GameWatcher(this);
-			Thread t = new Thread(watcher);
-			t.start();
-			
 		}
 		
 		return params;
@@ -297,11 +294,13 @@ public class TheClient {
 		else if(command.equals(ClientServerProtocol.KNOWYA)){
 			responseRes = false;
 		}
-		else if(command.equals(ClientServerProtocol.TAKE)){
-			
-		}
 		else if(command.equals(ClientServerProtocol.WHAT)){
 			responseRes = false;
+		}
+		else if(command.equals(ClientServerProtocol.OK)){
+			GameWatcher watcher = new GameWatcher(this);
+			Thread t = new Thread(watcher);
+			t.start();
 		}
 		
 		return responseRes;

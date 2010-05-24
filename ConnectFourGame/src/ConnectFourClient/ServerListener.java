@@ -61,34 +61,39 @@ public class ServerListener extends Thread {
 				serverMessage[i] = message[i];
 			}
 			
+			String str = new String(serverMessage);
+			//print the received message from the server
+			System.out.println("Server say: " + str);
+			
 			ClientServerProtocol prot= new ClientServerProtocol(msgType.CLIENT);
 			
-			//print the received message from the server
-			String str = new String(serverMessage);
-			
 			String [] MessageCommand=prot.parseCommand(str);
+			//check if the message received was ok
 			if (MessageCommand!=null)
 			{
-			if (MessageCommand[0].equals(ClientServerProtocol.VIEWERTRANSMIT))
-			{
-				int udpPort= Integer.parseInt(MessageCommand[1]);
-				InetAddress address=null;
-				try {
-					address = InetAddress.getByName(MessageCommand[2]);
-				} catch (UnknownHostException e) {
-					// TODO Cannot Be
-					e.printStackTrace();
+				if (MessageCommand[0].equals(ClientServerProtocol.VIEWERTRANSMIT))
+				{
+					int udpPort= Integer.parseInt(MessageCommand[1]);
+					InetAddress address=null;
+					try {
+						address = InetAddress.getByName(MessageCommand[2]);
+					} catch (UnknownHostException e) {
+						// TODO Cannot Be
+						e.printStackTrace();
+					}
+					String watchName= MessageCommand[3];
+					TheClient.Viewer viewer = new TheClient.Viewer(address, udpPort, watchName);
+					client.addToViewerList(viewer);
+					//break;
 				}
-				String watchName= MessageCommand[3];
-				TheClient.Viewer viewer = new TheClient.Viewer(address, udpPort, watchName);
-				client.addToViewerList(viewer);
+			}
+			else{
+				System.out.println("Hm.. Server said something I don't understand");
 				break;
 			}
-			}
-			System.out.println("Server say: " + str);
 
 			//respond to server , that the client is Alive!
-			String response = client.getClientName() + ": I'm Alive!";
+			String response = ClientServerProtocol.IMALIVE + " " + client.getClientName();
 			System.out.println("I answer: " + response + "to port: " + client.serverUDPPort());
 			byte[] buffer = response.getBytes();
 			try {

@@ -119,7 +119,7 @@ public class Game {
 			}
 			//send the move to the viewers
 			String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
-			theClient.sendMoveToViewers(colorStr+" "+String.valueOf(colnum));
+			theClient.sendMoveToViewers(plays.getName() + ":" + colorStr + " " + String.valueOf(colnum));
 			
 			if (plays.equals(clientPlayer)) {
 				// write your move
