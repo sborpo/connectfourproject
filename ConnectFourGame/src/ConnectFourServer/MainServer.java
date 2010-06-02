@@ -5,6 +5,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
@@ -46,8 +47,9 @@ public class MainServer {
 //		c.start();
 //	}
 
-	public MainServer(String[] args) {
+	public MainServer(String[] args) throws SQLException {
 		parseServerArguments(args);
+		initDatabase();
 		connectionsPool = Executors.newCachedThreadPool();
 		printer = new LogPrinter();
 		this.printLog("TCP: "+serverTCPPort+"\nUDP: "+serverUDPPort);
@@ -65,6 +67,11 @@ public class MainServer {
 
 	public void printLog(String logPrint) {
 		printer.print(logPrint);
+	}
+	
+	private void initDatabase() throws SQLException
+	{
+		DataBaseManager.constructTables();
 	}
 	
 	/**
@@ -120,8 +127,15 @@ public class MainServer {
 	 */
 	public static void main(String[] args) {
 
-		MainServer server = new MainServer(args);
-		server.start();
+		MainServer server=null;
+		try {
+			server = new MainServer(args);
+			server.start();
+		} catch (SQLException e) {
+			// TODO No point of Starting server without a database connection
+			e.printStackTrace();
+		}
+		
 
 	}
 
