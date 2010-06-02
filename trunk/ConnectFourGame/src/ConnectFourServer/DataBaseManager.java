@@ -27,7 +27,7 @@ public class DataBaseManager {
 		lock=new Integer(0);
 	}
 	
-	private static void  constructTables() throws SQLException
+	public static void  constructTables() throws SQLException
 	{
 		Connection conn=null;
 		Statement statment=null;
