@@ -25,30 +25,30 @@ public class UdpListener implements Runnable {
 		//Set the message that will be sent to the clients
 		String message = ClientServerProtocol.YOUALIVE;
 		byte[] buffer = message.getBytes();
-		
+		Timer waitingTime = new Timer(30);
+		waitingTime.start();
 		//now do it infinitely
 		while (true) {
 			ArrayList<String> clientsList=null;
+			//get the clients
+			clientsList = server.clients.getClients();
 			
+			if(waitingTime.getElapsed() >= waitingTime.getLength()){
+				//if there are no clients
+				if (clientsList.size()==0)
+				{
+					server.printLog("No clients yet, waiting...");
+					waitingTime.reset();
+					continue;
+				}
+			}
+			else{
+				continue;
+			}
 			
 			synchronized (server.clients) {
 				//reset the alive map
 				server.clients.resetIsAliveMap();
-				//get the clients which opened a game
-				clientsList = server.clients.getClients();
-			}
-			
-			//if there are no clients , sleep for a 5 seconds and retry
-			if (clientsList.size()==0)
-			{
-				server.printLog("No clients yet, waiting...\n");
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				continue;
 			}
 			
 			server.printLog("SENDING ALIVE MESSAGES...\n");
@@ -56,7 +56,7 @@ public class UdpListener implements Runnable {
 			for (String clientName : clientsList) {
 				try {
 					OnlineClients.Client client = server.clients.getClient(clientName);
-					server.printLog("To: "+client.getName()+", port: "+client.getUDPPort()+"\n");
+					server.printLog("To: "+client.getName()+", to port: "+client.getUDPPort()+"\n");
 					socket.send(new DatagramPacket(buffer, buffer.length,
 							client.getAddress(), client.getUDPPort()));
 				} catch (IOException e) {

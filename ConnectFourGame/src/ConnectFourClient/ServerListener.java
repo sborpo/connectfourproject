@@ -26,17 +26,18 @@ public class ServerListener extends Thread {
 	public void run() {
 		
 		//wait till the client gets from server udp port
-		while(client.serverUDPPort() == client.unDEFport && client.listenToServerPort() == client.unDEFport){
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+//		while(client.serverUDPPort() == client.unDEFport && client.listenToServerPort() == client.unDEFport){
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 		// open a UDP socket , from which we will do the communications
 		// with the server
-		System.out.println("Client starting listening to udp alive messages on: "+client.listenToServerPort());
+		System.out.println("Client starting listening to udp alive messages on: "
+				+client.listenToServerPort() + "from: "+ client.serverUDPPort());
 		try {
 			client.socket = new DatagramSocket(client.listenToServerPort());
 		} catch (SocketException e) {

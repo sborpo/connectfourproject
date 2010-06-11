@@ -11,8 +11,17 @@ import java.sql.Statement;
 
 public class DataBaseManager {
 
-	public static class UserAlreadyExists extends Exception{}
-	public static class GameIdAlreadyExists extends Exception{}
+	public static class UserAlreadyExists extends Exception{		
+		public String getMessage(){
+			return "User is already exists in the database";
+		}
+	}
+	public static class GameIdAlreadyExists extends Exception{
+		public String getMessage(){
+			return "The gameId is already exists in the database";
+		}
+
+	}
 	
 	private static String dbName ; 
 	private static String userName;
@@ -26,9 +35,17 @@ public class DataBaseManager {
 		dbName="db";
 		userName="root";
 		password="123456";
-		url="jdbc:mysql://localhost";
+		url="jdbc:mysql://localhost/";
 		userslock=new Integer(0);
 		gameslock=new Integer(0);
+	}
+	
+	public static void initDBname(String dbName){
+		DataBaseManager.dbName = dbName;
+	}
+	
+	public static String getDBname(){
+		return DataBaseManager.dbName;
 	}
 	
 	public static void createDB(String dbName) throws SQLException{
@@ -90,12 +107,18 @@ public class DataBaseManager {
 	private static Connection getConnection(String dbName)
 	{
 		try {
-			return DriverManager.getConnection (url+"/"+dbName, userName, password);
+			//Class.forName("org.h2.Driver");
+			Class.forName("com.mysql.jdbc.Driver");
+			return DriverManager.getConnection (url+dbName, userName, password);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			return null;
 		} 
+		catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		return null; 
 	}
 	
 	
@@ -152,18 +175,22 @@ public class DataBaseManager {
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
-		conn = getConnection(DataBaseManager.dbName);
-		String query= "INSERT INTO users VALUES(?,?);";
-		prepareStatement = conn.prepareStatement(query);
-		prepareStatement.setString(1,username);
-		prepareStatement.setString(2,password);
-		synchronized (userslock) {
-			if (!checkUserExists(username, conn))
-			{
-				prepareStatement.execute();
-			}
-			throw new UserAlreadyExists();	
-		}
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "INSERT INTO users VALUES(?,?);";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,username);
+			prepareStatement.setString(2,password);
+			synchronized (userslock) {
+				if (!checkUserExists(username, conn))
+				{
+					System.out.println("Inserting....");
+					prepareStatement.execute();
+				}
+				else{
+					System.out.println("Exists....");
+					throw new UserAlreadyExists();
+				}
+			}	
 		}
 		finally
 		{

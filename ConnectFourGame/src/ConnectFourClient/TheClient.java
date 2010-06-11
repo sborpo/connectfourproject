@@ -45,6 +45,7 @@ public class TheClient {
 	//UDP socket
 	public DatagramSocket socket = null;
 	
+	private ServerListener 	echoServerListener = null;
 
 	private InetAddress serverAddress;
 	
@@ -130,8 +131,8 @@ public class TheClient {
 		System.out.println("Server: " + serverHost);
 		serverPort = Integer.parseInt(args[1]);
 		System.out.println("Server TCP port: "+serverPort);
-		clientName = args[2];
-		System.out.println("Clent name: "+clientName);
+//		clientName = args[2];
+//		System.out.println("Clent name: "+clientName);
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);
@@ -149,8 +150,8 @@ public class TheClient {
 	}
 
 	public void start() {
-		ServerListener echoServerListener = new ServerListener(this);
-		echoServerListener.start();
+		//ServerListener echoServerListener = new ServerListener(this);
+		
 		Socket serverConnection = null;
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 		try {
@@ -167,7 +168,7 @@ public class TheClient {
 					
 					String[] commandPar = parseCommand(inputLine,parser);
 					if(commandPar == null){
-						System.out.println("Wrong command, please try again");
+						System.out.println(parser.result + ", please try again");
 						break;
 					}
 					
@@ -237,6 +238,7 @@ public class TheClient {
 		}
 		else if(params[0].equals(ClientServerProtocol.MEETME)){
 			clientUdp = Integer.parseInt(params[1]);
+			clientName = params[2];
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
@@ -267,6 +269,8 @@ public class TheClient {
 
 		if(command.equals(ClientServerProtocol.NICETM)){
 			 serverUdpPort = Integer.parseInt(params[1]);
+			 echoServerListener = new ServerListener(this);
+			 echoServerListener.start();
 		}
 		else if(command.equals(ClientServerProtocol.GAME)){
 			gameId = params[1];

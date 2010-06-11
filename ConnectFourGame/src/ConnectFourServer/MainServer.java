@@ -48,11 +48,11 @@ public class MainServer {
 //	}
 
 	public MainServer(String[] args) throws SQLException {
+		printer = new LogPrinter();
 		parseServerArguments(args);
+		this.printLog("TCP: "+serverTCPPort+" UDP: "+serverUDPPort+" dbName: "+DataBaseManager.getDBname());
 		initDatabase();
 		connectionsPool = Executors.newCachedThreadPool();
-		printer = new LogPrinter();
-		this.printLog("TCP: "+serverTCPPort+"\nUDP: "+serverUDPPort);
 		games = new OnlineGames(this);
 		clients = new OnlineClients(this);
 		//connectedClients = new HashMap<String, ConnectedClient>();
@@ -66,12 +66,19 @@ public class MainServer {
 	}
 
 	public void printLog(String logPrint) {
-		printer.print(logPrint);
+		printer.print(logPrint + "\n");
+	}
+	
+	public void printError(String errorMsg){
+		printer.print("Error: " + errorMsg + "\n");
 	}
 	
 	private void initDatabase() throws SQLException
 	{
+		this.printLog("Loading the database...");
+		DataBaseManager.createDB("database");
 		DataBaseManager.constructTables();
+		this.printLog("Done loading the database");
 	}
 	
 	/**
@@ -83,6 +90,7 @@ public class MainServer {
 	private void parseServerArguments(String[] args) {
 		serverTCPPort = Integer.parseInt(args[0]);
 		serverUDPPort = Integer.parseInt(args[1]);
+		DataBaseManager.initDBname(args[2]);
 	}
 
 	/**
