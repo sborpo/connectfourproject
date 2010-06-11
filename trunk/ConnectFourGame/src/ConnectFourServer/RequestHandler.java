@@ -11,9 +11,11 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import ConnectFourServer.DataBaseManager.UserAlreadyExists;
 import ConnectFourServer.OnlineClients.Client;
 
 import theProtocol.ClientServerProtocol;
@@ -104,7 +106,7 @@ public class RequestHandler implements Runnable {
 			String command = params[0];
 	
 			if(command.equals(ClientServerProtocol.MEETME)){
-				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2]); 
+				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],params[3]); 
 			}
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
 				respondMsg = newGameTreat(Integer.parseInt(params[1]),params[2]);
@@ -242,9 +244,31 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
-	private String meetMeTreat(int clientUDPPort,String clientName){
-		server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,-1));
-		String response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort()); 
+	private String meetMeTreat(int clientUDPPort,String clientName,String password){
+		boolean errFlag = false;
+		String response = ClientServerProtocol.SERVPROB;
+		//find or create user in the users database
+		try {
+			if(!DataBaseManager.authenticateUser(clientName, password)){
+				//user is not exists - create new user
+				server.printLog("Creating new user: " + clientName);
+				DataBaseManager.insertUser(clientName, password);
+			}
+			else{
+				server.printLog("User already exists: " + clientName);
+			}
+		} catch (SQLException e) {
+			server.printError(e.getMessage());
+			errFlag = true;
+		} catch (UserAlreadyExists e) {
+			errFlag = true;
+			server.printError(e.getMessage());
+		}
+		if(!errFlag){
+			//now the user definitely exists --> start sending him alive messages 
+			server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,-1));
+			response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort());
+		}
 		return response; 
 	}
 

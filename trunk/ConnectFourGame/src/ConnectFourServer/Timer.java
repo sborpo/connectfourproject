@@ -81,6 +81,10 @@ public class Timer implements Runnable
 		return;
 	}
 	
+	public int getLength(){
+		return m_length;
+	}
+	
 	public void abort()
 	{
 		timerThread.interrupt();

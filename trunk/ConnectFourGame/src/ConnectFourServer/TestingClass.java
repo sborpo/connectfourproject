@@ -18,6 +18,7 @@ public class TestingClass {
 				System.out.println("Game is already exists");
 			}
 			
+			
 			DataBaseManager.makeReport("gameId", "user1", "myreport");
 			DataBaseManager.makeReport("gameId", "user2", "myreport2");
 			

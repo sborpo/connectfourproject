@@ -123,7 +123,6 @@ public class OnlineClients {
 	 
 	 
 	public synchronized void removeIfNotAlive(){
-		server.printLog("Remove died clients from online list and remove their games from playing games...\n");
 		ArrayList<String> toRemove = new ArrayList<String>();
 		for(String key : isAlive.keySet()){
 			boolean alive = isAlive.get(key);

@@ -9,8 +9,10 @@ public class ClientServerProtocol {
 		SERVER, CLIENT
 	}
 	
-	public static enum parseRes{
-		SUCCESS,WRONG_COMMAND,NOT_ENOUGH_PARAMETERS
+	public static class parseRes{
+		public static final String SUCCESS = "SUCCESS";
+		public static final String WRONG_COMMAND = "WRONG COMMAND";
+		public static final String WRONG_NUM_OF_PARAMETERS = "WRONG NUMBER OF PARAMETERS";
 	}
 	
 	private msgType type;
@@ -34,13 +36,13 @@ public class ClientServerProtocol {
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
 	
-	public parseRes result;
+	public String result;
 	
 	public ClientServerProtocol(msgType type){
 		this.type = type;
 		legalCommands = new ArrayList<String>();
 		numOfParametersForCmd = new HashMap<String,Integer>();
-		result = parseRes.WRONG_COMMAND;
+		result = parseRes.SUCCESS;
 		//initialize the map command to number of parameters of the command
 		mapInit();
 		//Commands SERVER can receive
@@ -70,7 +72,7 @@ public class ClientServerProtocol {
 	}
 	
 	private void mapInit(){
-		numOfParametersForCmd.put(MEETME, 2);
+		numOfParametersForCmd.put(MEETME, 3);
 		numOfParametersForCmd.put(NEWGAME, 2);
 		numOfParametersForCmd.put(PLAY, 3);
 		numOfParametersForCmd.put(WATCH, 3);
@@ -89,11 +91,18 @@ public class ClientServerProtocol {
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");
-		if(legalCommands.contains(params[0]) 
-				&& numOfParametersForCmd.get(params[0]).equals(params.length - 1)){
-			return params;
+		if(legalCommands.contains(params[0])){ 
+			if(numOfParametersForCmd.get(params[0]).equals(params.length - 1)){
+				result = parseRes.SUCCESS;
+				return params;
+			}
+			else{
+				result = parseRes.WRONG_NUM_OF_PARAMETERS;
+				return null;
+			}
 		}
 		else{
+			result = parseRes.WRONG_COMMAND;
 			return null;
 		}
 	}
