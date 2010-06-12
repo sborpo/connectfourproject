@@ -44,6 +44,7 @@ public class TheClient {
 	private int clientTransmitPort = unDEFport;
 	private String gameId = ClientServerProtocol.noGame;
 	private Game game;
+	
 	private HashMap<String, Viewer> viewersList;
 	//UDP socket for sending alive messages
 	public DatagramSocket aliveSocket = null;
@@ -63,23 +64,6 @@ public class TheClient {
 		return gameId;
 	}
 	
-	public void sendMoveToViewers(String move)
-	{
-		byte[] buffer = move.getBytes();
-		Collection<Viewer> viewers=viewersList.values();
-		for (Viewer viewer : viewers) {
-			try {
-				System.out.println("Sending to: " + viewer.getName()+ " move: " + move);
-				transmitSocket.send(new DatagramPacket (buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		
-	}
-	
 	public int getGamePort(){
 		return clientGamePort;
 	}
@@ -89,6 +73,10 @@ public class TheClient {
 		return clientWatchPort;
 	}
 	
+	public DatagramSocket getTransmitSocket(){
+		return transmitSocket;
+	}
+	
 	public static class Viewer extends  OnlineClients.Client
 	{
 
@@ -96,6 +84,10 @@ public class TheClient {
 			super(host, UDPlistenPort, name, TheClient.unDEFport,TheClient.unDEFport);
 		}
 		
+	}
+	
+	public HashMap<String, Viewer> getViewerList(){
+		return viewersList;
 	}
 	
 	public void addToViewerList(Viewer viewer)
@@ -130,6 +122,10 @@ public class TheClient {
 		return clientTransmitPort;
 	}
 
+	public TransmitWaiter getTransmitWaiter(){
+		return transmitWaiter;
+	}
+	
 	public int serverUDPPort() {
 		return serverUdpPort;
 	}

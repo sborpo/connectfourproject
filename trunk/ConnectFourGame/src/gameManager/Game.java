@@ -14,6 +14,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Random;
 
+import theProtocol.ClientServerProtocol;
+
 import ConnectFourClient.TheClient;
 
 public class Game {
@@ -23,6 +25,7 @@ public class Game {
 	private Player blue;
 	private Board gameBoard;
 	private Player plays;
+	private GameState state;
 
 	public Game(String name1,String name2,String gameId) {
 		red = new Player(Player.Color.RED,name1);
@@ -38,7 +41,6 @@ public class Game {
 
 	public void startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 		Player clientPlayer;
-
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
 		BufferedReader stdin = null;
@@ -86,7 +88,8 @@ public class Game {
 
 		plays = red;
 		//String playerStr;
-		GameState state = GameState.PROCEED;
+		state = GameState.PROCEED;
+		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		while (state.equals(GameState.PROCEED)) {
 			gameBoard.PrintBoard();
 			int colnum = -1;
@@ -119,7 +122,12 @@ public class Game {
 			}
 			//send the move to the viewers
 			String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
-			theClient.sendMoveToViewers(plays.getName() + ":" + colorStr + " " + String.valueOf(colnum));
+			String moveMsg = "GAME_MOVE" + " " + plays.getName() + " " + String.valueOf(colnum);
+			String[] parsed = prot.parseCommand(moveMsg);
+			if(parsed == null){
+				System.out.println(prot.result + ". Bad move report!");
+			}
+			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
 			
 			if (plays.equals(clientPlayer)) {
 				// write your move
@@ -128,12 +136,21 @@ public class Game {
 			nextPlayer();
 		}
 		gameBoard.PrintBoard();
+		String winner = null;
 		if (state.equals(GameState.TIE)) {
-			System.out.println("The game ended with Tie!\n\n");
+			System.out.println("The game ended with Tie!\n");
 		}
-		
-		String won = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
-		System.out.println(won + " player has won the game!\n\n");
+		else{
+			winner = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
+			System.out.println(winner + " player has won the game!\n");
+		}
+		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
+		String moveMsg = "GAME_REPORT" + " " + this.getId() + " " + theClient.getClientName() + " " + gameRes.toString() + " " + winner;
+		String[] parsed = prot.parseCommand(moveMsg);
+		if(parsed == null){
+			System.out.println(prot.result + ". Bad move report!");
+		}
+		theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
 		try {
 			if( opponentSocket != null){
 				opponentSocket.close();

@@ -6,6 +6,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Collection;
+
+import ConnectFourClient.TheClient.Viewer;
 
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
@@ -54,6 +57,23 @@ public class TransmitWaiter extends Thread {
 
 		}
 
+	}
+	
+	public void sendMoveToViewers(String move)
+	{
+		byte[] buffer = move.getBytes();
+		Collection<Viewer> viewers=client.getViewerList().values();
+		for (Viewer viewer : viewers) {
+			try {
+				System.out.println("Sending to: " + viewer.getName()+ " move: " + move);
+				client.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
 	}
 
 	private boolean treatMessage(String message){
