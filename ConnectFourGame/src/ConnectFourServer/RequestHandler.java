@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import ConnectFourClient.TheClient;
 import ConnectFourServer.DataBaseManager.UserAlreadyExists;
 import ConnectFourServer.OnlineClients.Client;
 
@@ -106,7 +107,7 @@ public class RequestHandler implements Runnable {
 			String command = params[0];
 	
 			if(command.equals(ClientServerProtocol.MEETME)){
-				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],params[3]); 
+				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],Integer.parseInt(params[3]),params[4]); 
 			}
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
 				respondMsg = newGameTreat(Integer.parseInt(params[1]),params[2]);
@@ -146,12 +147,12 @@ public class RequestHandler implements Runnable {
 			
 				Client client=server.clients.getClient(playerName);
 				InetAddress clientAddr=client.getAddress();
-				int clientPort= client.getUDPPort();
+				int clientPort= client.getUDPtransmitPort();
 				
 				InetAddress viewerAddr= viewer.getAddress();
 				server.printLog("Sending transmit command to: " + client.getName() + "\n");
 				SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
-				response = ClientServerProtocol.OK;
+				response = ClientServerProtocol.ENJOYWATCH;
 			}
 			else{
 				response = ClientServerProtocol.DENIED;
@@ -162,7 +163,7 @@ public class RequestHandler implements Runnable {
 
 	private void SendToClient(InetAddress clientAddr, int clientPort,
 			InetAddress viewerAddr, int watcherPort, String watcherName ) {
-		byte[] buffer = (ClientServerProtocol.VIEWERTRANSMIT+" "+String.valueOf(watcherPort)+" "+viewerAddr.getHostAddress()+" "+watcherName).getBytes();
+		byte[] buffer = (ClientServerProtocol.VIEWERTRANSMIT+" "+ watcherPort +" "+viewerAddr.getHostAddress()+" "+watcherName).getBytes();
 		try {
 			server.getUdpSocket().send(new DatagramPacket(buffer, buffer.length,
 					clientAddr, clientPort));
@@ -244,7 +245,7 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
-	private String meetMeTreat(int clientUDPPort,String clientName,String password){
+	private String meetMeTreat(int clientUDPPort,String clientName,int clientTransmitPort,String password){
 		boolean errFlag = false;
 		String response = ClientServerProtocol.SERVPROB;
 		//find or create user in the users database
@@ -261,13 +262,13 @@ public class RequestHandler implements Runnable {
 			server.printError(e.getMessage());
 			errFlag = true;
 		} catch (UserAlreadyExists e) {
-			errFlag = true;
 			server.printError(e.getMessage());
 		}
 		if(!errFlag){
 			//now the user definitely exists --> start sending him alive messages 
-			server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,-1));
+			server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
 			response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort());
+			server.udpListener.openTimerFor(clientName);
 		}
 		return response; 
 	}

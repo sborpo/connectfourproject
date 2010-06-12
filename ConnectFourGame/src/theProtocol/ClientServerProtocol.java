@@ -15,6 +15,8 @@ public class ClientServerProtocol {
 		public static final String WRONG_NUM_OF_PARAMETERS = "WRONG NUMBER OF PARAMETERS";
 	}
 	
+	static public String noGame = "noGame";
+	
 	private msgType type;
 	public static final String MEETME = "MEETME";
 	public static final String NEWGAME = "NEWGAME";
@@ -30,7 +32,8 @@ public class ClientServerProtocol {
 	public static final String GOGOGO = "GOGOGO";
 	public static final String SERVPROB = "SERVER_INTERNAL_PROBLEMS";
 	public static final String VIEWERTRANSMIT ="VIEWER_TRANSMIT";
-	public static final String YOUALIVE ="ARE_YOU_ALIVE?";
+	public static final String ENJOYWATCH ="ENJOY_WATCHING";
+	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
 	public static final String IMALIVE ="I'M_ALIVE!";
 	
 	private ArrayList<String> legalCommands;
@@ -66,13 +69,14 @@ public class ClientServerProtocol {
 			legalCommands.add(GOGOGO);
 			legalCommands.add(SERVPROB);
 			legalCommands.add(VIEWERTRANSMIT);
-			legalCommands.add(YOUALIVE);
+			//legalCommands.add(YOUALIVE);
 			legalCommands.add(OK);
+			legalCommands.add(ENJOYWATCH);
 		}
 	}
 	
 	private void mapInit(){
-		numOfParametersForCmd.put(MEETME, 3);
+		numOfParametersForCmd.put(MEETME, 4);
 		numOfParametersForCmd.put(NEWGAME, 2);
 		numOfParametersForCmd.put(PLAY, 3);
 		numOfParametersForCmd.put(WATCH, 3);
@@ -86,8 +90,9 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GOGOGO, 3);
 		numOfParametersForCmd.put(SERVPROB, 0);
 		numOfParametersForCmd.put(VIEWERTRANSMIT, 3);
-		numOfParametersForCmd.put(YOUALIVE, 0);
-		numOfParametersForCmd.put(IMALIVE, 1);
+		//numOfParametersForCmd.put(YOUALIVE, 0);
+		numOfParametersForCmd.put(IMALIVE, 4);
+		numOfParametersForCmd.put(ENJOYWATCH, 0);
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");

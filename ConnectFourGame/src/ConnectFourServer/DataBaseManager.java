@@ -154,6 +154,11 @@ public class DataBaseManager {
 		return true;
 	}
 	
+	public static boolean isUserExists(String clientName) throws SQLException{
+		Connection conn= getConnection(DataBaseManager.dbName);
+		return checkUserExists(clientName,conn);
+	}
+	
 	private static boolean checkUserExists(String username,Connection conn) throws SQLException
 	{
 			String query= "SELECT * FROM users WHERE username=?";

@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
+import theProtocol.Timer;
 
 /**
  * Listens To UDP Alive Messages
@@ -18,87 +19,44 @@ public class ServerListener extends Thread {
 
 	// the client to which the listener is bind to
 	private TheClient client;
+	
+	private int delayTime = 10;
+	//this will wait some time
+	private Timer delayTimer;
 
 	public ServerListener(TheClient client) {
 		this.client = client;
+		delayTimer = new Timer(delayTime);
 	}
 
 	public void run() {
 		
-		//wait till the client gets from server udp port
-//		while(client.serverUDPPort() == client.unDEFport && client.listenToServerPort() == client.unDEFport){
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
+		try {
+			client.aliveSocket = new DatagramSocket(client.getClientAlivePort());
+		} catch (SocketException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		// open a UDP socket , from which we will do the communications
 		// with the server
-		System.out.println("Client starting listening to udp alive messages on: "
-				+client.listenToServerPort() + "from: "+ client.serverUDPPort());
-		try {
-			client.socket = new DatagramSocket(client.listenToServerPort());
-		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		byte[] message = new byte[100000];
+		System.out.println("Client starting sending alive messages from: "
+				+client.getClientAlivePort() + " to: "+ client.serverUDPPort());
+		delayTimer.start();
 		while (true) {
-			//wait to an echo message from the server
-			DatagramPacket mes = new DatagramPacket(message, message.length);
+			if(!delayTimer.isTimedOut()){
+				continue;
+			}
+			delayTimer.reset();
+			
+			//send to server client Alive message!
+			String aliveMsg = ClientServerProtocol.IMALIVE + " " + client.getClientName() + 
+			" " + client.getTransmitPort()+ " " + client.getGameId() + " " + client.getGamePort();
+			System.out.println("I say: " + aliveMsg + "to port: " + client.serverUDPPort());
+			byte[] buffer = aliveMsg.getBytes();
 			try {
-				client.socket.receive(mes);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			//copy the message to a buffer , in order to print later
-			byte[] serverMessage = new byte[mes.getLength()];
-			for (int i = 0; i < serverMessage.length; i++) {
-				serverMessage[i] = message[i];
-			}
-			
-			String str = new String(serverMessage);
-			//print the received message from the server
-			System.out.println("Server say: " + str);
-			
-			ClientServerProtocol prot= new ClientServerProtocol(msgType.CLIENT);
-			
-			String [] MessageCommand=prot.parseCommand(str);
-			//check if the message received was ok
-			if (MessageCommand!=null)
-			{
-				if (MessageCommand[0].equals(ClientServerProtocol.VIEWERTRANSMIT))
-				{
-					int udpPort= Integer.parseInt(MessageCommand[1]);
-					InetAddress address=null;
-					try {
-						address = InetAddress.getByName(MessageCommand[2]);
-					} catch (UnknownHostException e) {
-						// TODO Cannot Be
-						e.printStackTrace();
-					}
-					String watchName= MessageCommand[3];
-					TheClient.Viewer viewer = new TheClient.Viewer(address, udpPort, watchName);
-					client.addToViewerList(viewer);
-					//break;
-				}
-			}
-			else{
-				System.out.println("Hm.. Server said something I don't understand");
-				break;
-			}
-
-			//respond to server , that the client is Alive!
-			String response = ClientServerProtocol.IMALIVE + " " + client.getClientName();
-			System.out.println("I answer: " + response + "to port: " + client.serverUDPPort());
-			byte[] buffer = response.getBytes();
-			try {
-				client.socket.send(new DatagramPacket(buffer, buffer.length, client.getServerAddress(), client.serverUDPPort()));
+				client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
+						client.getServerAddress(), client.serverUDPPort()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

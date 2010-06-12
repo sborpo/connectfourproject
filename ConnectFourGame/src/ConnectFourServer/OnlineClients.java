@@ -26,13 +26,15 @@ public class OnlineClients {
 		private String name;
 		private int UDPport;
 		private int TCPport;
+		private int UDPtransmitPort;
 		private String currentGame;
 		
-		public Client(InetAddress host, int UDPport,String name,int TCPPort)
+		public Client(InetAddress host, int UDPport,String name,int TCPPort,int UDPtransmitPort)
 		{
 			address=host;
 			this.UDPport = UDPport;
 			this.TCPport = TCPPort;
+			this.UDPtransmitPort = UDPtransmitPort;
 			this.name = name;
 			currentGame = null;
 		}
@@ -40,6 +42,10 @@ public class OnlineClients {
 		public int getUDPPort()
 		{
 			return UDPport;
+		}
+		public int getUDPtransmitPort()
+		{
+			return UDPtransmitPort;
 		}
 		public int getTCPPort()
 		{
@@ -81,7 +87,7 @@ public class OnlineClients {
 	
 	public synchronized void resetIsAliveMap(){
 		for(String key : isAlive.keySet()){
-			isAlive.put(key, false);
+			resetAlive(key);
 		}
 	}
 	
@@ -110,7 +116,7 @@ public class OnlineClients {
 		 return clients;
 	 }
 	 
-	 public synchronized boolean setAliveIfExists(String clientName){
+	 public synchronized boolean setAlive(String clientName){
 		 if(isAlive.containsKey(clientName)){
 			 isAlive.put(clientName,true);
 			 return true;
@@ -119,7 +125,12 @@ public class OnlineClients {
 	 }
 	
 	 
-	 
+	 public synchronized void resetAlive(String clientName){
+			if(udpClients.containsKey(clientName)){
+				System.out.println("unset for "+clientName);
+				isAlive.put(clientName, false);
+			}
+		}
 	 
 	 
 	public synchronized void removeIfNotAlive(){
@@ -127,18 +138,21 @@ public class OnlineClients {
 		for(String key : isAlive.keySet()){
 			boolean alive = isAlive.get(key);
 			if(!alive){
-				server.printLog("Removing: "+ key +"...\n");
+				server.printLog("Removing: "+ key +"...");
 				Client theClient = server.clients.getClient(key);
 				if(theClient == null){
-					server.printLog("SOME PROBLEM WHILE REMOVING\n");
+					server.printLog("SOME PROBLEM WHILE REMOVING: " + key);
 				}
 				Game game = server.games.getGame(theClient.getGame());
 				if(game != null){
-					server.printLog("Removing game : "+ game.getId() +"...\n");
+					server.printLog("Removing game : "+ game.getId() +"...");
 					server.games.removeGame(game.getId());
 				}
 				udpClients.remove(key);
 				toRemove.add(key);
+			}
+			else{
+				System.out.println(key + "is alive");
 			}
 		}
 

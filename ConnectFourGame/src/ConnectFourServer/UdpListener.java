@@ -1,160 +1,203 @@
 package ConnectFourServer;
 
+
+import gameManager.Game;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import theProtocol.ClientServerProtocol;
+import theProtocol.Timer;
 import theProtocol.ClientServerProtocol.msgType;
 
 public class UdpListener implements Runnable {
 
+	//The thread that should run the udpListener
+	private Thread theThread;
+	private int timeOut;
 	private MainServer server;
 	private DatagramSocket socket;
+	private HashMap<String,Timer> clientTimers;
 
 	public UdpListener(MainServer server) {
 		this.server = server;
 		socket = server.getUdpSocket();
+		clientTimers = new HashMap<String,Timer>();
+		timeOut = 30;
+		theThread = new Thread(this);
 	}
 
+	public void start()
+	{
+		theThread.start();
+	}
+	
 	@Override
 	public void run() {
-		//Set the message that will be sent to the clients
-		String message = ClientServerProtocol.YOUALIVE;
-		byte[] buffer = message.getBytes();
-		Timer waitingTime = new Timer(30);
-		waitingTime.start();
 		//now do it infinitely
+		server.printLog("Starting listening to alive messages");
+//		Timer waitingTime = new Timer(timeOut);
+//		waitingTime.start();
 		while (true) {
 			ArrayList<String> clientsList=null;
 			//get the clients
-			clientsList = server.clients.getClients();
 			
-			if(waitingTime.getElapsed() >= waitingTime.getLength()){
-				//if there are no clients
-				if (clientsList.size()==0)
-				{
-					server.printLog("No clients yet, waiting...");
-					waitingTime.reset();
-					continue;
-				}
-			}
-			else{
-				continue;
-			}
-			
-			synchronized (server.clients) {
-				//reset the alive map
-				server.clients.resetIsAliveMap();
-			}
-			
-			server.printLog("SENDING ALIVE MESSAGES...\n");
-			//send to each client the message to check if he is alive
-			for (String clientName : clientsList) {
-				try {
-					OnlineClients.Client client = server.clients.getClient(clientName);
-					server.printLog("To: "+client.getName()+", to port: "+client.getUDPPort()+"\n");
-					socket.send(new DatagramPacket(buffer, buffer.length,
-							client.getAddress(), client.getUDPPort()));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-			}
+//			if(waitingTime.isTimedOut()){
+//				//if there are no clients
+//				if (clientsList.size()==0)
+//				{
+//					server.printLog("No clients yet, waiting...");
+//					waitingTime.reset();
+//					continue;
+//				}
+//			}
+//			else if (clientsList.size()==0){
+//				continue;
+//			}
+//			server.printLog("UNSET ALL USERS ALIVENESS");
+//			server.clients.resetIsAliveMap();
+//			resetAllTimers();
 
 			//now wait for answers
-			byte[] ans = new byte[100000];
-			DatagramPacket answer = new DatagramPacket(ans, ans.length);
-			try {
-				socket.setSoTimeout(30000);
-			} catch (SocketException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			byte[] alv = new byte[100000];
+			DatagramPacket aliveMsg = new DatagramPacket(alv, alv.length);
 			
-			server.printLog("UDP:Waiting for client response...\n");
-			int receivedAns = 0;
-			//start a 30 seconds timer
-			Timer timer= new Timer(30);
-			timer.start();
-			while (true) {
+			server.printLog("UDP:Waiting for clients alive messages...");
+			//int clientNum = clientsList.size();
+			//while (clientNum > 0) {
 				try {
-
-					socket.receive(answer);
-					//update the socket timeout accorfing to the Timer elapsed time. if it passed 
-					//the 30 seconds , so put 1 milisecond timeout , this way in the next iteration
-					//socket timeout will be thrown
-					socket.setSoTimeout((30000-timer.getElapsed())>0 ? (30000-timer.getElapsed()) : 1);
-					byte[] ans2 = new byte[answer.getLength()];
-					for (int i = 0; i < ans2.length; i++) {
-						ans2[i] = ans[i];
-					}
-					String aliveResponse = new String(ans2);
+					socket.setSoTimeout(this.timeOut*1000);
+					socket.receive(aliveMsg);
+					int dataLen = aliveMsg.getLength();
+					byte[] alvFromatted = new byte[dataLen];
+					System.arraycopy(alv, 0, alvFromatted, 0, dataLen);
+					
+					String aliveResponse = new String(alvFromatted);
+					
 					ClientServerProtocol prot= new ClientServerProtocol(msgType.SERVER);
 					String[] theResponse = prot.parseCommand(aliveResponse);
 					
 					if(theResponse == null){
-						server.printLog("I don't understand clients respond to alive message\n");
+						server.printError(prot.result + ". Bad alive message");
 						break;
 					}
 					
-					String clientName = theResponse[1];
 					String clientMessage = theResponse[0];
+					String clientName = theResponse[1];
 					server.printLog("\n----------------------------\nUDP recieved From Client: "+clientName
-									+ ", "+answer.getAddress().toString()
-									+ " The message is:\n----------------------------\n"
+									+ ", "+aliveMsg.getAddress().toString()
+									+ " The message (len: " + dataLen + ") is:\n----------------------------\n"
 									+ clientMessage);
-					//set the client alive
-					if(!server.clients.setAliveIfExists(clientName)){
-						server.printLog("Client with name: "+ clientName + " doesn't exists\n");
-					}
-					receivedAns++;
-//					if(receivedAns >= clientsList.size()){
-//						//sleep for 5 seconds and then start over.
-//						try {
-//							Thread.sleep(5000);
-//						} catch (InterruptedException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//						break;
-//					}
 					
-					//break;
-					// TODO: here we should write to server.OnlineGames that
-					// answer.getAddress() replied
-
-				} catch (SocketTimeoutException ex) {
-					// The minute was exceeded now don't wait for answers, analyze the 
-					//result , which client returned an answer
-					server.printLog("TimeOUT...\n");
-					server.clients.removeIfNotAlive();					
-					break;
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
+					//set the client alive
+					if(!server.clients.setAlive(clientName)){
+						server.printLog("Client with name: "+ clientName + " doesn't exists, adding...");
+						addAliveClient(theResponse,aliveMsg);
+						continue;
+					}
+					
+					Timer clientTimer = this.clientTimers.get(clientName);
+					clientTimer.reset();
+					
+					checkTimers();
+					server.clients.removeIfNotAlive();
+					
+					//clientNum--;
+				} 
+				catch (SocketTimeoutException e) {
+					server.printLog("Socket timeout...");
+					clientsList = server.clients.getClients();
+					if (clientsList.size()==0)
+					{
+						server.printLog("No clients yet, waiting...");
+						//waitingTime.reset();
+						continue;
+					}
+					checkTimers();
+					server.clients.removeIfNotAlive();
+				}
+				catch (IOException e) {
+					server.printError(e.getMessage());
 					e.printStackTrace();
 				}
-				
-				// TODO:the minute was exceeded so now we will check
-				// who from the clients didn't reply to us!
-				
-
-			}
-			//server.printLog("No clients yet, waiting...\n");
-			
-			//after checking , sleep for 30 seconds , and then start over
-			try {
-				Thread.sleep(30000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			//}
+			//waitingTime.reset();
 		}
 
+	}
+	
+	private void addAliveClient(String[] message,DatagramPacket packet){
+		try {
+			String clientName = message[1];
+			int transmitPort = Integer.parseInt(message[2]);
+			String gameId   = message[3];
+			int tcpPort = Integer.parseInt(message[4]);
+			if(DataBaseManager.isUserExists(clientName)){
+				OnlineClients.Client theClient = new OnlineClients.Client(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
+				server.clients.addClientToUdpList(theClient);
+				if(!gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
+					Game theGame = server.games.getGame(gameId);
+					if(theGame == null){
+						theGame = new Game(clientName, null, gameId);
+						server.games.addGame(theGame);
+						theClient.setGameForClient(gameId);
+					}
+					else{
+						theGame.addPlayer(clientName);
+					}
+				}
+				openTimerFor(clientName);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void checkTimers(){
+		Timer timer= null;
+		HashMap<String,Timer> clone = (HashMap<String, Timer>) clientTimers.clone();
+		for(String name : clone.keySet()){
+			timer = clientTimers.get(name);
+			if(timer.isTimedOut()){
+				server.printError("Client "+ name+" not responding...");
+				server.clients.resetAlive(name);
+				timer.delete();
+				clientTimers.remove(name);
+			}
+			else{
+				server.clients.setAlive(name);
+			}
+		}
+	}
+	
+	private void resetAllTimers(){
+		Timer timer= null;
+		for(String name : clientTimers.keySet()){
+			timer = clientTimers.get(name);
+			timer.reset();
+		}
+	}
+	
+	public void openTimerFor(String clientName){
+		Timer timer = null;
+		if(clientTimers.containsKey(clientName)){
+			timer = clientTimers.get(clientName);
+			timer.reset();
+		}
+		else{
+			timer = new Timer(this.timeOut);
+			timer.start();
+			clientTimers.put(clientName, timer);
+		}
+		server.clients.setAlive(clientName);
 	}
 
 }

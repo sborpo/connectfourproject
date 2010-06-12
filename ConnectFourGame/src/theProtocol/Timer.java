@@ -1,4 +1,4 @@
-package ConnectFourServer;
+package theProtocol;
 
 public class Timer implements Runnable
 {
@@ -81,13 +81,18 @@ public class Timer implements Runnable
 		return;
 	}
 	
-	public int getLength(){
-		return m_length;
+	public boolean isTimedOut(){
+		return (m_length <= m_elapsed);
 	}
 	
 	public void abort()
 	{
 		timerThread.interrupt();
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void delete(){
+		timerThread.stop();
 	}
 	
 	

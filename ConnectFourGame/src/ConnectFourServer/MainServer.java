@@ -32,6 +32,9 @@ public class MainServer {
 	//Data structure which manages the OnlineClients
 	public OnlineClients clients;
 
+	//The udpListener
+	public UdpListener udpListener = null;
+	
 	public int getServerTCPPort() {
 		return serverTCPPort;
 	}
@@ -108,8 +111,8 @@ public class MainServer {
 		}
 		
 		//start the UDP listener
-		Thread t = new Thread(new UdpListener(this));
-		t.start();
+		udpListener = new UdpListener(this);
+		udpListener.start();
 		
 		
 		while (true) {
