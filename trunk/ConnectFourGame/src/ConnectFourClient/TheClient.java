@@ -10,6 +10,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,6 +29,7 @@ import theProtocol.ClientServerProtocol.msgType;
 public class TheClient {
 
 	static public int unDEFport = -1; 
+	
 	private int serverUdpPort = unDEFport;
 	private int serverPort;
 	private String serverHost;
@@ -38,17 +40,28 @@ public class TheClient {
 	private String opponentGameHost = "";
 	private int opponentGamePort = unDEFport;
 	private String opponentName = "";
-	private int clientWatchPort = unDEFport;	
-	private String gameId = "";
+	private int clientWatchPort = unDEFport;
+	private int clientTransmitPort = unDEFport;
+	private String gameId = ClientServerProtocol.noGame;
 	private Game game;
 	private HashMap<String, Viewer> viewersList;
-	//UDP socket
-	public DatagramSocket socket = null;
+	//UDP socket for sending alive messages
+	public DatagramSocket aliveSocket = null;
 	
+	//UDP socket for receiving transmit requests
+	public DatagramSocket transmitSocket = null;
+	
+	//this will send the alive messages to the server
 	private ServerListener 	echoServerListener = null;
+	
+	//this will accept the TRANSMIT command
+	private TransmitWaiter transmitWaiter = null;
 
 	private InetAddress serverAddress;
 	
+	public String getGameId(){
+		return gameId;
+	}
 	
 	public void sendMoveToViewers(String move)
 	{
@@ -57,7 +70,7 @@ public class TheClient {
 		for (Viewer viewer : viewers) {
 			try {
 				System.out.println("Sending to: " + viewer.getName()+ " move: " + move);
-				socket.send(new DatagramPacket(buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
+				transmitSocket.send(new DatagramPacket (buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -67,9 +80,22 @@ public class TheClient {
 		
 	}
 	
+	public int getGamePort(){
+		return clientGamePort;
+	}
+	
 	public int getWatchPort()
 	{
 		return clientWatchPort;
+	}
+	
+	public static class Viewer extends  OnlineClients.Client
+	{
+
+		public Viewer(InetAddress host, int UDPlistenPort, String name) {
+			super(host, UDPlistenPort, name, TheClient.unDEFport,TheClient.unDEFport);
+		}
+		
 	}
 	
 	public void addToViewerList(Viewer viewer)
@@ -81,16 +107,6 @@ public class TheClient {
 		}
 		System.out.println("Adding viewer: "+ viewer.getName());
 		viewersList.put(name, viewer);
-	}
-	
-	
-	public static class Viewer extends  OnlineClients.Client
-	{
-
-		public Viewer(InetAddress host, int UDPport, String name) {
-			super(host, UDPport, name, TheClient.unDEFport);
-		}
-		
 	}
 	
 	public InetAddress getServerAddress() {
@@ -106,8 +122,12 @@ public class TheClient {
 	 * 
 	 * @return The UDP port that the client listens on to the server
 	 */
-	public int listenToServerPort() {
+	public int getClientAlivePort() {
 		return clientUdp;
+	}
+	
+	public int getTransmitPort(){
+		return clientTransmitPort;
 	}
 
 	public int serverUDPPort() {
@@ -117,7 +137,6 @@ public class TheClient {
 	public TheClient(String[] args) {
 		viewersList= new HashMap<String, Viewer>();
 		parseArguments(args);
-
 		try {
 			serverAddress = InetAddress.getByName(serverHost);
 		} catch (UnknownHostException e) {
@@ -131,8 +150,7 @@ public class TheClient {
 		System.out.println("Server: " + serverHost);
 		serverPort = Integer.parseInt(args[1]);
 		System.out.println("Server TCP port: "+serverPort);
-//		clientName = args[2];
-//		System.out.println("Clent name: "+clientName);
+		
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);
@@ -239,6 +257,7 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.MEETME)){
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
+			clientTransmitPort = Integer.parseInt(params[3]);
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
@@ -271,6 +290,8 @@ public class TheClient {
 			 serverUdpPort = Integer.parseInt(params[1]);
 			 echoServerListener = new ServerListener(this);
 			 echoServerListener.start();
+			 transmitWaiter = new TransmitWaiter(this);
+			 transmitWaiter.start();
 		}
 		else if(command.equals(ClientServerProtocol.GAME)){
 			gameId = params[1];
@@ -289,6 +310,11 @@ public class TheClient {
 			game = new Game(opponentName, clientName,gameId);
 			game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);			
 		}
+		else if(command.equals(ClientServerProtocol.ENJOYWATCH)){
+			GameWatcher watcher = new GameWatcher(this);
+			Thread t = new Thread(watcher);
+			t.start();
+		}
 		else if(command.equals(ClientServerProtocol.NOCONN)){
 			responseRes = false;
 		}
@@ -302,19 +328,15 @@ public class TheClient {
 			responseRes = false;
 		}
 		else if(command.equals(ClientServerProtocol.OK)){
-			GameWatcher watcher = new GameWatcher(this);
-			Thread t = new Thread(watcher);
-			t.start();
 		}
 		
 		return responseRes;
 	}
 	
 	public static void main(String[] args) {
-//		new MainFrame();
-//		TheClient client = new TheClient(args);
-//		client.start();
-		new MainFrame();
+		TheClient client = new TheClient(args);
+		client.start();
+		//new MainFrame();
 	
 	}
 }
