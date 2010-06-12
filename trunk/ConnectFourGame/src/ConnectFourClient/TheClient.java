@@ -311,9 +311,10 @@ public class TheClient {
 	}
 	
 	public static void main(String[] args) {
-
+//		new MainFrame();
 //		TheClient client = new TheClient(args);
 //		client.start();
-		LoginWindow win = new LoginWindow();
+		new MainFrame();
+	
 	}
 }
