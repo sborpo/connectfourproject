@@ -33,6 +33,8 @@ public class ClientServerProtocol {
 	public static final String SERVPROB = "SERVER_INTERNAL_PROBLEMS";
 	public static final String VIEWERTRANSMIT ="VIEWER_TRANSMIT";
 	public static final String ENJOYWATCH ="ENJOY_WATCHING";
+	public static final String GAMEMOVE ="GAME_MOVE";
+	public static final String GAMEREPORT ="GAME_REPORT";
 	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
 	public static final String IMALIVE ="I'M_ALIVE!";
 	
@@ -57,6 +59,7 @@ public class ClientServerProtocol {
 			legalCommands.add(OK);
 			legalCommands.add(WHAT);
 			legalCommands.add(IMALIVE);
+			legalCommands.add(GAMEREPORT);
 		}
 		//Commands CLIENT can receive
 		else{
@@ -69,7 +72,8 @@ public class ClientServerProtocol {
 			legalCommands.add(GOGOGO);
 			legalCommands.add(SERVPROB);
 			legalCommands.add(VIEWERTRANSMIT);
-			//legalCommands.add(YOUALIVE);
+			legalCommands.add(GAMEMOVE);
+			legalCommands.add(GAMEREPORT);
 			legalCommands.add(OK);
 			legalCommands.add(ENJOYWATCH);
 		}
@@ -90,7 +94,8 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GOGOGO, 3);
 		numOfParametersForCmd.put(SERVPROB, 0);
 		numOfParametersForCmd.put(VIEWERTRANSMIT, 3);
-		//numOfParametersForCmd.put(YOUALIVE, 0);
+		numOfParametersForCmd.put(GAMEMOVE, 2);
+		numOfParametersForCmd.put(GAMEREPORT, 4);
 		numOfParametersForCmd.put(IMALIVE, 4);
 		numOfParametersForCmd.put(ENJOYWATCH, 0);
 	}

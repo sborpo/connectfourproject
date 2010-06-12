@@ -5,6 +5,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
+import theProtocol.ClientServerProtocol;
+
 public class GameWatcher implements Runnable{
 
 	TheClient client=null;
@@ -17,6 +19,7 @@ public class GameWatcher implements Runnable{
 	public void run() {
 		System.out.println("Game Watcher Is Running! ");
 		DatagramSocket socket=null;
+		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		try {
 			socket = new DatagramSocket(client.getWatchPort());
 		} catch (SocketException e) {
@@ -36,13 +39,33 @@ public class GameWatcher implements Runnable{
 			
 			//copy the message to a buffer , in order to print later
 			byte[] playerMessage = new byte[mes.getLength()];
-			for (int i = 0; i < playerMessage.length; i++) {
-				playerMessage[i] = message[i];
-			}
+			System.arraycopy(message, 0, playerMessage, 0, mes.getLength());
 			String str = new String(playerMessage);
+			String[] parsed = prot.parseCommand(str);
+			if(parsed == null){
+				System.out.println(prot.result + ". Bad move report received!");
+				continue;
+			}
 			System.out.println("Got This Move: "+str);
-		
+			String winner = parseReport(parsed);
+			if(winner != null){
+				System.out.println(winner + " is a winner!");
+				break;
+			}
 		}
+	}
+	
+	private String parseReport(String[] message){
+		String winner = null;
+		if(message[0].equalsIgnoreCase(ClientServerProtocol.GAMEREPORT)){
+			if(Integer.parseInt(message[3]) == 1){
+				winner = message[4];
+			}
+			else{
+				winner = "NOBODY";
+			}
+		}
+		return winner;
 	}
 
 }

@@ -209,11 +209,12 @@ public class RequestHandler implements Runnable {
 					}
 				}
 				else{
-					server.printLog("WE HAVE PROBLEM IN SERVER MAN\n");
-					response = ClientServerProtocol.SERVPROB;
+					server.printLog("No such gameId:" + gameId);
+					response = ClientServerProtocol.DENIED;
 				}
 			}
 			else{
+				server.printLog("User is already in game!");
 				response = ClientServerProtocol.DENIED;
 			}
 		}
