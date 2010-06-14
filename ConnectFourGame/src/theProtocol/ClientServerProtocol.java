@@ -35,6 +35,7 @@ public class ClientServerProtocol {
 	public static final String ENJOYWATCH ="ENJOY_WATCHING";
 	public static final String GAMEMOVE ="GAME_MOVE";
 	public static final String GAMEREPORT ="GAME_REPORT";
+	public static final String USERNOTEXISTS="USERNAME NOT EXISTS";
 	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
 	public static final String IMALIVE ="I'M_ALIVE!";
 	
@@ -76,6 +77,7 @@ public class ClientServerProtocol {
 			legalCommands.add(GAMEREPORT);
 			legalCommands.add(OK);
 			legalCommands.add(ENJOYWATCH);
+			legalCommands.add(USERNOTEXISTS);
 		}
 	}
 	
@@ -98,6 +100,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GAMEREPORT, 4);
 		numOfParametersForCmd.put(IMALIVE, 4);
 		numOfParametersForCmd.put(ENJOYWATCH, 0);
+		numOfParametersForCmd.put(USERNOTEXISTS, 0);
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");

@@ -10,8 +10,9 @@ public class MainFrame extends JFrame {
 	private JMenu menu1, menu2;
 	private JMenuItem menu1Item1;
 	private JMenuItem menu1Item2;
+	public TheClient client;
 	
-	public MainFrame()
+	public MainFrame(String [] args)
 	{
 		super("The Main Client Window");
 		menuBar = new JMenuBar();
@@ -26,10 +27,15 @@ public class MainFrame extends JFrame {
 		menu1.add(menu1Item2);
 		setJMenuBar(menuBar);
 		setSize(500, 500);
+		client=new TheClient(args);
 		setVisible(true);
 		new LoginWindow(this);
 		
 
+	}
+	public static void main(String[] args) {
+		new MainFrame(args);
+	
 	}
 
 }

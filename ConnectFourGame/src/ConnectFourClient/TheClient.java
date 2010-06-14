@@ -146,7 +146,10 @@ public class TheClient {
 		System.out.println("Server: " + serverHost);
 		serverPort = Integer.parseInt(args[1]);
 		System.out.println("Server TCP port: "+serverPort);
-		
+		clientUdp = Integer.parseInt(args[2]);
+		System.out.println("Client Udp Listen port: "+clientUdp);
+		clientTransmitPort = Integer.parseInt(args[3]);
+		System.out.println("Client Transmit port: "+clientTransmitPort);
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);
@@ -162,6 +165,52 @@ public class TheClient {
 		//System.out.println(clientStartsGame);
 
 	}
+	
+	public String sendMessageToServer(String message) throws IOException
+	{
+		Socket serverConnection = null;
+		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+	
+			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
+				
+				String[] commandPar = parseCommand(message,parser);
+
+				// send the command to the server
+				try{
+					serverConnection = new Socket(serverAddress, serverPort);
+				}
+				catch (IOException ex){
+					System.out.println("Connection problems with server: "+ ex.getMessage());
+					throw ex;
+				}
+				System.out.println("Sending your message: "+ message+" to the server...");
+				PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
+				BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
+				//send the message
+				out.println(message);
+				out.println();
+				
+				System.out.println("READING socket...");
+				// get server's response
+				while((message = response.readLine()) != null) {
+					if(message.equals("")){
+						break;
+					}
+					System.out.println("\n\nServer Response is:" + message);
+					break;
+				}
+				if(out != null){
+					out.close();
+				}
+				if(response!= null){
+					response.close();
+				}
+				if(serverConnection != null){
+					serverConnection.close();
+				}
+				return message;
+	
+}
 
 	public void start() {
 		//ServerListener echoServerListener = new ServerListener(this);
@@ -268,6 +317,25 @@ public class TheClient {
 		
 		return params;
 	}
+	
+	
+	public void handleNICETM(String [] params)
+	{
+		serverUdpPort = Integer.parseInt(params[1]);
+		 echoServerListener = new ServerListener(this);
+		 echoServerListener.start();
+		 transmitWaiter = new TransmitWaiter(this);
+		 transmitWaiter.start();
+	}
+	
+	//the one that used
+	public String[] parseServerResponse(String message)
+	{
+		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
+		String[] params = parser.parseCommand(message);
+		return params;
+	}
+	
 	private boolean parseResponse(String message){
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
 		String[] params = parser.parseCommand(message);
