@@ -1,6 +1,7 @@
 package ConnectFourClient;
 
 import java.awt.BorderLayout;
+import theProtocol.*;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -8,6 +9,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,11 +17,12 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-public class LoginWindow extends JDialog implements MouseListener {
+public class LoginWindow extends JDialog implements MouseListener  {
 	private JPanel mainPane;
 	private JLabel command;
 	private JTextField username;
@@ -29,8 +32,8 @@ public class LoginWindow extends JDialog implements MouseListener {
 	private JLabel usernameLabel;
 	private JLabel passwordLabel;
 	private JLabel singUp;
-	private JFrame father;
-	public LoginWindow(JFrame MainWindow)
+	private MainFrame father;
+	public LoginWindow(MainFrame MainWindow)
 	{
 		super(MainWindow, "Authentication Window", true);
 		father= MainWindow;
@@ -48,6 +51,7 @@ public class LoginWindow extends JDialog implements MouseListener {
 		mainPane.add(enterButton);
 		
 		singUp.addMouseListener(this);
+		enterButton.addMouseListener(this);
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().add(mainPane,BorderLayout.PAGE_START);
 		getContentPane().add(singUp,BorderLayout.LINE_END);
@@ -78,7 +82,34 @@ public class LoginWindow extends JDialog implements MouseListener {
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if (e.getSource()==enterButton)
+		{
+			try {
+				String response=father.client.sendMessageToServer("MEETME "+String.valueOf(father.client.getClientAlivePort())+" "+username.getText()+" "+father.client.getTransmitPort()+" "+password.getPassword());
+				if (father.client.parseServerResponse(response)==null)
+				{
+					//TODO problem with syntax , server doesn't understand
+					JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+					return;
+				}
+				if (father.client.parseServerResponse(response)[0].equals(ClientServerProtocol.USERNOTEXISTS))
+				{
+					JOptionPane.showMessageDialog(null,"The username that you have typed doesn't exists \n Please Sign Up");
+					return;
+				}
+				//else log the user into the main window
+				father.client.handleNICETM(father.client.parseServerResponse(response));
+				this.setVisible(false);
+			} catch (IOException e1) {
+				// TODO Handle connection problem
+				e1.printStackTrace();
+				JOptionPane.showMessageDialog(null,"A problem with server connection");
+				return;
+			}
+		}
+		else{
 		new SingUpWindow(this);
+		}
 		
 	}
 

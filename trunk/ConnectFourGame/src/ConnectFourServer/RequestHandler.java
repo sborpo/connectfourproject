@@ -253,18 +253,22 @@ public class RequestHandler implements Runnable {
 		try {
 			if(!DataBaseManager.authenticateUser(clientName, password)){
 				//user is not exists - create new user
-				server.printLog("Creating new user: " + clientName);
-				DataBaseManager.insertUser(clientName, password);
+//				server.printLog("Creating new user: " + clientName);
+//				DataBaseManager.insertUser(clientName, password);
+				response = ClientServerProtocol.USERNOTEXISTS;
+				return response;
 			}
 			else{
 				server.printLog("User already exists: " + clientName);
+				
 			}
 		} catch (SQLException e) {
 			server.printError(e.getMessage());
 			errFlag = true;
-		} catch (UserAlreadyExists e) {
-			server.printError(e.getMessage());
-		}
+		} 
+//		catch (UserAlreadyExists e) {
+//			server.printError(e.getMessage());
+//		}
 		if(!errFlag){
 			//now the user definitely exists --> start sending him alive messages 
 			server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
