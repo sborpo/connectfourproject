@@ -38,6 +38,7 @@ public class ClientServerProtocol {
 	public static final String USERNOTEXISTS="USERNAME_NOT_EXISTS";
 	public static final String USERALREADYEXISTS= "USERNAME_ALREADY_EXISTS";
 	public static final String SIGNUP="SIGN_UP";
+	public static final String GAMELIST="GAME_LIST";
 	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
 	public static final String IMALIVE ="I'M_ALIVE!";
 	
@@ -64,6 +65,7 @@ public class ClientServerProtocol {
 			legalCommands.add(IMALIVE);
 			legalCommands.add(GAMEREPORT);
 			legalCommands.add(SIGNUP);
+			legalCommands.add(GAMELIST);
 		}
 		//Commands CLIENT can receive
 		else{
@@ -107,6 +109,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(USERNOTEXISTS, 0);
 		numOfParametersForCmd.put(USERALREADYEXISTS, 0);
 		numOfParametersForCmd.put(SIGNUP, 2);
+		numOfParametersForCmd.put(GAMELIST, 0);
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");

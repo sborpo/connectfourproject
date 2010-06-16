@@ -5,6 +5,7 @@ import gameManager.Game;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -166,7 +167,7 @@ public class TheClient {
 
 	}
 	
-	public String sendMessageToServer(String message) throws IOException
+	public Object sendMessageToServer(String message) throws IOException
 	{
 		Socket serverConnection = null;
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
@@ -185,19 +186,24 @@ public class TheClient {
 				}
 				System.out.println("Sending your message: "+ message+" to the server...");
 				PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
-				BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
+				
 				//send the message
 				out.println(message);
 				out.println();
-				
+				ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
 				System.out.println("READING socket...");
+				Object resp=null;
 				// get server's response
-				while((message = response.readLine()) != null) {
-					if(message.equals("")){
+				try {
+					while((resp = response.readObject()) != null) {
+						if(message.equals("")){
+							break;
+						}
+						System.out.println("\n\nServer Response is:" + message);
 						break;
 					}
-					System.out.println("\n\nServer Response is:" + message);
-					break;
+				} catch (ClassNotFoundException e) {
+					//class will always be found
 				}
 				if(out != null){
 					out.close();
@@ -208,7 +214,7 @@ public class TheClient {
 				if(serverConnection != null){
 					serverConnection.close();
 				}
-				return message;
+				return resp;
 	
 }
 
