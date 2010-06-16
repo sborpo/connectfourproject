@@ -18,6 +18,8 @@ public class OnlineGames {
 	//The current online games (game ID to game hash)
 	private HashMap<String,Game> playingGames;
 	
+	
+	
 	public OnlineGames(MainServer server)
 	{
 		this.server = server;

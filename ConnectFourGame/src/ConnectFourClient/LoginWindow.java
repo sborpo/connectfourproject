@@ -99,6 +99,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				}
 				//else log the user into the main window
 				father.client.handleNICETM(father.client.parseServerResponse(response));
+				father.getOnlineGames();
 				this.setVisible(false);
 			} catch (IOException e1) {
 				// TODO Handle connection problem
