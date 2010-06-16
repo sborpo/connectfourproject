@@ -14,6 +14,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Random;
 
 import ConnectFourClient.TheClient;
@@ -97,10 +99,10 @@ public class RequestHandler implements Runnable {
 		} 
 	}
 	
-	private String respondToMessage(String message){
+	private Object respondToMessage(String message){
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 		String[] params = parser.parseCommand(message);
-		String respondMsg = null;
+		Object respondMsg = null;
 		if(params == null){
 			respondMsg =  ClientServerProtocol.WHAT;
 		}
@@ -118,6 +120,9 @@ public class RequestHandler implements Runnable {
 			}
 			else if(command.equals(ClientServerProtocol.PLAY)){
 				respondMsg = playTreat(Integer.parseInt(params[1]),params[2],params[3]);
+			}
+			else if(command.equals(ClientServerProtocol.GAMELIST)){
+				respondMsg = getOnlineGamesTreat();
 			}
 			else if(command.equals(ClientServerProtocol.WATCH)){
 				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3]);
@@ -271,6 +276,12 @@ public class RequestHandler implements Runnable {
 		}
 		
 	}
+	
+	private ArrayList<Game> getOnlineGamesTreat()
+	{
+		return server.games.getOnlineGames();
+	}
+	
 	private String meetMeTreat(int clientUDPPort,String clientName,int clientTransmitPort,String password){
 		boolean errFlag = false;
 		String response = ClientServerProtocol.SERVPROB;

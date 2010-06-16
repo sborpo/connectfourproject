@@ -3,6 +3,8 @@ package ConnectFourClient;
 import gameManager.Game;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -15,6 +17,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Properties;
 
 import ConnectFourServer.OnlineClients;
 import ConnectFourServer.OnlineGames;
@@ -143,14 +146,33 @@ public class TheClient {
 	}
 
 	private void parseArguments(String[] args) {
-		serverHost = args[0];
+		Properties props = new Properties();
+		try {
+			props.load(new FileInputStream("src\\ConnectFourClient\\client.configurations"));
+		} catch (FileNotFoundException e) {
+			//file will be found
+			
+			e.printStackTrace();
+		} catch (IOException e) {
+			//will be read
+			e.printStackTrace();
+		}	
+		
+		
+		//serverHost = props.getProperty("SERVER_HOST");
+		serverHost = (args[0]);
 		System.out.println("Server: " + serverHost);
+		//serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
 		serverPort = Integer.parseInt(args[1]);
 		System.out.println("Server TCP port: "+serverPort);
+		//clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
 		clientUdp = Integer.parseInt(args[2]);
 		System.out.println("Client Udp Listen port: "+clientUdp);
+		//clientTransmitPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_PORT"));
 		clientTransmitPort = Integer.parseInt(args[3]);
 		System.out.println("Client Transmit port: "+clientTransmitPort);
+		clientGamePort = Integer.parseInt(args[4]);
+		System.out.println("Client Game port: "+clientGamePort);
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);

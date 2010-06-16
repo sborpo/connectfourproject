@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +19,7 @@ import theProtocol.ClientServerProtocol;
 
 import ConnectFourClient.TheClient;
 
-public class Game {
+public class Game implements Serializable{
 
 	private String gameId;
 	private Player red;
@@ -26,6 +27,11 @@ public class Game {
 	private Board gameBoard;
 	private Player plays;
 	private GameState state;
+	
+	public boolean isGameFull()
+	{
+		return (blue==null);
+	}
 
 	public Game(String name1,String name2,String gameId) {
 		red = new Player(Player.Color.RED,name1);

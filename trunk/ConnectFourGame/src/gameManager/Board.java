@@ -1,6 +1,8 @@
 package gameManager;
 
-public class Board {
+import java.io.Serializable;
+
+public class Board implements Serializable{
 	public static class IllegalMove extends Exception {
 	}
 
@@ -8,7 +10,7 @@ public class Board {
 		EMPTY, RED, BLUE
 	}
 
-	public static enum GameState {
+	public static enum GameState implements Serializable {
 		TIE, RED_WON, BLUE_WON, PROCEED
 	}
 
