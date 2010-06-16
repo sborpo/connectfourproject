@@ -112,7 +112,7 @@ public class SingUpWindow extends JDialog implements MouseListener{
 			return;
 		}
 		try {
-			String response=main.client.sendMessageToServer("SIGN_UP "+username.getText()+" "+password.getText().toString());
+			String response=(String)main.client.sendMessageToServer("SIGN_UP "+username.getText()+" "+password.getText().toString());
 			if (main.client.parseServerResponse(response)==null)
 			{
 				//TODO problem with syntax , server doesn't understand

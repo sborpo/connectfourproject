@@ -85,7 +85,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		if (e.getSource()==enterButton)
 		{
 			try {
-				String response=father.client.sendMessageToServer("MEETME "+String.valueOf(father.client.getClientAlivePort())+" "+username.getText()+" "+father.client.getTransmitPort()+" "+password.getText());
+				String response=(String)father.client.sendMessageToServer("MEETME "+String.valueOf(father.client.getClientAlivePort())+" "+username.getText()+" "+father.client.getTransmitPort()+" "+password.getText());
 				if (father.client.parseServerResponse(response)==null)
 				{
 					//TODO problem with syntax , server doesn't understand

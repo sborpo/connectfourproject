@@ -7,6 +7,7 @@ import gameManager.Player.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -42,17 +43,17 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
-		PrintWriter out = null;
+		ObjectOutputStream out = null;
 		BufferedReader in = null;
 		String clientHost = clientSock.getInetAddress().getHostName();
 		String clientIP = clientSock.getInetAddress().getHostAddress();
 		server.printLog("Starting new socket...\n");
 		try {
-			out = new PrintWriter(clientSock.getOutputStream(), true);
+			out = new ObjectOutputStream(clientSock.getOutputStream());
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 			
 			String inputLine;
-			String response = ClientServerProtocol.WHAT;
+			Object response = ClientServerProtocol.WHAT;
 			// reads the input line by line and appends in to the string builder
 			while ((inputLine = in.readLine()) != null) {
 				if(inputLine.equals("")){
@@ -66,8 +67,8 @@ public class RequestHandler implements Runnable {
 				//get the response
 				response = respondToMessage(inputLine);
 				System.out.println("Send to client: " + response);
-				out.println(response);
-				out.println();
+				out.writeObject(response);
+				
 			}
 			System.out.println("------------------FINISHED-----------------");
 			if (out != null) {
@@ -130,6 +131,7 @@ public class RequestHandler implements Runnable {
 		}
 		return respondMsg;
 	}
+	
 	
 	private String okOnWatchTreat(int parseInt, String string) {
 		// TODO Auto-generated method stub
