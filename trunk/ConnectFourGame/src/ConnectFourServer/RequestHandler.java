@@ -112,6 +112,9 @@ public class RequestHandler implements Runnable {
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
 				respondMsg = newGameTreat(Integer.parseInt(params[1]),params[2]);
 			}
+			else if(command.equals(ClientServerProtocol.SIGNUP)){
+				respondMsg = signupTreat(params[1],params[2]);
+			}
 			else if(command.equals(ClientServerProtocol.PLAY)){
 				respondMsg = playTreat(Integer.parseInt(params[1]),params[2],params[3]);
 			}
@@ -246,15 +249,31 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
+	
+	private String signupTreat(String username , String password)
+	{
+		String response = ClientServerProtocol.SERVPROB;
+		try {
+				try {
+					DataBaseManager.insertUser(username, password);
+				} catch (UserAlreadyExists e) {
+					response=ClientServerProtocol.USERALREADYEXISTS;
+					return response;
+				}
+				response= ClientServerProtocol.OK;
+				return response;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			server.printError(e.getMessage());
+			return response;
+		}
+		
+	}
 	private String meetMeTreat(int clientUDPPort,String clientName,int clientTransmitPort,String password){
 		boolean errFlag = false;
 		String response = ClientServerProtocol.SERVPROB;
-		//find or create user in the users database
 		try {
 			if(!DataBaseManager.authenticateUser(clientName, password)){
-				//user is not exists - create new user
-//				server.printLog("Creating new user: " + clientName);
-//				DataBaseManager.insertUser(clientName, password);
 				response = ClientServerProtocol.USERNOTEXISTS;
 				return response;
 			}
@@ -266,9 +285,6 @@ public class RequestHandler implements Runnable {
 			server.printError(e.getMessage());
 			errFlag = true;
 		} 
-//		catch (UserAlreadyExists e) {
-//			server.printError(e.getMessage());
-//		}
 		if(!errFlag){
 			//now the user definitely exists --> start sending him alive messages 
 			server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
