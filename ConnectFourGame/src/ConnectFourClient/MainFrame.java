@@ -20,6 +20,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
+
+import ConnectFourServer.StamClass;
 
 import theProtocol.ClientServerProtocol;
 import gameManager.*;
@@ -130,8 +133,14 @@ public class MainFrame extends JFrame implements MouseListener{
 		l.add(new JLabel("Open Games"));
 		r.add(new JLabel("Games For Watch"));
 		left.add(l); right.add(r);
-		openGames= new JTable(new TableModel(0,openGamesColumnsNames));
-		gamesForWatch= new JTable(new TableModel(0,gamesForWatchColumnsNames));
+		openGames= new JTable(new DefaultTableModel());
+		for (String colName : openGamesColumnsNames) {
+			((DefaultTableModel)openGames.getModel()).addColumn(colName);
+		}
+		gamesForWatch= new JTable(new DefaultTableModel());
+		for (String colName : gamesForWatchColumnsNames) {
+			((DefaultTableModel)gamesForWatch.getModel()).addColumn(colName);
+		}
 		openGames.setFillsViewportHeight(true);
 		gamesForWatch.setFillsViewportHeight(true);
 		JScrollPane openTablePane= new JScrollPane(openGames);
@@ -158,9 +167,9 @@ public class MainFrame extends JFrame implements MouseListener{
 	@SuppressWarnings("unchecked")
 	public void getOnlineGames()
 	{
-		ArrayList<Game> response;
+		ArrayList<StamClass> response;
 		try {
-			response = (ArrayList<Game>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
+			response = (ArrayList<StamClass>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
 			return;
@@ -175,19 +184,18 @@ public class MainFrame extends JFrame implements MouseListener{
 		
 	}
 	
-	public void setUpOnlineGames(ArrayList<Game> games)
+	public void setUpOnlineGames(ArrayList<StamClass> games)
 	{
-		((TableModel)openGames.getModel()).removeAllRows();
-		int i=0;
-		for (Game game : games) {
-			if (!game.isGameFull())
-			{
-				openGames.setValueAt(game.getPlayer(Color.RED), i, 0);
-				//player rank
-				openGames.setValueAt("", i, 1);
-				openGames.setValueAt(game.getId(), i, 2);
-				i++;
-			}
+		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
+		while (model.getRowCount()>0)
+		{model.removeRow(0);}
+		for (StamClass game : games) {
+			
+				Object [] arr= new Object[3];
+				arr[0]=game.getX().toString();
+				arr[1]="";
+				arr[2]=game.getY().toString();
+				model.addRow(arr);
 		}	
 	}
 	

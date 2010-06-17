@@ -20,7 +20,7 @@ public class ServerListener extends Thread {
 	// the client to which the listener is bind to
 	private TheClient client;
 	
-	private int delayTime = 10;
+	private int delayTime = 60;
 	//this will wait some time
 	private Timer delayTimer;
 

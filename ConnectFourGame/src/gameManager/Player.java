@@ -6,7 +6,12 @@ import ConnectFourServer.OnlineClients.Client;
 
 public class Player implements Serializable{
 
-	public static enum Color {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static enum Color implements Serializable {
 		BLUE, RED
 	};
 
