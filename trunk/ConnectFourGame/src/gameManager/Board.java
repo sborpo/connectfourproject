@@ -3,14 +3,26 @@ package gameManager;
 import java.io.Serializable;
 
 public class Board implements Serializable{
+
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4739665432455995867L;
+
 	public static class IllegalMove extends Exception {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7438721808184643398L;
 	}
 
-	public static enum Cell {
+	public static enum Cell implements Serializable{
 		EMPTY, RED, BLUE
 	}
 
-	public static enum GameState implements Serializable {
+	public static enum GameState implements Serializable{
 		TIE, RED_WON, BLUE_WON, PROCEED
 	}
 

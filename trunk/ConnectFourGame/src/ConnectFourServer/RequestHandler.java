@@ -277,9 +277,13 @@ public class RequestHandler implements Runnable {
 		
 	}
 	
-	private ArrayList<Game> getOnlineGamesTreat()
+	private ArrayList<StamClass> getOnlineGamesTreat()
 	{
-		return server.games.getOnlineGames();
+		StamClass c = new StamClass(5, 3);
+		ArrayList<StamClass> l = new ArrayList<StamClass>();
+		l.add(c);
+		return l;
+		//return server.games.getOnlineGames();
 	}
 	
 	private String meetMeTreat(int clientUDPPort,String clientName,int clientTransmitPort,String password){
