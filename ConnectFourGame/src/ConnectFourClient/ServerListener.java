@@ -7,9 +7,10 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import common.Timer;
+
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
-import theProtocol.Timer;
 
 /**
  * Listens To UDP Alive Messages
