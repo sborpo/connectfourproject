@@ -86,7 +86,7 @@ public class MainFrame extends JFrame implements MouseListener{
 	private JButton watchGame;
 	public TheClient client;
 	
-	public MainFrame(String [] args)
+	public MainFrame(String [] args) throws IOException
 	{
 		super("The Main Client Window");
 		setColumnsNames();
@@ -200,7 +200,12 @@ public class MainFrame extends JFrame implements MouseListener{
 	}
 	
 	public static void main(String[] args) {
-		new MainFrame(args);
+		try {
+			new MainFrame(args);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	
 	}
 	@Override

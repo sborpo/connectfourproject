@@ -30,7 +30,7 @@ public class TransmitWaiter extends Thread {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		System.out.println("Client starting waiting for transmit message from: "
+		client.logger.print_info("Client starting waiting for transmit message from: "
 				+ client.serverUDPPort());
 
 		byte[] message = new byte[100000];
@@ -48,7 +48,7 @@ public class TransmitWaiter extends Thread {
 			System.arraycopy(message, 0, msgFormatted, 0, mes.getLength());
 			String str = new String(msgFormatted);
 			//print the received message from the server
-			System.out.println("Server say: " + str);
+			client.logger.print_info("Server say: " + str);
 			
 			//check if the message received was ok
 			if (treatMessage(str)){
@@ -65,7 +65,7 @@ public class TransmitWaiter extends Thread {
 		Collection<Viewer> viewers=client.getViewerList().values();
 		for (Viewer viewer : viewers) {
 			try {
-				System.out.println("Sending to: " + viewer.getName()+ " move: " + move);
+				client.logger.print_info("Sending to: " + viewer.getName()+ " move: " + move);
 				client.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -81,7 +81,7 @@ public class TransmitWaiter extends Thread {
 		ClientServerProtocol prot= new ClientServerProtocol(msgType.CLIENT);
 		String [] messageCommand=prot.parseCommand(message);
 		if(messageCommand == null){
-			System.out.println(prot.result + ". Bad server command.");
+			client.logger.print_error(prot.result + ". Bad server command.");
 			result = false;
 		}
 		else if (messageCommand[0].equals(ClientServerProtocol.VIEWERTRANSMIT))
@@ -91,7 +91,7 @@ public class TransmitWaiter extends Thread {
 			try {
 				address = InetAddress.getByName(messageCommand[2]);
 			} catch (UnknownHostException e) {
-				System.out.println(e.getMessage());
+				client.logger.print_error(e.getMessage());
 				result = false;
 			}
 			String watchName= messageCommand[3];
