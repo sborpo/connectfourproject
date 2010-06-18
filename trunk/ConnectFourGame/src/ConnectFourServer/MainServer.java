@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
+import common.LogPrinter;
+
 public class MainServer {
 
 	// the connection pool of the server. each incoming
