@@ -19,9 +19,9 @@ public class LogPrinter {
 	private String logPath = "c:\\log.txt";
 	FileWriter aWriter = null;
 	
-	public LogPrinter() throws IOException{  
+	public LogPrinter(String name) throws IOException{  
 		String time = getTime();
-        logPath = getDate() + "_time_" + time + ".txt";
+        logPath = name + "_" + getDate() + "_time_" + time + ".txt";
         logPath = logPath.replaceAll("[-:]", "_");
         new File(logPath).delete();
         aWriter = new FileWriter(logPath, true);

@@ -54,7 +54,7 @@ public class MainServer {
 
 	public MainServer(String[] args) throws SQLException, IOException {
 		try {
-			printer = new LogPrinter();
+			printer = new LogPrinter("Server");
 		} catch (IOException e) {
 			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
 			throw e;
