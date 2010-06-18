@@ -17,7 +17,7 @@ public class GameWatcher implements Runnable{
 	
 	@Override
 	public void run() {
-		System.out.println("Game Watcher Is Running! ");
+		client.logger.print_info("Game Watcher Is Running! ");
 		DatagramSocket socket=null;
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		try {
@@ -43,13 +43,13 @@ public class GameWatcher implements Runnable{
 			String str = new String(playerMessage);
 			String[] parsed = prot.parseCommand(str);
 			if(parsed == null){
-				System.out.println(prot.result + ". Bad move report received!");
+				client.logger.print_error(prot.result + ". Bad move report received!");
 				continue;
 			}
-			System.out.println("Got This Move: "+str);
+			client.logger.print_info("Got This Move: "+str);
 			String winner = parseReport(parsed);
 			if(winner != null){
-				System.out.println(winner + " is a winner!");
+				client.logger.print_info(winner + " is a winner!");
 				break;
 			}
 		}

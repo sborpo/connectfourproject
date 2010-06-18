@@ -41,7 +41,7 @@ public class ServerListener extends Thread {
 		
 		// open a UDP socket , from which we will do the communications
 		// with the server
-		System.out.println("Client starting sending alive messages from: "
+		client.logger.print_info("Client starting sending alive messages from: "
 				+client.getClientAlivePort() + " to: "+ client.serverUDPPort());
 		delayTimer.start();
 		while (true) {
@@ -53,7 +53,7 @@ public class ServerListener extends Thread {
 			//send to server client Alive message!
 			String aliveMsg = ClientServerProtocol.IMALIVE + " " + client.getClientName() + 
 			" " + client.getTransmitPort()+ " " + client.getGameId() + " " + client.getGamePort();
-			System.out.println("I say: " + aliveMsg + "to port: " + client.serverUDPPort());
+			client.logger.print_info("I say: " + aliveMsg + "to port: " + client.serverUDPPort());
 			byte[] buffer = aliveMsg.getBytes();
 			try {
 				client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,

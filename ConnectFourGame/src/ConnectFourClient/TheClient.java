@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Properties;
 
+import common.LogPrinter;
+
 import ConnectFourServer.OnlineClients;
 import ConnectFourServer.OnlineGames;
 import ConnectFourServer.OnlineClients.Client;
@@ -34,6 +36,7 @@ public class TheClient {
 
 	static public int unDEFport = -1; 
 	
+	public LogPrinter logger = null;
 	private int serverUdpPort = unDEFport;
 	private int serverPort;
 	private String serverHost;
@@ -101,7 +104,7 @@ public class TheClient {
 		{
 			return;
 		}
-		System.out.println("Adding viewer: "+ viewer.getName());
+		logger.print_info("Adding viewer: "+ viewer.getName());
 		viewersList.put(name, viewer);
 	}
 	
@@ -134,7 +137,13 @@ public class TheClient {
 		return serverUdpPort;
 	}
 
-	public TheClient(String[] args) {
+	public TheClient(String[] args) throws IOException {
+		try {
+			logger = new LogPrinter();
+		} catch (IOException e) {
+			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
+			throw e;
+		}
 		viewersList= new HashMap<String, Viewer>();
 		parseArguments(args);
 		try {
@@ -146,33 +155,33 @@ public class TheClient {
 	}
 
 	private void parseArguments(String[] args) {
-		Properties props = new Properties();
-		try {
-			props.load(new FileInputStream("src\\ConnectFourClient\\client.configurations"));
-		} catch (FileNotFoundException e) {
-			//file will be found
-			
-			e.printStackTrace();
-		} catch (IOException e) {
-			//will be read
-			e.printStackTrace();
-		}	
+//		Properties props = new Properties();
+//		try {
+//			props.load(new FileInputStream("src\\ConnectFourClient\\client.configurations"));
+//		} catch (FileNotFoundException e) {
+//			//file will be found
+//			
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			//will be read
+//			e.printStackTrace();
+//		}	
 		
 		
 		//serverHost = props.getProperty("SERVER_HOST");
 		serverHost = (args[0]);
-		System.out.println("Server: " + serverHost);
+		logger.print_info("Server: " + serverHost);
 		//serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
 		serverPort = Integer.parseInt(args[1]);
-		System.out.println("Server TCP port: "+serverPort);
+		logger.print_info("Server TCP port: "+serverPort);
 		//clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
 		clientUdp = Integer.parseInt(args[2]);
-		System.out.println("Client Udp Listen port: "+clientUdp);
+		logger.print_info("Client Udp Listen port: "+clientUdp);
 		//clientTransmitPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_PORT"));
 		clientTransmitPort = Integer.parseInt(args[3]);
-		System.out.println("Client Transmit port: "+clientTransmitPort);
+		logger.print_info("Client Transmit port: "+clientTransmitPort);
 		clientGamePort = Integer.parseInt(args[4]);
-		System.out.println("Client Game port: "+clientGamePort);
+		logger.print_info("Client Game port: "+clientGamePort);
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);
@@ -203,17 +212,17 @@ public class TheClient {
 					serverConnection = new Socket(serverAddress, serverPort);
 				}
 				catch (IOException ex){
-					System.out.println("Connection problems with server: "+ ex.getMessage());
+					logger.print_error("Connection problems with server: "+ ex.getMessage());
 					throw ex;
 				}
-				System.out.println("Sending your message: "+ message+" to the server...");
+				logger.print_info("Sending your message: "+ message+" to the server...");
 				PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
 				
 				//send the message
 				out.println(message);
 				out.println();
 				ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
-				System.out.println("READING socket...");
+				logger.print_info("READING socket...");
 				Object resp=null;
 				// get server's response
 				try {
@@ -221,7 +230,7 @@ public class TheClient {
 						if(message.equals("")){
 							break;
 						}
-						System.out.println("\n\nServer Response is:" + message);
+						logger.print_info("Server Response is:" + message);
 						break;
 					}
 				} catch (ClassNotFoundException e) {
@@ -252,14 +261,14 @@ public class TheClient {
 				String inputLine;			
 				
 				//now ask from the client a message, and send it to the server
-				System.out.println("--------------------------------------------------------------------");
-				System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
+				logger.print_info("--------------------------------------------------------------------");
+				logger.print_info("Please Enter Your Message (End the message by leaving new empty line):");
 				// read the command from the user
 				while ((inputLine = stdin.readLine()) != null) {
 					
 					String[] commandPar = parseCommand(inputLine,parser);
 					if(commandPar == null){
-						System.out.println(parser.result + ", please try again");
+						logger.print_error(parser.result + ", please try again");
 						break;
 					}
 					
@@ -268,23 +277,23 @@ public class TheClient {
 						serverConnection = new Socket(serverAddress, serverPort);
 					}
 					catch (IOException ex){
-						System.out.println("Connection problems with server: "+ ex.getMessage());
+						logger.print_error("Connection problems with server: "+ ex.getMessage());
 						break;
 					}
-					System.out.println("Sending your message: "+ inputLine +" to the server...");
+					logger.print_info("Sending your message: "+ inputLine +" to the server...");
 					PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
 					BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
 					//send the message
 					out.println(inputLine);
 					out.println();
 					
-					System.out.println("READING socket...");
+					logger.print_info("READING socket...");
 					// get server's response
 					while((inputLine = response.readLine()) != null) {
 						if(inputLine.equals("")){
 							break;
 						}
-						System.out.println("\n\nServer Response is:" + inputLine);
+						logger.print_info("Server Response is:" + inputLine);
 						parseResponse(inputLine);
 					}
 					
@@ -296,8 +305,8 @@ public class TheClient {
 					}
 					
 					//now ask from the client a message, and send it to the server
-					System.out.println("--------------------------------------------------------------------");
-					System.out.println("Please Enter Your Message (End the message by leaving new empty line):");
+					logger.print_info("--------------------------------------------------------------------");
+					logger.print_info("Please Enter Your Message (End the message by leaving new empty line):");
 				}
 				
 				if(serverConnection != null){
@@ -370,7 +379,7 @@ public class TheClient {
 		boolean responseRes = true;
 		
 		if(params == null){
-			System.out.println("I don't understand what server say...");
+			logger.print_error("I don't understand what server say...");
 			responseRes = false;
 			return responseRes;
 		}
@@ -387,7 +396,7 @@ public class TheClient {
 		}
 		else if(command.equals(ClientServerProtocol.GAME)){
 			gameId = params[1];
-			System.out.println("Received game: " + gameId + ", starting waiting on game port...");
+			logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 			game = new Game(clientName, null,gameId);
 			game.startOnlineGame(clientGamePort, null,-1, true,this);
 		}
@@ -395,7 +404,7 @@ public class TheClient {
 			opponentGamePort = Integer.parseInt(params[1]);
 			opponentGameHost = params[2];
 			opponentName = params[3];
-			System.out.println("Accepted game with: " + opponentName + 
+			logger.print_info("Accepted game with: " + opponentName + 
 								" host: " + opponentGameHost + 
 								" port: " + opponentGamePort +
 								" game: " + gameId);
@@ -426,9 +435,14 @@ public class TheClient {
 	}
 	
 	public static void main(String[] args) {
-		TheClient client = new TheClient(args);
-		client.start();
-		//new MainFrame();
-	
+		TheClient client;
+		try {
+			//new MainFrame();
+			client = new TheClient(args);
+			client.start();
+		} catch (IOException e) {
+			System.out.println(LogPrinter.error_msg("Client had failed!"));
+		}
+
 	}
 }
