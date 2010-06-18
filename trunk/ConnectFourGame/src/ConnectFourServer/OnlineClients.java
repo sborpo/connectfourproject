@@ -138,14 +138,14 @@ public class OnlineClients {
 		for(String key : isAlive.keySet()){
 			boolean alive = isAlive.get(key);
 			if(!alive){
-				server.printLog("Removing: "+ key +"...");
+				server.printer.print_info("Removing: "+ key +"...");
 				Client theClient = server.clients.getClient(key);
 				if(theClient == null){
-					server.printLog("SOME PROBLEM WHILE REMOVING: " + key);
+					server.printer.print_info("SOME PROBLEM WHILE REMOVING: " + key);
 				}
 				Game game = server.games.getGame(theClient.getGame());
 				if(game != null){
-					server.printLog("Removing game : "+ game.getId() +"...");
+					server.printer.print_info("Removing game : "+ game.getId() +"...");
 					server.games.removeGame(game.getId());
 				}
 				udpClients.remove(key);
