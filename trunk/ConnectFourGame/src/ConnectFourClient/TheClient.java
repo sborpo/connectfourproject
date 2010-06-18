@@ -139,7 +139,7 @@ public class TheClient {
 
 	public TheClient(String[] args) throws IOException {
 		try {
-			logger = new LogPrinter();
+			logger = new LogPrinter("Client");
 		} catch (IOException e) {
 			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
 			throw e;
