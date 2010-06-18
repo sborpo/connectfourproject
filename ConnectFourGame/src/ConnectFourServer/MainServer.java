@@ -22,7 +22,7 @@ public class MainServer {
 	private int serverUDPPort;
 
 	// The server's log
-	private LogPrinter printer;
+	public LogPrinter printer;
 
 	private DatagramSocket serverUdp;
 
@@ -50,10 +50,15 @@ public class MainServer {
 //		c.start();
 //	}
 
-	public MainServer(String[] args) throws SQLException {
-		printer = new LogPrinter();
+	public MainServer(String[] args) throws SQLException, IOException {
+		try {
+			printer = new LogPrinter();
+		} catch (IOException e) {
+			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
+			throw e;
+		}
 		parseServerArguments(args);
-		this.printLog("TCP: "+serverTCPPort+" UDP: "+serverUDPPort+" dbName: "+DataBaseManager.getDBname());
+		this.printer.print_info("TCP: "+serverTCPPort+" UDP: "+serverUDPPort+" dbName: "+DataBaseManager.getDBname());
 		initDatabase();
 		connectionsPool = Executors.newCachedThreadPool();
 		games = new OnlineGames(this);
@@ -67,21 +72,13 @@ public class MainServer {
 		}
 
 	}
-
-	public void printLog(String logPrint) {
-		printer.print(logPrint + "\n");
-	}
-	
-	public void printError(String errorMsg){
-		printer.print("Error: " + errorMsg + "\n");
-	}
 	
 	private void initDatabase() throws SQLException
 	{
-		this.printLog("Loading the database...");
+		this.printer.print_info("Loading the database...");
 		DataBaseManager.createDB("database");
 		DataBaseManager.constructTables();
-		this.printLog("Done loading the database");
+		this.printer.print_info("Done loading the database");
 	}
 	
 	/**
@@ -142,12 +139,9 @@ public class MainServer {
 		try {
 			server = new MainServer(args);
 			server.start();
-		} catch (SQLException e) {
-			// TODO No point of Starting server without a database connection
-			e.printStackTrace();
-		}
-		
-
+		} catch (Exception e) {
+			System.out.println(LogPrinter.error_msg("Server failure!"));
+		} 
 	}
 
 	public DatagramSocket getUdpSocket() {

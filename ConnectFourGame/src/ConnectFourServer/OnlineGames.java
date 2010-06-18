@@ -28,9 +28,9 @@ public class OnlineGames {
 	
 	public synchronized void addGame(Game game){
 		playingGames.put(game.getId(), game);
-		server.printLog("Game has been added : " + game.getId() + "\n");
+		server.printer.print_info("Game has been added : " + game.getId() + "\n");
 		for(String gameId : playingGames.keySet()){
-			server.printLog("ONline game: " +gameId + "\n");
+			server.printer.print_info("Online game: " +gameId + "\n");
 		}
 	}
 	
@@ -60,12 +60,12 @@ public class OnlineGames {
 	}
 	
 	public synchronized Game getGame(String gameId){
-		server.printLog("Looking for: " + gameId + "\n");
+		server.printer.print_info("Looking for: " + gameId + "\n");
 		if(playingGames.containsKey(gameId)){
 			return playingGames.get(gameId);
 		}
 		for(String id : playingGames.keySet()){
-			server.printLog("GAME: " + id);
+			server.printer.print_info("GAME: " + id);
 		}
 		return null;
 	}

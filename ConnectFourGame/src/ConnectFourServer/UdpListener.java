@@ -41,7 +41,7 @@ public class UdpListener implements Runnable {
 	@Override
 	public void run() {
 		//now do it infinitely
-		server.printLog("Starting listening to alive messages");
+		server.printer.print_info("Starting listening to alive messages");
 //		Timer waitingTime = new Timer(timeOut);
 //		waitingTime.start();
 		while (true) {
@@ -68,7 +68,7 @@ public class UdpListener implements Runnable {
 			byte[] alv = new byte[100000];
 			DatagramPacket aliveMsg = new DatagramPacket(alv, alv.length);
 			
-			server.printLog("UDP:Waiting for clients alive messages...");
+			server.printer.print_info("UDP:Waiting for clients alive messages...");
 			//int clientNum = clientsList.size();
 			//while (clientNum > 0) {
 				try {
@@ -84,20 +84,20 @@ public class UdpListener implements Runnable {
 					String[] theResponse = prot.parseCommand(aliveResponse);
 					
 					if(theResponse == null){
-						server.printError(prot.result + ". Bad alive message");
+						server.printer.print_error(prot.result + ". Bad alive message");
 						break;
 					}
 					
 					String clientMessage = theResponse[0];
 					String clientName = theResponse[1];
-					server.printLog("\n----------------------------\nUDP recieved From Client: "+clientName
+					server.printer.print_info("\n----------------------------\nUDP recieved From Client: "+clientName
 									+ ", "+aliveMsg.getAddress().toString()
 									+ " The message (len: " + dataLen + ") is:\n----------------------------\n"
 									+ clientMessage);
 					
 					//set the client alive
 					if(!server.clients.setAlive(clientName)){
-						server.printLog("Client with name: "+ clientName + " doesn't exists, adding...");
+						server.printer.print_info("Client with name: "+ clientName + " doesn't exists, adding...");
 						addAliveClient(theResponse,aliveMsg);
 						continue;
 					}
@@ -111,11 +111,11 @@ public class UdpListener implements Runnable {
 					//clientNum--;
 				} 
 				catch (SocketTimeoutException e) {
-					server.printLog("Socket timeout...");
+					server.printer.print_info("Socket timeout...");
 					clientsList = server.clients.getClients();
 					if (clientsList.size()==0)
 					{
-						server.printLog("No clients yet, waiting...");
+						server.printer.print_info("No clients yet, waiting...");
 						//waitingTime.reset();
 						continue;
 					}
@@ -123,7 +123,7 @@ public class UdpListener implements Runnable {
 					server.clients.removeIfNotAlive();
 				}
 				catch (IOException e) {
-					server.printError(e.getMessage());
+					server.printer.print_error(e.getMessage());
 					e.printStackTrace();
 				}
 			//}
@@ -167,7 +167,7 @@ public class UdpListener implements Runnable {
 		for(String name : clone.keySet()){
 			timer = clientTimers.get(name);
 			if(timer.isTimedOut()){
-				server.printError("Client "+ name+" not responding...");
+				server.printer.print_error("Client "+ name+" not responding...");
 				server.clients.resetAlive(name);
 				timer.delete();
 				clientTimers.remove(name);

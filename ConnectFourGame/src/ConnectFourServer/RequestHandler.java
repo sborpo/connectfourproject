@@ -49,7 +49,7 @@ public class RequestHandler implements Runnable {
 		BufferedReader in = null;
 		String clientHost = clientSock.getInetAddress().getHostName();
 		String clientIP = clientSock.getInetAddress().getHostAddress();
-		server.printLog("Starting new socket...\n");
+		server.printer.print_info("Starting new socket...\n");
 		try {
 			out = new ObjectOutputStream(clientSock.getOutputStream());
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
@@ -64,7 +64,7 @@ public class RequestHandler implements Runnable {
 				String logMessage = "From Client with name :" + clientHost + " IP: "
 				+ clientIP + " Recieved This Message: \n -------------\n"
 				+ inputLine + "\n-------------\n\n\n";
-				server.printLog(logMessage);
+				server.printer.print_info(logMessage);
 				
 				//get the response
 				response = respondToMessage(inputLine);
@@ -72,7 +72,7 @@ public class RequestHandler implements Runnable {
 				out.writeObject(response);
 				
 			}
-			System.out.println("------------------FINISHED-----------------");
+			
 			if (out != null) {
 				out.close();
 			}
@@ -80,7 +80,7 @@ public class RequestHandler implements Runnable {
 				try {
 					in.close();
 				} catch (IOException e) {
-					server.printLog("Problem closing socket from Client: "
+					server.printer.print_error("Problem closing socket from Client: "
 							+ clientHost + " with IP: " + clientIP);
 					e.printStackTrace();
 				}
@@ -94,7 +94,7 @@ public class RequestHandler implements Runnable {
 				}
 			}
 		} catch (IOException ex) {
-			server.printLog("Problem reading from Client: " + clientHost
+			server.printer.print_error("Problem reading from Client: " + clientHost
 					+ " with IP: " + clientIP + " " + ex.getMessage());
 		} 
 	}
@@ -127,9 +127,6 @@ public class RequestHandler implements Runnable {
 			else if(command.equals(ClientServerProtocol.WATCH)){
 				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3]);
 			}
-			else if(command.equals(ClientServerProtocol.OK)){
-				respondMsg = okOnWatchTreat(Integer.parseInt(params[1]),params[2]);
-			}
 			else{
 				respondMsg = ClientServerProtocol.WHAT;
 			}
@@ -138,10 +135,6 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
-	private String okOnWatchTreat(int parseInt, String string) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 	private String watchTreat(int watcherPort, String gameId,String watcherName) {
 		String response = ClientServerProtocol.KNOWYA;
 		Client viewer=server.clients.getClient(watcherName);
@@ -160,7 +153,7 @@ public class RequestHandler implements Runnable {
 				int clientPort= client.getUDPtransmitPort();
 				
 				InetAddress viewerAddr= viewer.getAddress();
-				server.printLog("Sending transmit command to: " + client.getName() + "\n");
+				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
 				SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
 				response = ClientServerProtocol.ENJOYWATCH;
 			}
@@ -205,26 +198,26 @@ public class RequestHandler implements Runnable {
 										+ enemy.getTCPPort() + " " 
 										+ enemy.getAddress().getHostAddress() + " " 
 										+ enemy.getName();
-							server.printLog("Player has been added to the game: " + gameId + "\n");
+							server.printer.print_info("Player has been added to the game: " + gameId + "\n");
 							theClient.setGameForClient(gameId);
 						}
 						else{
-							server.printLog("WE HAVE PROBLEM IN SERVER MAN\n");
+							server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");
 							response = ClientServerProtocol.SERVPROB;
 						}
 					}
 					else{
-						server.printLog("Other man playing..." + thePlayer.getName() +"\n");
+						server.printer.print_error("Other man playing..." + thePlayer.getName() +"\n");
 						response = ClientServerProtocol.DENIED;
 					}
 				}
 				else{
-					server.printLog("No such gameId:" + gameId);
+					server.printer.print_error("No such gameId:" + gameId);
 					response = ClientServerProtocol.DENIED;
 				}
 			}
 			else{
-				server.printLog("User is already in game!");
+				server.printer.print_error("User is already in game!");
 				response = ClientServerProtocol.DENIED;
 			}
 		}
@@ -247,7 +240,7 @@ public class RequestHandler implements Runnable {
 				server.games.addGame(newGame);
 				theClient.setGameForClient(gameId);
 				response = ClientServerProtocol.GAME + " " + gameId;
-				server.printLog("The game has been created: " + theClient.getGame() + "\n");
+				server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
 			}
 			else{
 				response = ClientServerProtocol.DENIED;
@@ -271,7 +264,7 @@ public class RequestHandler implements Runnable {
 				return response;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			server.printError(e.getMessage());
+			server.printer.print_error(e.getMessage());
 			return response;
 		}
 		
@@ -295,11 +288,10 @@ public class RequestHandler implements Runnable {
 				return response;
 			}
 			else{
-				server.printLog("User already exists: " + clientName);
-				
+				server.printer.print_error("User already exists: " + clientName);	
 			}
 		} catch (SQLException e) {
-			server.printError(e.getMessage());
+			server.printer.print_error(e.getMessage());
 			errFlag = true;
 		} 
 		if(!errFlag){
