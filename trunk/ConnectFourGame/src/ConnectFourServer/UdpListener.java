@@ -98,7 +98,7 @@ public class UdpListener implements Runnable {
 					
 					//set the client alive
 					if(!server.clients.setAlive(clientName)){
-						server.printer.print_info("Client with name: "+ clientName + " doesn't exists, adding...");
+						server.printer.print_info("Client with name: "+ clientName + " doesn't exists, checking...");
 						addAliveClient(theResponse,aliveMsg);
 						continue;
 					}
@@ -136,10 +136,11 @@ public class UdpListener implements Runnable {
 	private void addAliveClient(String[] message,DatagramPacket packet){
 		try {
 			String clientName = message[1];
-			int transmitPort = Integer.parseInt(message[2]);
-			String gameId   = message[3];
-			int tcpPort = Integer.parseInt(message[4]);
-			if(DataBaseManager.isUserExists(clientName)){
+			String password = message[2];
+			int transmitPort = Integer.parseInt(message[3]);
+			String gameId   = message[4];
+			int tcpPort = Integer.parseInt(message[5]);
+			if(DataBaseManager.authenticateUser(clientName,password)){
 				OnlineClients.Client theClient = new OnlineClients.Client(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
 				server.clients.addClientToUdpList(theClient);
 				if(!gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
@@ -154,6 +155,10 @@ public class UdpListener implements Runnable {
 					}
 				}
 				openTimerFor(clientName);
+				server.printer.print_error("Authentication had succeded for: " + clientName);
+			}
+			else{
+				server.printer.print_error("Authentication had failed for: " + clientName);
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

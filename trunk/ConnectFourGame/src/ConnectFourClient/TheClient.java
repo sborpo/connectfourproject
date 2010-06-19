@@ -38,9 +38,10 @@ public class TheClient {
 	
 	public LogPrinter logger = null;
 	private int serverUdpPort = unDEFport;
-	private int serverPort;
-	private String serverHost;
-	private String clientName;
+	private int serverPort = unDEFport;
+	private String serverHost = "";
+	private String clientName = "";
+	private String password = "";
 	private int clientUdp = unDEFport;
 
 	private int clientGamePort = unDEFport;
@@ -50,7 +51,7 @@ public class TheClient {
 	private int clientWatchPort = unDEFport;
 	private int clientTransmitPort = unDEFport;
 	private String gameId = ClientServerProtocol.noGame;
-	private Game game;
+	private Game game = null;
 	
 	private HashMap<String, Viewer> viewersList;
 	//UDP socket for sending alive messages
@@ -60,12 +61,16 @@ public class TheClient {
 	public DatagramSocket transmitSocket = null;
 	
 	//this will send the alive messages to the server
-	private ServerListener 	echoServerListener = null;
+	private AliveSender 	echoServerListener = null;
 	
 	//this will accept the TRANSMIT command
 	private TransmitWaiter transmitWaiter = null;
 
 	private InetAddress serverAddress;
+	
+	public String getPassword(){
+		return password;
+	}
 	
 	public String getGameId(){
 		return gameId;
@@ -282,10 +287,12 @@ public class TheClient {
 					}
 					logger.print_info("Sending your message: "+ inputLine +" to the server...");
 					PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
-					BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
 					//send the message
 					out.println(inputLine);
 					out.println();
+					
+					BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
+					//ObjectInputStream responsedObj= new ObjectInputStream(serverConnection.getInputStream());
 					
 					logger.print_info("READING socket...");
 					// get server's response
@@ -340,6 +347,7 @@ public class TheClient {
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
 			clientTransmitPort = Integer.parseInt(params[3]);
+			password = params[4];
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
@@ -359,7 +367,7 @@ public class TheClient {
 	public void handleNICETM(String [] params)
 	{
 		serverUdpPort = Integer.parseInt(params[1]);
-		 echoServerListener = new ServerListener(this);
+		 echoServerListener = new AliveSender(this);
 		 echoServerListener.start();
 		 transmitWaiter = new TransmitWaiter(this);
 		 transmitWaiter.start();
@@ -389,7 +397,7 @@ public class TheClient {
 
 		if(command.equals(ClientServerProtocol.NICETM)){
 			 serverUdpPort = Integer.parseInt(params[1]);
-			 echoServerListener = new ServerListener(this);
+			 echoServerListener = new AliveSender(this);
 			 echoServerListener.start();
 			 transmitWaiter = new TransmitWaiter(this);
 			 transmitWaiter.start();
@@ -398,7 +406,8 @@ public class TheClient {
 			gameId = params[1];
 			logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 			game = new Game(clientName, null,gameId);
-			game.startOnlineGame(clientGamePort, null,-1, true,this);
+			String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
+			logger.print_info("Send here to server: " + gameReport);
 		}
 		else if(command.equals(ClientServerProtocol.GOGOGO)){
 			opponentGamePort = Integer.parseInt(params[1]);
@@ -409,7 +418,8 @@ public class TheClient {
 								" port: " + opponentGamePort +
 								" game: " + gameId);
 			game = new Game(opponentName, clientName,gameId);
-			game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);			
+			String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
+			logger.print_info("Send here to server: " + gameReport);
 		}
 		else if(command.equals(ClientServerProtocol.ENJOYWATCH)){
 			GameWatcher watcher = new GameWatcher(this);
