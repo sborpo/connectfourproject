@@ -35,9 +35,9 @@ public class ClientServerProtocol {
 	public static final String ENJOYWATCH ="ENJOY_WATCHING";
 	public static final String GAMEMOVE ="GAME_MOVE";
 	public static final String GAMEREPORT ="GAME_REPORT";
-	public static final String USERNOTEXISTS="USERNAME_NOT_EXISTS";
+	public static final String USERNOTEXISTS="USER_NOT_EXISTS";
 	public static final String USERALREADYEXISTS= "USERNAME_ALREADY_EXISTS";
-	public static final String SIGNUP="SIGN_UP";
+	public static final String SIGNUP="SIGNUP";
 	public static final String GAMELIST="GAME_LIST";
 	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
 	public static final String IMALIVE ="I'M_ALIVE!";
@@ -104,7 +104,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(VIEWERTRANSMIT, 3);
 		numOfParametersForCmd.put(GAMEMOVE, 2);
 		numOfParametersForCmd.put(GAMEREPORT, 4);
-		numOfParametersForCmd.put(IMALIVE, 4);
+		numOfParametersForCmd.put(IMALIVE, 5);
 		numOfParametersForCmd.put(ENJOYWATCH, 0);
 		numOfParametersForCmd.put(USERNOTEXISTS, 0);
 		numOfParametersForCmd.put(USERALREADYEXISTS, 0);

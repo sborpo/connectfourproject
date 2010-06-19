@@ -45,17 +45,23 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
-		ObjectOutputStream out = null;
+		//ObjectOutputStream out = null;
+		//VALERIY
+		PrintWriter out = null;
 		BufferedReader in = null;
 		String clientHost = clientSock.getInetAddress().getHostName();
 		String clientIP = clientSock.getInetAddress().getHostAddress();
 		server.printer.print_info("Starting new socket...\n");
 		try {
-			out = new ObjectOutputStream(clientSock.getOutputStream());
+			//VALERIY
+			//out = new ObjectOutputStream(clientSock.getOutputStream());
+			out = new PrintWriter(clientSock.getOutputStream(),true);
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 			
 			String inputLine;
-			Object response = ClientServerProtocol.WHAT;
+			//VALERIY
+			//Object response = ClientServerProtocol.WHAT;
+			String response = ClientServerProtocol.WHAT;
 			// reads the input line by line and appends in to the string builder
 			while ((inputLine = in.readLine()) != null) {
 				if(inputLine.equals("")){
@@ -67,10 +73,12 @@ public class RequestHandler implements Runnable {
 				server.printer.print_info(logMessage);
 				
 				//get the response
-				response = respondToMessage(inputLine);
-				System.out.println("Send to client: " + response);
-				out.writeObject(response);
-				
+				//VALERIY
+				response = (String)respondToMessage(inputLine);
+				server.printer.print_info("Send to client: " + response);
+				//VALERIY
+				//out.writeObject(response);
+				out.write(response);
 			}
 			
 			if (out != null) {
@@ -288,7 +296,7 @@ public class RequestHandler implements Runnable {
 				return response;
 			}
 			else{
-				server.printer.print_error("User already exists: " + clientName);	
+				server.printer.print_info("User entered: " + clientName);	
 			}
 		} catch (SQLException e) {
 			server.printer.print_error(e.getMessage());

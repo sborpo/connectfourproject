@@ -31,6 +31,7 @@ public class Game implements Serializable{
 	private Board gameBoard;
 	private Player plays;
 	private GameState state;
+	private String gameReport;
 	
 	public boolean isGameFull()
 	{
@@ -47,9 +48,10 @@ public class Game implements Serializable{
 		}
 		this.gameId = gameId;
 		gameBoard = new Board();
+		gameReport = "";
 	}
 
-	public void startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
+	public String startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 		Player clientPlayer;
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
@@ -93,7 +95,7 @@ public class Game implements Serializable{
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
-			return;
+			return gameReport;
 		}
 
 		plays = red;
@@ -155,12 +157,12 @@ public class Game implements Serializable{
 			System.out.println(winner + " player has won the game!\n");
 		}
 		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
-		String moveMsg = "GAME_REPORT" + " " + this.getId() + " " + theClient.getClientName() + " " + gameRes.toString() + " " + winner;
-		String[] parsed = prot.parseCommand(moveMsg);
+		gameReport = "GAME_REPORT" + " " + this.getId() + " " + theClient.getClientName() + " " + gameRes.toString() + " " + winner;
+		String[] parsed = prot.parseCommand(gameReport);
 		if(parsed == null){
-			System.out.println(prot.result + ". Bad move report!");
+			System.out.println(prot.result + ". Bad game report!");
 		}
-		theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
+		theClient.getTransmitWaiter().sendMoveToViewers(gameReport);
 		try {
 			if( opponentSocket != null){
 				opponentSocket.close();
@@ -173,7 +175,7 @@ public class Game implements Serializable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return;
+		return gameReport;
 
 	}
 

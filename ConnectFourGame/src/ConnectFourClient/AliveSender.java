@@ -16,16 +16,16 @@ import theProtocol.ClientServerProtocol.msgType;
  * Listens To UDP Alive Messages
  * 
  */
-public class ServerListener extends Thread {
+public class AliveSender extends Thread {
 
 	// the client to which the listener is bind to
 	private TheClient client;
 	
-	private int delayTime = 60;
+	private int delayTime = 10;
 	//this will wait some time
 	private Timer delayTimer;
 
-	public ServerListener(TheClient client) {
+	public AliveSender(TheClient client) {
 		this.client = client;
 		delayTimer = new Timer(delayTime);
 	}
@@ -52,8 +52,8 @@ public class ServerListener extends Thread {
 			
 			//send to server client Alive message!
 			String aliveMsg = ClientServerProtocol.IMALIVE + " " + client.getClientName() + 
-			" " + client.getTransmitPort()+ " " + client.getGameId() + " " + client.getGamePort();
-			client.logger.print_info("I say: " + aliveMsg + "to port: " + client.serverUDPPort());
+			" " + client.getPassword() + " " + client.getTransmitPort()+ " " + client.getGameId() + " " + client.getGamePort();
+			client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
 			byte[] buffer = aliveMsg.getBytes();
 			try {
 				client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
