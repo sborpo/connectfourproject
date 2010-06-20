@@ -37,7 +37,7 @@ public class ClientServerProtocol {
 	public static final String GAMEREPORT ="GAME_REPORT";
 	public static final String USERNOTEXISTS="USER_NOT_EXISTS";
 	public static final String USERALREADYEXISTS= "USERNAME_ALREADY_EXISTS";
-	public static final String SIGNUP="SIGNUP";
+	public static final String SIGNUP="SIGN_UP";
 	public static final String GAMELIST="GAME_LIST";
 	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
 	public static final String IMALIVE ="I'M_ALIVE!";

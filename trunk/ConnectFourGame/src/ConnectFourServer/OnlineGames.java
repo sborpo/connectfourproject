@@ -42,8 +42,8 @@ public class OnlineGames {
 		for(String gameId : playingGames.keySet()){
 			Game game=playingGames.get(gameId);
 			String id = game.getId();
-			String player1= game.getPlayer(Color.RED).getName();
-			String player2= game.getPlayer(Color.BLUE).getName();
+			String player1= (game.getPlayer(Color.RED)!=null)? game.getPlayer(Color.RED).getName() : null;
+			String player2= (game.getPlayer(Color.BLUE)!=null) ? game.getPlayer(Color.BLUE).getName() : null;
 			clientGames.add(new GameForClient(id, player1, player2));
 		}
 		return clientGames;
