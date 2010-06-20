@@ -291,17 +291,20 @@ public class TheClient {
 					out.println(inputLine);
 					out.println();
 					
-					BufferedReader response = new BufferedReader(new InputStreamReader(serverConnection.getInputStream()));
+					ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
 					//ObjectInputStream responsedObj= new ObjectInputStream(serverConnection.getInputStream());
 					
 					logger.print_info("READING socket...");
+					Object resp=null;
 					// get server's response
-					while((inputLine = response.readLine()) != null) {
-						if(inputLine.equals("")){
-							break;
+					try {
+						while((resp = response.readObject()) != null) {
+							logger.print_info("Server Response is:" + resp);
+							parseResponse(resp);
 						}
-						logger.print_info("Server Response is:" + inputLine);
-						parseResponse(inputLine);
+					} catch (ClassNotFoundException e) {
+						// Class Will Always Be found
+						e.printStackTrace();
 					}
 					
 					if(out != null){
@@ -366,11 +369,34 @@ public class TheClient {
 	
 	public void handleNICETM(String [] params)
 	{
-		serverUdpPort = Integer.parseInt(params[1]);
+		 serverUdpPort = Integer.parseInt(params[1]);
 		 echoServerListener = new AliveSender(this);
 		 echoServerListener.start();
 		 transmitWaiter = new TransmitWaiter(this);
 		 transmitWaiter.start();
+	}
+	
+	public void HandleGame(String [] params)
+	{
+		gameId = params[1];
+		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
+		game = new Game(clientName, null,gameId);
+		String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
+		logger.print_info("Send here to server: " + gameReport);
+	}
+	
+	public void HandleGoGoGo(String [] params)
+	{
+		opponentGamePort = Integer.parseInt(params[1]);
+		opponentGameHost = params[2];
+		opponentName = params[3];
+		logger.print_info("Accepted game with: " + opponentName + 
+							" host: " + opponentGameHost + 
+							" port: " + opponentGamePort +
+							" game: " + gameId);
+		game = new Game(opponentName, clientName,gameId);
+		String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
+		logger.print_info("Send here to server: " + gameReport);
 	}
 	
 	//the one that used
@@ -381,9 +407,16 @@ public class TheClient {
 		return params;
 	}
 	
-	private boolean parseResponse(String message){
+	
+	
+	private boolean parseResponse(Object message){
+		
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
-		String[] params = parser.parseCommand(message);
+		if (!message.getClass().equals("StringClass".getClass()))
+		{
+			return false;
+		}
+		String[] params = parser.parseCommand((String)message);
 		boolean responseRes = true;
 		
 		if(params == null){
@@ -396,30 +429,13 @@ public class TheClient {
 		String command = params[0];
 
 		if(command.equals(ClientServerProtocol.NICETM)){
-			 serverUdpPort = Integer.parseInt(params[1]);
-			 echoServerListener = new AliveSender(this);
-			 echoServerListener.start();
-			 transmitWaiter = new TransmitWaiter(this);
-			 transmitWaiter.start();
+			handleNICETM(params);
 		}
 		else if(command.equals(ClientServerProtocol.GAME)){
-			gameId = params[1];
-			logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
-			game = new Game(clientName, null,gameId);
-			String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
-			logger.print_info("Send here to server: " + gameReport);
+			HandleGame(params);
 		}
 		else if(command.equals(ClientServerProtocol.GOGOGO)){
-			opponentGamePort = Integer.parseInt(params[1]);
-			opponentGameHost = params[2];
-			opponentName = params[3];
-			logger.print_info("Accepted game with: " + opponentName + 
-								" host: " + opponentGameHost + 
-								" port: " + opponentGamePort +
-								" game: " + gameId);
-			game = new Game(opponentName, clientName,gameId);
-			String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
-			logger.print_info("Send here to server: " + gameReport);
+			HandleGoGoGo(params);
 		}
 		else if(command.equals(ClientServerProtocol.ENJOYWATCH)){
 			GameWatcher watcher = new GameWatcher(this);

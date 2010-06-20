@@ -30,7 +30,7 @@ public class UdpListener implements Runnable {
 		this.server = server;
 		socket = server.getUdpSocket();
 		clientTimers = new HashMap<String,Timer>();
-		timeOut = 30;
+		timeOut = 140;
 		theThread = new Thread(this);
 	}
 
