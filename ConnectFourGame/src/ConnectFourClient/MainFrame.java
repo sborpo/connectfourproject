@@ -1,6 +1,8 @@
 package ConnectFourClient;
 
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -73,7 +75,7 @@ class TableModel extends AbstractTableModel
 	
 }
 
-public class MainFrame extends JFrame implements MouseListener{
+public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	private JMenuBar menuBar;
 	private JMenu menu1, menu2;
 	private JMenuItem menu1Item1;
@@ -97,7 +99,8 @@ public class MainFrame extends JFrame implements MouseListener{
 		menu2= new JMenu("Second Menu");
 		menuBar.add(menu1);
 		menuBar.add(menu2);
-		menu1Item1= new JMenuItem("firstItem");
+		menu1Item1= new JMenuItem("Refresh Game List");
+		menu1Item1.addActionListener(this);
 		menu1Item2= new JMenuItem("firstItem");
 		menu1.add(menu1Item1);
 		menu1.add(menu1Item2);
@@ -152,7 +155,9 @@ public class MainFrame extends JFrame implements MouseListener{
 		r.add(gamesForWatchTablePane);
 		left.add(l); right.add(r);
 		joinGame= new JButton("Join Game");
+		joinGame.addMouseListener(this);
 		watchGame= new JButton("Watch Game");
+		joinGame.addMouseListener(this);
 		l= Box.createHorizontalBox();
 		r = Box.createHorizontalBox();
 		l.add(joinGame);
@@ -211,8 +216,45 @@ public class MainFrame extends JFrame implements MouseListener{
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if (e.getSource()==joinGame)
+		{
+			int rowIndex=openGames.getSelectedRow();
+			try {
+				String response =(String)client.sendMessageToServer(ClientServerProtocol.PLAY+" "+String.valueOf(client.getGamePort())+" "+openGames.getValueAt(rowIndex, 2)+" "+ client.getClientName());
+				if (client.parseServerResponse(response)==null)
+				{
+					JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+					return;
+				}
+				if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
+				{
+					JOptionPane.showMessageDialog(null,"There was a server internal error");
+					return;
+				}
+				if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
+				{
+					JOptionPane.showMessageDialog(null,"You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!");
+					client.HandleGoGoGo(client.parseServerResponse(response));
+					return;
+				}
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 		try {
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.NEWGAME+" "+String.valueOf(client.getGamePort())+" "+client.getClientName());
+			if (client.parseServerResponse(response)==null)
+			{
+				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+				return;
+			}
+			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
+			{
+				JOptionPane.showMessageDialog(null,"There was a server internal error");
+				return;
+			}
+			client.HandleGame(client.parseServerResponse(response));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -237,6 +279,15 @@ public class MainFrame extends JFrame implements MouseListener{
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource()==menu1Item1)
+		{
+			getOnlineGames();
+			return;
+		}
 		
 	}
 
