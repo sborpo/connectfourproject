@@ -187,6 +187,8 @@ public class TheClient {
 		logger.print_info("Client Transmit port: "+clientTransmitPort);
 		clientGamePort = Integer.parseInt(args[4]);
 		logger.print_info("Client Game port: "+clientGamePort);
+		clientWatchPort = Integer.parseInt(args[5]);
+		logger.print_info("Client Watch port: "+clientGamePort);
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);
