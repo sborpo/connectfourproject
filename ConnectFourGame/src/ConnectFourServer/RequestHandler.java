@@ -45,23 +45,20 @@ public class RequestHandler implements Runnable {
 
 	@Override
 	public void run() {
-		//ObjectOutputStream out = null;
-		//VALERIY
-		PrintWriter out = null;
+		ObjectOutputStream out = null;
 		BufferedReader in = null;
 		String clientHost = clientSock.getInetAddress().getHostName();
 		String clientIP = clientSock.getInetAddress().getHostAddress();
 		server.printer.print_info("Starting new socket...\n");
 		try {
-			//VALERIY
-			//out = new ObjectOutputStream(clientSock.getOutputStream());
-			out = new PrintWriter(clientSock.getOutputStream(),true);
+			out = new ObjectOutputStream(clientSock.getOutputStream());
+			//out = new PrintWriter(clientSock.getOutputStream(),true);
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 			
 			String inputLine;
 			//VALERIY
-			//Object response = ClientServerProtocol.WHAT;
-			String response = ClientServerProtocol.WHAT;
+			Object response = ClientServerProtocol.WHAT;
+			//String response = ClientServerProtocol.WHAT;
 			// reads the input line by line and appends in to the string builder
 			while ((inputLine = in.readLine()) != null) {
 				if(inputLine.equals("")){
@@ -74,11 +71,11 @@ public class RequestHandler implements Runnable {
 				
 				//get the response
 				//VALERIY
-				response = (String)respondToMessage(inputLine);
+				response = respondToMessage(inputLine);
 				server.printer.print_info("Send to client: " + response);
 				//VALERIY
 				//out.writeObject(response);
-				out.write(response);
+				out.writeObject(response);
 			}
 			
 			if (out != null) {
@@ -278,13 +275,9 @@ public class RequestHandler implements Runnable {
 		
 	}
 	
-	private ArrayList<StamClass> getOnlineGamesTreat()
+	private ArrayList<GameForClient> getOnlineGamesTreat()
 	{
-		StamClass c = new StamClass(5, 3);
-		ArrayList<StamClass> l = new ArrayList<StamClass>();
-		l.add(c);
-		return l;
-		//return server.games.getOnlineGames();
+		return server.games.getOnlineGamesForClient();
 	}
 	
 	private String meetMeTreat(int clientUDPPort,String clientName,int clientTransmitPort,String password){

@@ -1,6 +1,8 @@
 package ConnectFourServer;
 
-public class GameForClient {
+import java.io.Serializable;
+
+public class GameForClient implements Serializable{
 
 	private String gameId;
 	private String playerOneName;

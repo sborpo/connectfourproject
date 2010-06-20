@@ -22,6 +22,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 
+import ConnectFourServer.GameForClient;
 import ConnectFourServer.StamClass;
 
 import theProtocol.ClientServerProtocol;
@@ -167,9 +168,9 @@ public class MainFrame extends JFrame implements MouseListener{
 	@SuppressWarnings("unchecked")
 	public void getOnlineGames()
 	{
-		ArrayList<StamClass> response;
+		ArrayList<GameForClient> response;
 		try {
-			response = (ArrayList<StamClass>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
+			response = (ArrayList<GameForClient>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
 			return;
@@ -184,17 +185,17 @@ public class MainFrame extends JFrame implements MouseListener{
 		
 	}
 	
-	public void setUpOnlineGames(ArrayList<StamClass> games)
+	public void setUpOnlineGames(ArrayList<GameForClient> games)
 	{
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
 		while (model.getRowCount()>0)
 		{model.removeRow(0);}
-		for (StamClass game : games) {
+		for (GameForClient game : games) {
 			
 				Object [] arr= new Object[3];
-				arr[0]=game.getX().toString();
+				arr[0]=game.getPlayerOneName().toString();
 				arr[1]="";
-				arr[2]=game.getY().toString();
+				arr[2]=game.getGameId().toString();
 				model.addRow(arr);
 		}	
 	}
