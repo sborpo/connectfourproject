@@ -231,12 +231,9 @@ public class TheClient {
 				Object resp=null;
 				// get server's response
 				try {
-					while((resp = response.readObject()) != null) {
-						if(message.equals("")){
-							break;
-						}
-						logger.print_info("Server Response is:" + message);
-						break;
+					if((resp = response.readObject()) != null) {
+						logger.print_info("Server Response is:" + resp);
+						
 					}
 				} catch (ClassNotFoundException e) {
 					//class will always be found
