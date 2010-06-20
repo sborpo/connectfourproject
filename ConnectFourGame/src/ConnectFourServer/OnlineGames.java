@@ -1,5 +1,6 @@
 package ConnectFourServer;
 
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import gameManager.Board;
 import gameManager.Game;
 import gameManager.Player;
+import gameManager.Player.Color;
 import ConnectFourServer.OnlineClients.Client;;
 /**
  * Datastructure of the current online games.
@@ -34,6 +36,18 @@ public class OnlineGames {
 		}
 	}
 	
+	public synchronized ArrayList<GameForClient> getOnlineGamesForClient()
+	{
+		ArrayList<GameForClient> clientGames= new ArrayList<GameForClient>();
+		for(String gameId : playingGames.keySet()){
+			Game game=playingGames.get(gameId);
+			String id = game.getId();
+			String player1= game.getPlayer(Color.RED).getName();
+			String player2= game.getPlayer(Color.BLUE).getName();
+			clientGames.add(new GameForClient(id, player1, player2));
+		}
+		return clientGames;
+	}
 	public synchronized ArrayList<Game> getOnlineGames(){
 		ArrayList<Game> onlineGames = new ArrayList<Game>();
 		
@@ -52,7 +66,7 @@ public class OnlineGames {
 			String player1 = currGame.getPlayer(Player.Color.RED).getName();
 			String player2 = currGame.getPlayer(Player.Color.BLUE).getName();
 			
-			if(server.clients.getClient(player1) == null && server.clients.getClient(player1) == null)
+			if(server.clients.getClient(player1) == null && server.clients.getClient(player2) == null)
 				downGamesIds.add(currGame.getId());
 		}
 		
