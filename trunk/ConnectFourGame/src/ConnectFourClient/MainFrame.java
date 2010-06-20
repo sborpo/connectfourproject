@@ -30,50 +30,7 @@ import ConnectFourServer.StamClass;
 import theProtocol.ClientServerProtocol;
 import gameManager.*;
 import gameManager.Player.Color;
-class TableModel extends AbstractTableModel
-{
-	private String [] columnNames;
-	private Object [][] data;
-	
-	public TableModel(int rows,String [] names)
-	{
-		columnNames=names;
-		data= new Object[rows][columnNames.length];
-	}
-	@Override
-	public int getColumnCount() {
-		  return columnNames.length;
-	}
 
-	@Override
-	public int getRowCount() {
-		 return data.length;
-	}
-	
-	public String getColumnName(int col) {
-		return columnNames[col];
-    }
-
-	   public Class getColumnClass(int c) {
-	        return getValueAt(0, c).getClass();
-	    }
-
-	@Override
-	public Object getValueAt(int row, int col) {
-		return data[row][col];
-	}
-	
-    public void setValueAt(Object value, int row, int col) {
-        data[row][col] = value;
-    }
-    
-    public void removeAllRows()
-    {
-    	int rows=data.length;
-    	data=new Object[rows][columnNames.length];	
-    }
-	
-}
 
 public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	private JMenuBar menuBar;
@@ -88,6 +45,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	private JButton joinGame;
 	private JButton watchGame;
 	public TheClient client;
+	JButton addGame;
 	
 	public MainFrame(String [] args) throws IOException
 	{
@@ -157,7 +115,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		joinGame= new JButton("Join Game");
 		joinGame.addMouseListener(this);
 		watchGame= new JButton("Watch Game");
-		joinGame.addMouseListener(this);
+		watchGame.addMouseListener(this);
 		l= Box.createHorizontalBox();
 		r = Box.createHorizontalBox();
 		l.add(joinGame);
@@ -165,7 +123,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		left.add(l); right.add(r);
 		gamesPanel.add(left);
 		gamesPanel.add(right);
-		JButton addGame= new JButton("Create Game");
+		 addGame= new JButton("Create Game");
 		addGame.addMouseListener(this);
 		gamesPanel.add(addGame);
 	}
@@ -203,7 +161,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	{
 		clearTables();
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
-		DefaultTableModel watchModel= ((DefaultTableModel)openGames.getModel());
+		DefaultTableModel watchModel= ((DefaultTableModel)gamesForWatch.getModel());
 		for (GameForClient game : games) {
 				if (game.isOpen())
 				{
@@ -215,7 +173,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 				}
 				else
 				{
-					Object [] arr= new Object[3];
+					Object [] arr= new Object[5];
 					arr[0]=game.getPlayerOneName().toString();
 					arr[1]="";
 					arr[2]=game.getPlayerTwoName();
@@ -264,16 +222,8 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		}
 	}
 	
-	private void watchGameClicked()
+	private void newGameClicked()
 	{
-		
-	}
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		if (e.getSource()==joinGame)
-		{
-			joinGameClicked();
-		}
 		try {
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.NEWGAME+" "+String.valueOf(client.getGamePort())+" "+client.getClientName());
 			if (client.parseServerResponse(response)==null)
@@ -291,6 +241,45 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+	}
+	
+	private void watchGameClicked()
+	{
+		int rowIndex=gamesForWatch.getSelectedRow();
+		try {
+			String response =(String)client.sendMessageToServer(ClientServerProtocol.WATCH+" "+String.valueOf(client.getWatchPort())+" "+gamesForWatch.getValueAt(rowIndex, 4)+" "+client.getClientName());
+			if (client.parseServerResponse(response)==null)
+			{
+				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+				return;
+			}
+			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
+			{
+				JOptionPane.showMessageDialog(null,"There was a server internal error");
+				return;
+			}
+			client.HandleEnjoyWatch(client.parseServerResponse(response));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		if (e.getSource()==joinGame)
+		{
+			joinGameClicked();
+		}
+		if (e.getSource()==addGame)
+		{
+			newGameClicked();
+		}
+		if (e.getSource()==watchGame)
+		{
+			watchGameClicked();
+		}
+		
+		
 		
 	}
 	@Override
