@@ -190,18 +190,40 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		
 	}
 	
-	public void setUpOnlineGames(ArrayList<GameForClient> games)
+	private void clearTables()
 	{
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
+		DefaultTableModel watchModel= ((DefaultTableModel)openGames.getModel());
 		while (model.getRowCount()>0)
 		{model.removeRow(0);}
+		while (watchModel.getRowCount()>0)
+		{model.removeRow(0);}
+	}
+	public void setUpOnlineGames(ArrayList<GameForClient> games)
+	{
+		clearTables();
+		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
+		DefaultTableModel watchModel= ((DefaultTableModel)openGames.getModel());
 		for (GameForClient game : games) {
-			
-				Object [] arr= new Object[3];
-				arr[0]=game.getPlayerOneName().toString();
-				arr[1]="";
-				arr[2]=game.getGameId().toString();
-				model.addRow(arr);
+				if (game.isOpen())
+				{
+					Object [] arr= new Object[3];
+					arr[0]=game.getPlayerOneName().toString();
+					arr[1]="";
+					arr[2]=game.getGameId().toString();
+					model.addRow(arr);
+				}
+				else
+				{
+					Object [] arr= new Object[3];
+					arr[0]=game.getPlayerOneName().toString();
+					arr[1]="";
+					arr[2]=game.getPlayerTwoName();
+					arr[3]="";
+					arr[4]=game.getGameId().toString();
+					watchModel.addRow(arr);
+				}
+				
 		}	
 	}
 	
@@ -214,33 +236,43 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		}
 	
 	}
+	
+	private void joinGameClicked()
+	{
+		int rowIndex=openGames.getSelectedRow();
+		try {
+			String response =(String)client.sendMessageToServer(ClientServerProtocol.PLAY+" "+String.valueOf(client.getGamePort())+" "+openGames.getValueAt(rowIndex, 2)+" "+ client.getClientName());
+			if (client.parseServerResponse(response)==null)
+			{
+				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+				return;
+			}
+			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
+			{
+				JOptionPane.showMessageDialog(null,"There was a server internal error");
+				return;
+			}
+			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
+			{
+				JOptionPane.showMessageDialog(null,"You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!");
+				client.HandleGoGoGo(client.parseServerResponse(response));
+				return;
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	
+	private void watchGameClicked()
+	{
+		
+	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getSource()==joinGame)
 		{
-			int rowIndex=openGames.getSelectedRow();
-			try {
-				String response =(String)client.sendMessageToServer(ClientServerProtocol.PLAY+" "+String.valueOf(client.getGamePort())+" "+openGames.getValueAt(rowIndex, 2)+" "+ client.getClientName());
-				if (client.parseServerResponse(response)==null)
-				{
-					JOptionPane.showMessageDialog(null,"There was an error in server's response!");
-					return;
-				}
-				if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
-				{
-					JOptionPane.showMessageDialog(null,"There was a server internal error");
-					return;
-				}
-				if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
-				{
-					JOptionPane.showMessageDialog(null,"You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!");
-					client.HandleGoGoGo(client.parseServerResponse(response));
-					return;
-				}
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			joinGameClicked();
 		}
 		try {
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.NEWGAME+" "+String.valueOf(client.getGamePort())+" "+client.getClientName());
