@@ -399,6 +399,13 @@ public class TheClient {
 		logger.print_info("Send here to server: " + gameReport);
 	}
 	
+	public void HandleEnjoyWatch(String [] params)
+	{
+		GameWatcher watcher = new GameWatcher(this);
+		Thread t = new Thread(watcher);
+		t.start();
+	}
+	
 	//the one that used
 	public String[] parseServerResponse(String message)
 	{
@@ -438,9 +445,7 @@ public class TheClient {
 			HandleGoGoGo(params);
 		}
 		else if(command.equals(ClientServerProtocol.ENJOYWATCH)){
-			GameWatcher watcher = new GameWatcher(this);
-			Thread t = new Thread(watcher);
-			t.start();
+			HandleEnjoyWatch(params);
 		}
 		else if(command.equals(ClientServerProtocol.NOCONN)){
 			responseRes = false;
