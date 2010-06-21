@@ -37,7 +37,7 @@ public class Game implements Serializable{
 	
 	public boolean isGameFull()
 	{
-		return (blue==null);
+		return (blue != null);
 	}
 
 	public Game(String name1,String name2,String gameId) {

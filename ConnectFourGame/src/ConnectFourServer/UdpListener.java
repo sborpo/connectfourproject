@@ -147,6 +147,7 @@ public class UdpListener implements Runnable {
 				if(!gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
 					Game theGame = server.games.getGame(gameId);
 					if(theGame == null){
+						server.printer.print_info("Creating new game: " + gameId);
 						theGame = new Game(clientName, null, gameId);
 						server.games.addGame(theGame);
 						theClient.setGameForClient(gameId);
@@ -154,9 +155,10 @@ public class UdpListener implements Runnable {
 					else{
 						theGame.addPlayer(clientName);
 					}
+					server.printer.print_info("Adding client: " + clientName);
 				}
 				openTimerFor(clientName);
-				server.printer.print_error("Authentication had succeded for: " + clientName);
+				server.printer.print_info("Authentication had succeded for: " + clientName);
 			}
 			else{
 				server.printer.print_error("Authentication had failed for: " + clientName);

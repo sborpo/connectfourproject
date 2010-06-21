@@ -50,7 +50,7 @@ public class TheClient {
 	private int opponentGamePort = unDEFport;
 	private String opponentName = "";
 	private int clientWatchPort = unDEFport;
-	private int clientTransmitPort = unDEFport;
+	private int clientTransmitWaiterPort = unDEFport;
 	private String gameId = ClientServerProtocol.noGame;
 	private Game game = null;
 	
@@ -59,7 +59,7 @@ public class TheClient {
 	public DatagramSocket aliveSocket = null;
 	
 	//UDP socket for receiving transmit requests
-	public DatagramSocket transmitSocket = null;
+	public Socket transmitSocket = null;
 	
 	//this will send the alive messages to the server
 	private AliveSender 	echoServerListener = null;
@@ -67,6 +67,8 @@ public class TheClient {
 	//this will accept the TRANSMIT command
 	private TransmitWaiter transmitWaiter = null;
 
+	private GameWatcher watcher = null;
+	
 	private InetAddress serverAddress;
 	
 	public String getPassword(){
@@ -86,7 +88,7 @@ public class TheClient {
 		return clientWatchPort;
 	}
 	
-	public DatagramSocket getTransmitSocket(){
+	public Socket getTransmitSocket(){
 		return transmitSocket;
 	}
 	
@@ -99,25 +101,37 @@ public class TheClient {
 		private TheClient transmitter;
 		private boolean firstMove;
 
-		public Viewer(TheClient transmitter, InetAddress host, int UDPlistenPort, String name) {
-			super(host, UDPlistenPort, name, TheClient.unDEFport,TheClient.unDEFport);
+		public Viewer(TheClient transmitter, InetAddress hostAddr, int watcherPort, String name) {
+			super(hostAddr, TheClient.unDEFport, name, watcherPort,TheClient.unDEFport);
 			this.transmitter = transmitter;
 			firstMove = true;
 		}
 		
 		public void sendMove(String move){
-			byte[] buffer = move.getBytes();
+			Socket transmiterConnSocket = null;
 			try {
 				if(firstMove){
 					this.sendPreviousMoves();
 				}
-				transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getUDPPort() + " move: " + move);
-				transmitter.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length,
-																			this.getAddress(), this.getUDPPort()));
+				transmiterConnSocket = new Socket(this.getAddress(),this.getTCPPort());
+				PrintWriter out = new PrintWriter(transmiterConnSocket.getOutputStream(),true);
+				
+				transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
+				out.println(move);
+				out.println();
+				
 				firstMove = false;
+				
+				if(out != null){
+					out.close();
+				}
+				if(transmiterConnSocket != null){
+					transmiterConnSocket.close();
+				}
+				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				transmitter.logger.print_error("In move sending to watcher: " + e.getMessage());
+				//e.printStackTrace();
 			}
 		}
 		
@@ -125,18 +139,29 @@ public class TheClient {
 			return firstMove;
 		}
 		
-		private void sendPreviousMoves(){
+		public void sendPreviousMoves() throws IOException{
+			Socket transmiterConnSocket = null;
+			PrintWriter out = null;
+			try {
+				transmiterConnSocket = new Socket(this.getAddress(),this.getTCPPort());
+				out = new PrintWriter(transmiterConnSocket.getOutputStream(),true);
+			} catch (IOException e1) {
+				transmitter.logger.print_error("Cannot open socket with watcher: " + e1.getMessage());
+				e1.printStackTrace();
+			}
+			
 			ArrayList<String> gameHistory= transmitter.getGameHistory();
 			for(String move : gameHistory){
-				byte[] buffer = move.getBytes();
-				try {
-					transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getUDPPort() + " move: " + move);
-					transmitter.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length,
-																				this.getAddress(), this.getUDPPort()));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
+				out.println(move);
+			}
+			out.println();
+			
+			if(out != null){
+				out.close();
+			}
+			if(transmiterConnSocket != null){
+				transmiterConnSocket.close();
 			}
 		}
 	}
@@ -152,7 +177,7 @@ public class TheClient {
 		{
 			return;
 		}
-		logger.print_info("Adding viewer: "+ viewer.getName() + "to port:" + viewer.getUDPPort());
+		logger.print_info("Adding viewer: "+ viewer.getName() + "with port:" + viewer.getTCPPort());
 		viewersList.put(name, viewer);
 	}
 	
@@ -173,8 +198,8 @@ public class TheClient {
 		return clientUdp;
 	}
 	
-	public int getTransmitPort(){
-		return clientTransmitPort;
+	public int getTransmitWaiterPort(){
+		return clientTransmitWaiterPort;
 	}
 
 	public TransmitWaiter getTransmitWaiter(){
@@ -226,12 +251,13 @@ public class TheClient {
 		clientUdp = Integer.parseInt(args[2]);
 		logger.print_info("Client Udp Listen port: "+clientUdp);
 		//clientTransmitPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_PORT"));
-		clientTransmitPort = Integer.parseInt(args[3]);
-		logger.print_info("Client Transmit port: "+clientTransmitPort);
+		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
 		clientGamePort = Integer.parseInt(args[4]);
 		logger.print_info("Client Game port: "+clientGamePort);
-		clientWatchPort = Integer.parseInt(args[5]);
-		logger.print_info("Client Watch port: "+clientWatchPort);
+		clientWatchPort = Integer.parseInt(args[4]);
+		//clientWatchPort = Integer.parseInt(args[5]);
+		//logger.print_info("Client Watch port: "+clientWatchPort);
 		//clientUdp = Integer.parseInt(args[3]);
 		//System.out.println("Clent UDP: " +clientUdp);
 		//serverUdpPort = Integer.parseInt(args[4]);
@@ -251,12 +277,14 @@ public class TheClient {
 	public Object sendMessageToServer(String message) throws IOException
 	{
 		Socket serverConnection = null;
-		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-	
 			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 				
 				String[] commandPar = parseCommand(message,parser);
-
+				if(commandPar == null){
+					this.logger.print_error("Wrong message to server");
+					return null;
+				}
+				
 				// send the command to the server
 				try{
 					serverConnection = new Socket(serverAddress, serverPort);
@@ -382,6 +410,18 @@ public class TheClient {
 		}
 	}
 
+	public void stopWatching(){
+		watcher = null;
+	}
+	
+	private void closeTransmitions(){
+		if(transmitSocket != null){
+			this.getTransmitWaiter().endTransmition();
+		}
+		transmitSocket = null;
+		transmitWaiter = null;
+	}
+	
 	private String[] parseCommand(String command,ClientServerProtocol parser){
 		String[] params = parser.parseCommand(command);
 		
@@ -391,7 +431,7 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.MEETME)){
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
-			clientTransmitPort = Integer.parseInt(params[3]);
+			clientTransmitWaiterPort = Integer.parseInt(params[3]);
 			password = params[4];
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
@@ -426,6 +466,7 @@ public class TheClient {
 		String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
 		logger.print_info("Send here to server: " + gameReport);
 		gameId = null;
+		this.closeTransmitions();
 	}
 	
 	public void HandleGoGoGo(String [] params)
@@ -441,11 +482,12 @@ public class TheClient {
 		String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
 		logger.print_info("Send here to server: " + gameReport);
 		gameId = null;
+		this.closeTransmitions();
 	}
 	
 	public void HandleEnjoyWatch(String [] params)
 	{
-		GameWatcher watcher = new GameWatcher(this);
+		watcher = new GameWatcher(this);
 		Thread t = new Thread(watcher);
 		t.start();
 	}

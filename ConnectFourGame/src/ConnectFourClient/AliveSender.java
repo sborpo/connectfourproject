@@ -52,7 +52,7 @@ public class AliveSender extends Thread {
 			
 			//send to server client Alive message!
 			String aliveMsg = ClientServerProtocol.IMALIVE + " " + client.getClientName() + 
-			" " + client.getPassword() + " " + client.getTransmitPort()+ " " + client.getGameId() + " " + client.getGamePort();
+			" " + client.getPassword() + " " + client.getTransmitWaiterPort()+ " " + client.getGameId() + " " + client.getGamePort();
 			client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
 			byte[] buffer = aliveMsg.getBytes();
 			try {

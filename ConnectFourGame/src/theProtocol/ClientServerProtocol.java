@@ -103,7 +103,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GAME, 1);
 		numOfParametersForCmd.put(GOGOGO, 3);
 		numOfParametersForCmd.put(SERVPROB, 0);
-		numOfParametersForCmd.put(VIEWERTRANSMIT, 3);
+		numOfParametersForCmd.put(VIEWERTRANSMIT, 4);
 		numOfParametersForCmd.put(GAMEMOVE, 2);
 		numOfParametersForCmd.put(GAMEREPORT, 4);
 		numOfParametersForCmd.put(IMALIVE, 5);

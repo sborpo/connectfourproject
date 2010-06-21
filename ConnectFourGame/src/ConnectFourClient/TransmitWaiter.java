@@ -1,9 +1,13 @@
 package ConnectFourClient;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Collection;
@@ -24,39 +28,49 @@ public class TransmitWaiter extends Thread {
 	public void run() {
 		// open a UDP socket , from which we will do the communications
 		// with the server
+		ServerSocket transmitWaiterSocket = null;
+		Socket transmitCommandSocket = null;
 		try {
-			client.transmitSocket = new DatagramSocket(client.getTransmitPort());
-		} catch (SocketException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			transmitWaiterSocket = new ServerSocket(client.getTransmitWaiterPort());
+		} catch (IOException e) {
+			client.logger.print_error("Cannot open server socket: "+e.getMessage());
+			e.printStackTrace();
 		}
-		client.logger.print_info("Client starting waiting for transmit message from: "
-				+ client.serverUDPPort());
+		client.logger.print_info("Client starting waiting for transmit message on: "
+				+ client.getTransmitWaiterPort());
+		BufferedReader in = null;
+		try{
+			while (true) {
+					transmitCommandSocket = transmitWaiterSocket.accept();
 
-		byte[] message = new byte[100000];
-		while (true) {
-			//wait to an echo message from the server
-			DatagramPacket mes = new DatagramPacket(message, message.length);
-			try {
-				client.transmitSocket.receive(mes);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			byte[] msgFormatted = new byte[mes.getLength()];
-			System.arraycopy(message, 0, msgFormatted, 0, mes.getLength());
-			String str = new String(msgFormatted);
-			//print the received message from the server
-			client.logger.print_info("Server say: " + str);
-			
-			//check if the message received was ok
-			if (treatMessage(str)){
-				break;
-			}
-
+					in = new BufferedReader(new InputStreamReader(transmitCommandSocket.getInputStream()));
+					String inputLine = null;
+					
+					if((inputLine = in.readLine()) != null) {
+						//print the received message from the server
+						client.logger.print_info("Server transmit command: " + inputLine);
+						
+						//check if the message received was ok
+						if (!treatMessage(inputLine)){
+							client.logger.print_error("Bad transmit command");
+						}
+				}
+			}	
+		} catch (Exception e) {
+			client.logger.print_error("In transmit receiving");
+			e.printStackTrace();
 		}
-
+		
+		finally{
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					client.logger.print_error("Problem closing transmit listener socket: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	public void sendMoveToViewers(String move)
@@ -78,7 +92,7 @@ public class TransmitWaiter extends Thread {
 		//If it is the transmit command
 		else if (messageCommand[0].equals(ClientServerProtocol.VIEWERTRANSMIT))
 		{
-			int udpPort= Integer.parseInt(messageCommand[1]);
+			int watcherPort= Integer.parseInt(messageCommand[1]);
 			InetAddress address=null;
 			try {
 				address = InetAddress.getByName(messageCommand[2]);
@@ -87,10 +101,22 @@ public class TransmitWaiter extends Thread {
 				result = false;
 			}
 			String watchName= messageCommand[3];
-			TheClient.Viewer viewer = new TheClient.Viewer(client,address,udpPort,watchName);
+			TheClient.Viewer viewer = new TheClient.Viewer(client,address,watcherPort,watchName);
 			client.addToViewerList(viewer);
+			//viewer.sendPreviousMoves();
 		}
 		return result;
+	}
+	
+	public void endTransmition(){
+		if(client.transmitSocket != null){
+			try {
+				client.transmitSocket.close();
+			} catch (IOException e) {
+				client.logger.print_error("Problem closing socket: " + e.getMessage());
+			}
+		}
+		this.interrupt();
 	}
 
 }
