@@ -27,9 +27,6 @@ public class OnlineGames {
 	public synchronized void addGame(Game game){
 		playingGames.put(game.getId(), game);
 		server.printer.print_info("Game has been added : " + game.getId() + "\n");
-		for(String gameId : playingGames.keySet()){
-			server.printer.print_info("Online game: " +gameId + "\n");
-		}
 	}
 	
 	public synchronized ArrayList<GameForClient> getOnlineGamesForClient()

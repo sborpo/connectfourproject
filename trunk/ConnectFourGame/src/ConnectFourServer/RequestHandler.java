@@ -56,7 +56,7 @@ public class RequestHandler implements Runnable {
 			//out = new PrintWriter(clientSock.getOutputStream(),true);
 			in = new BufferedReader(new InputStreamReader(clientSock.getInputStream()));
 			
-			String inputLine;
+			String inputLine = null;
 			//VALERIY
 			Object response = ClientServerProtocol.WHAT;
 			//String response = ClientServerProtocol.WHAT;
@@ -65,14 +65,19 @@ public class RequestHandler implements Runnable {
 				if(inputLine.equals("")){
 					break;
 				}
-				String logMessage = "From Client with name :" + clientHost + " IP: "
+				
+				String logMessage = "From Client with host :" + clientHost + " IP: "
 				+ clientIP + " Recieved This Message: \n -------------\n"
 				+ inputLine + "\n-------------\n\n\n";
 				server.printer.print_info(logMessage);
-				
 				//get the response
 				//VALERIY
 				response = respondToMessage(inputLine);
+				if(response == null){
+					server.printer.print_error("Can't respond the message");
+					continue;
+				}
+				
 				server.printer.print_info("Send to client: " + response);
 				//VALERIY
 				//out.writeObject(response);
@@ -158,13 +163,24 @@ public class RequestHandler implements Runnable {
 			int num=random.nextInt(2);
 			Color r = (num==0) ? Color.RED : Color.BLUE;
 			Game theGame = server.games.getGame(gameId);
+			server.printer.print_info("Looking for game: " + gameId);
 			if(theGame != null)
 			{
-				String playerName=theGame.getPlayer(r).getName();
-			
+				String redName=theGame.getPlayer(Color.RED).getName();
+				Player bluePlayer=theGame.getPlayer(Color.BLUE);
+				if(bluePlayer == null){
+					server.printer.print_error("No blue player in game");
+					response = ClientServerProtocol.DENIED;
+					return response;
+				}
+				String blueName = bluePlayer.getName();
+				
+				server.printer.print_info("Game is found!");
+				String playerName = theGame.getPlayer(r).getName();
+				
 				OnlineClient client=server.clients.getClient(playerName);
 				InetAddress clientAddr=client.getAddress();
-				int clientPort= client.getUDPtransmitPort();
+				int clientPort= client.getTransmitPort();
 				
 				InetAddress viewerAddr= viewer.getAddress();
 				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
@@ -172,6 +188,7 @@ public class RequestHandler implements Runnable {
 				response = ClientServerProtocol.ENJOYWATCH;
 			}
 			else{
+				server.printer.print_error("No game found with id: " + gameId);
 				response = ClientServerProtocol.DENIED;
 			}
 		}
@@ -180,12 +197,16 @@ public class RequestHandler implements Runnable {
 
 	private void SendToClient(InetAddress clientAddr, int clientPort,
 			InetAddress viewerAddr, int watcherPort, String watcherName ) {
-		byte[] buffer = (ClientServerProtocol.VIEWERTRANSMIT+" "+ watcherPort +" "+viewerAddr.getHostAddress()+" "+watcherName).getBytes();
 		try {
-			server.getUdpSocket().send(new DatagramPacket(buffer, buffer.length,
-					clientAddr, clientPort));
+			Socket clientTsmtSocket = new Socket(clientAddr,clientPort);
+			PrintWriter out = new PrintWriter(clientTsmtSocket.getOutputStream(),true);
+			String message = ClientServerProtocol.VIEWERTRANSMIT+" "+ watcherPort +
+							" "+viewerAddr.getHostAddress()+" "+watcherName +
+							" "+clientSock.getInetAddress().getHostAddress();
+			server.printer.print_info("Transmit message: " + message +"\n");
+			out.println(message);		
 		} catch (IOException e) {
-			// TODO Client Didn't receive
+			server.printer.print_error("While sending transmit command: " + e.getMessage());
 			e.printStackTrace();
 		}
 		
@@ -246,19 +267,20 @@ public class RequestHandler implements Runnable {
 		OnlineClient theClient = server.clients.getClient(playerName);
 		if(theClient != null){
 			//and not in a game
-			if(theClient.getGame() == null){
-				//create new game
-				theClient.setTCPPort(gamePort);
-				Game newGame = null;
-				newGame = new Game(playerName, null, gameId);
-				server.games.addGame(newGame);
-				theClient.setGameForClient(gameId);
-				response = ClientServerProtocol.GAME + " " + gameId;
-				server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
+			if(theClient.getGame() != null){
+				server.printer.print_info("Removing old online game of the client");
+				server.games.removeGame(gameId);
+				theClient.resetGame();
 			}
-			else{
-				response = ClientServerProtocol.DENIED;
-			}
+			//create new game
+			theClient.setTCPPort(gamePort);
+			Game newGame = null;
+			newGame = new Game(playerName, null, gameId);
+			server.games.addGame(newGame);
+			theClient.setGameForClient(gameId);
+			response = ClientServerProtocol.GAME + " " + gameId;
+			server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
+
 		}
 		return response;
 	}
@@ -305,7 +327,6 @@ public class RequestHandler implements Runnable {
 			errFlag = true;
 		} 
 		if(!errFlag){
-			//now the user definitely exists --> start sending him alive messages 
 			server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
 			response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort());
 			server.udpListener.openTimerFor(clientName);

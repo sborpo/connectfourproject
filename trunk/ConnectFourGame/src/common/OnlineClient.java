@@ -7,15 +7,15 @@ public class OnlineClient {
 	private String name;
 	private int UDPport;
 	private int TCPport;
-	private int UDPtransmitPort;
+	private int transmitPort;
 	private String currentGame;
 	
-	public OnlineClient(InetAddress host, int UDPport,String name,int TCPPort,int UDPtransmitPort)
+	public OnlineClient(InetAddress host, int UDPport,String name,int TCPPort,int transmitPort)
 	{
 		address=host;
 		this.UDPport = UDPport;
 		this.TCPport = TCPPort;
-		this.UDPtransmitPort = UDPtransmitPort;
+		this.transmitPort = transmitPort;
 		this.name = name;
 		currentGame = null;
 	}
@@ -24,9 +24,9 @@ public class OnlineClient {
 	{
 		return UDPport;
 	}
-	public int getUDPtransmitPort()
+	public int getTransmitPort()
 	{
-		return UDPtransmitPort;
+		return transmitPort;
 	}
 	public int getTCPPort()
 	{
@@ -45,7 +45,7 @@ public class OnlineClient {
 	}
 	
 	public synchronized void resetGame(){
-		currentGame = "";
+		currentGame = null;
 	}
 	
 	public synchronized void setGameForClient(String gameId){
