@@ -1,15 +1,11 @@
 package ConnectFourServer;
 
-import java.lang.reflect.Array;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import gameManager.Board;
 import gameManager.Game;
 import gameManager.Player;
 import gameManager.Player.Color;
-import ConnectFourServer.OnlineClients.Client;;
 /**
  * Datastructure of the current online games.
  * @author Boris

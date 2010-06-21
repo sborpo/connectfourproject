@@ -2,8 +2,6 @@ package gameManager;
 
 import java.io.Serializable;
 
-import ConnectFourServer.OnlineClients.Client;
-
 public class Player implements Serializable{
 
 	/**

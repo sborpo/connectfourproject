@@ -18,9 +18,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
+import common.OnlineClient;
+
 import ConnectFourClient.TheClient;
 import ConnectFourServer.DataBaseManager.UserAlreadyExists;
-import ConnectFourServer.OnlineClients.Client;
 
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
@@ -142,7 +143,7 @@ public class RequestHandler implements Runnable {
 	
 	private String watchTreat(int watcherPort, String gameId,String watcherName) {
 		String response = ClientServerProtocol.KNOWYA;
-		Client viewer=server.clients.getClient(watcherName);
+		OnlineClient viewer=server.clients.getClient(watcherName);
 		if(viewer != null)
 		{
 			Random random= new Random();
@@ -153,7 +154,7 @@ public class RequestHandler implements Runnable {
 			{
 				String playerName=theGame.getPlayer(r).getName();
 			
-				Client client=server.clients.getClient(playerName);
+				OnlineClient client=server.clients.getClient(playerName);
 				InetAddress clientAddr=client.getAddress();
 				int clientPort= client.getUDPtransmitPort();
 				
@@ -187,7 +188,7 @@ public class RequestHandler implements Runnable {
 	private String playTreat(int gamePort, String gameId,String clientName) {
 		String response = ClientServerProtocol.KNOWYA;
 		//check if the client is in the list and not in a game
-		OnlineClients.Client theClient = server.clients.getClient(clientName);
+		OnlineClient theClient = server.clients.getClient(clientName);
 		if(theClient != null){
 			if(theClient.getGame() == null){
 				//check if the game exists 
@@ -197,7 +198,7 @@ public class RequestHandler implements Runnable {
 					Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
 					if(thePlayer == null){
 						theGame.addPlayer(clientName);
-						OnlineClients.Client enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
+						OnlineClient enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
 						if(enemy != null){
 							response = ClientServerProtocol.GOGOGO + " " 
 										+ enemy.getTCPPort() + " " 
@@ -234,7 +235,7 @@ public class RequestHandler implements Runnable {
 		//generate game id
 		String gameId = playerName + Long.toString(System.currentTimeMillis());
 		//check if the client is in the list 
-		OnlineClients.Client theClient = server.clients.getClient(playerName);
+		OnlineClient theClient = server.clients.getClient(playerName);
 		if(theClient != null){
 			//and not in a game
 			if(theClient.getGame() == null){
@@ -297,7 +298,7 @@ public class RequestHandler implements Runnable {
 		} 
 		if(!errFlag){
 			//now the user definitely exists --> start sending him alive messages 
-			server.clients.addClientToUdpList(new OnlineClients.Client(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
+			server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
 			response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort());
 			server.udpListener.openTimerFor(clientName);
 		}

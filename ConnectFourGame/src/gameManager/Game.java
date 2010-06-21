@@ -13,6 +13,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Random;
 
 import theProtocol.ClientServerProtocol;
@@ -31,6 +32,7 @@ public class Game implements Serializable{
 	private Board gameBoard;
 	private Player plays;
 	private GameState state;
+	private ArrayList<String> gameHistory;
 	private String gameReport;
 	
 	public boolean isGameFull()
@@ -48,6 +50,7 @@ public class Game implements Serializable{
 		}
 		this.gameId = gameId;
 		gameBoard = new Board();
+		gameHistory = new ArrayList<String>();
 		gameReport = "";
 	}
 
@@ -140,6 +143,9 @@ public class Game implements Serializable{
 				System.out.println(prot.result + ". Bad move report!");
 			}
 			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
+			
+			//add the move to the game history
+			gameHistory.add(moveMsg);
 			
 			if (plays.equals(clientPlayer)) {
 				// write your move
@@ -244,6 +250,10 @@ public class Game implements Serializable{
 
 	public String getId(){
 		return gameId;
+	}
+	
+	public ArrayList<String> getGameHistory(){
+		return gameHistory;
 	}
 
 //	public static void main(String[] args) {

@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import common.OnlineClient;
 import common.Timer;
 
 import theProtocol.ClientServerProtocol;
@@ -141,7 +142,7 @@ public class UdpListener implements Runnable {
 			String gameId   = message[4];
 			int tcpPort = Integer.parseInt(message[5]);
 			if(DataBaseManager.authenticateUser(clientName,password)){
-				OnlineClients.Client theClient = new OnlineClients.Client(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
+				OnlineClient theClient = new OnlineClient(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
 				server.clients.addClientToUdpList(theClient);
 				if(!gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
 					Game theGame = server.games.getGame(gameId);
