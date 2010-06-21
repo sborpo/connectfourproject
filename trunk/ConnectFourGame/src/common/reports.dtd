@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!ELEMENT reports (game*)>
+<!ELEMENT game (gameId,clientName,gameResult,winner)>
+<!ELEMENT gameId (#PCDATA)>
+<!ELEMENT clientName (#PCDATA)>
+<!ELEMENT gameResult (#PCDATA)>
+<!ELEMENT winner (#PCDATA)>
+

@@ -7,7 +7,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -21,15 +20,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 
-import ConnectFourServer.GameForClient;
-import ConnectFourServer.StamClass;
-
 import theProtocol.ClientServerProtocol;
-import gameManager.*;
-import gameManager.Player.Color;
+import ConnectFourServer.GameForClient;
 
 
 public class MainFrame extends JFrame implements MouseListener , ActionListener{
