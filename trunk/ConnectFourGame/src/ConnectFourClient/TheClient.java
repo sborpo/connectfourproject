@@ -15,6 +15,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Properties;
@@ -23,7 +24,7 @@ import common.LogPrinter;
 
 import ConnectFourServer.OnlineClients;
 import ConnectFourServer.OnlineGames;
-import ConnectFourServer.OnlineClients.Client;
+import common.OnlineClient;
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
@@ -89,13 +90,55 @@ public class TheClient {
 		return transmitSocket;
 	}
 	
-	public static class Viewer extends  OnlineClients.Client
+	public ArrayList<String> getGameHistory(){
+		return game.getGameHistory();
+	}
+	
+	public static class Viewer extends  OnlineClient
 	{
+		private TheClient transmitter;
+		private boolean firstMove;
 
-		public Viewer(InetAddress host, int UDPlistenPort, String name) {
+		public Viewer(TheClient transmitter, InetAddress host, int UDPlistenPort, String name) {
 			super(host, UDPlistenPort, name, TheClient.unDEFport,TheClient.unDEFport);
+			this.transmitter = transmitter;
+			firstMove = true;
 		}
 		
+		public void sendMove(String move){
+			byte[] buffer = move.getBytes();
+			try {
+				if(firstMove){
+					this.sendPreviousMoves();
+				}
+				transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getUDPPort() + " move: " + move);
+				transmitter.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length,
+																			this.getAddress(), this.getUDPPort()));
+				firstMove = false;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		public boolean isFirstMove(){
+			return firstMove;
+		}
+		
+		private void sendPreviousMoves(){
+			ArrayList<String> gameHistory= transmitter.getGameHistory();
+			for(String move : gameHistory){
+				byte[] buffer = move.getBytes();
+				try {
+					transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getUDPPort() + " move: " + move);
+					transmitter.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length,
+																				this.getAddress(), this.getUDPPort()));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	public HashMap<String, Viewer> getViewerList(){

@@ -2,6 +2,7 @@ package ConnectFourServer;
 
 import gameManager.Game;
 import gameManager.Player;
+import common.OnlineClient;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -10,77 +11,15 @@ import java.util.HashMap;
 public class OnlineClients {
 	private MainServer server;
 	//The current online client (their udp addresses)
-	private HashMap<String,Client> udpClients;
+	private HashMap<String,OnlineClient> udpClients;
 	
 	//This way we can know if the client was alive
 	private HashMap<String, Boolean> isAlive;
 	
-	
-	
-	
-	
-	
-	public static class Client
-	{
-		private InetAddress address;
-		private String name;
-		private int UDPport;
-		private int TCPport;
-		private int UDPtransmitPort;
-		private String currentGame;
-		
-		public Client(InetAddress host, int UDPport,String name,int TCPPort,int UDPtransmitPort)
-		{
-			address=host;
-			this.UDPport = UDPport;
-			this.TCPport = TCPPort;
-			this.UDPtransmitPort = UDPtransmitPort;
-			this.name = name;
-			currentGame = null;
-		}
-		
-		public int getUDPPort()
-		{
-			return UDPport;
-		}
-		public int getUDPtransmitPort()
-		{
-			return UDPtransmitPort;
-		}
-		public int getTCPPort()
-		{
-			return TCPport;
-		}
-		public InetAddress getAddress()
-		{
-			return address;
-		}
-		public String getName(){
-			return name;
-		}
-		
-		public synchronized void setTCPPort(int port){
-			TCPport = port;
-		}
-		
-		public synchronized void resetGame(){
-			currentGame = "";
-		}
-		
-		public synchronized void setGameForClient(String gameId){
-			currentGame = gameId;
-		}
-		
-		public synchronized String getGame(){
-			return currentGame;
-		}
-		 
-	}
-	
 	public OnlineClients(MainServer server)
 	{
 		this.server = server;
-		udpClients= new HashMap<String,Client>();
+		udpClients= new HashMap<String,OnlineClient>();
 		isAlive= new HashMap<String, Boolean>();
 		
 	}
@@ -91,7 +30,7 @@ public class OnlineClients {
 		}
 	}
 	
-	 public synchronized void addClientToUdpList(Client client)
+	 public synchronized void addClientToUdpList(OnlineClient client)
 	 {
 		 String clientName = client.getName();
 		 if(!udpClients.containsKey(clientName)){
@@ -100,7 +39,7 @@ public class OnlineClients {
 		 }
 	 }
 	 
-	 public synchronized Client getClient(String clientName){
+	 public synchronized OnlineClient getClient(String clientName){
 		 if(udpClients.containsKey(clientName)){
 			 return udpClients.get(clientName);
 		 }
@@ -139,7 +78,7 @@ public class OnlineClients {
 			boolean alive = isAlive.get(key);
 			if(!alive){
 				server.printer.print_info("Removing: "+ key +"...");
-				Client theClient = server.clients.getClient(key);
+				OnlineClient theClient = server.clients.getClient(key);
 				if(theClient == null){
 					server.printer.print_info("SOME PROBLEM WHILE REMOVING: " + key);
 				}

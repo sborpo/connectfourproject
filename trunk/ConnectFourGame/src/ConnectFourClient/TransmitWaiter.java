@@ -61,19 +61,10 @@ public class TransmitWaiter extends Thread {
 	
 	public void sendMoveToViewers(String move)
 	{
-		byte[] buffer = move.getBytes();
 		Collection<Viewer> viewers=client.getViewerList().values();
 		for (Viewer viewer : viewers) {
-			try {
-				client.logger.print_info("Sending to: " + viewer.getName() + "on: " + viewer.getUDPPort() + " move: " + move);
-				client.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		
+			viewer.sendMove(move);
+		}	
 	}
 
 	private boolean treatMessage(String message){
@@ -84,6 +75,7 @@ public class TransmitWaiter extends Thread {
 			client.logger.print_error(prot.result + ". Bad server command.");
 			result = false;
 		}
+		//If it is the transmit command
 		else if (messageCommand[0].equals(ClientServerProtocol.VIEWERTRANSMIT))
 		{
 			int udpPort= Integer.parseInt(messageCommand[1]);
@@ -95,7 +87,7 @@ public class TransmitWaiter extends Thread {
 				result = false;
 			}
 			String watchName= messageCommand[3];
-			TheClient.Viewer viewer = new TheClient.Viewer(address,udpPort,watchName);
+			TheClient.Viewer viewer = new TheClient.Viewer(client,address,udpPort,watchName);
 			client.addToViewerList(viewer);
 		}
 		return result;
