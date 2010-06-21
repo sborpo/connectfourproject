@@ -35,6 +35,7 @@ public class ClientServerProtocol {
 	public static final String ENJOYWATCH ="ENJOY_WATCHING";
 	public static final String GAMEMOVE ="GAME_MOVE";
 	public static final String GAMEREPORT ="GAME_REPORT";
+	public static final String BATCHGAMESREPORT="BATCH_GAMES_REPORTS";
 	public static final String USERNOTEXISTS="USER_NOT_EXISTS";
 	public static final String USERALREADYEXISTS= "USERNAME_ALREADY_EXISTS";
 	public static final String SIGNUP="SIGN_UP";
@@ -66,6 +67,7 @@ public class ClientServerProtocol {
 			legalCommands.add(GAMEREPORT);
 			legalCommands.add(SIGNUP);
 			legalCommands.add(GAMELIST);
+			legalCommands.add(BATCHGAMESREPORT);
 		}
 		//Commands CLIENT can receive
 		else{
@@ -110,11 +112,13 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(USERALREADYEXISTS, 0);
 		numOfParametersForCmd.put(SIGNUP, 2);
 		numOfParametersForCmd.put(GAMELIST, 0);
+		numOfParametersForCmd.put(BATCHGAMESREPORT, Integer.MAX_VALUE);
 	}
 	public String[] parseCommand(String command){
 		String[] params = command.split(" +");
 		if(legalCommands.contains(params[0])){ 
-			if(numOfParametersForCmd.get(params[0]).equals(params.length - 1)){
+		
+			if ((numOfParametersForCmd.get(params[0]).equals(Integer.MAX_VALUE))|| (numOfParametersForCmd.get(params[0]).equals(params.length - 1))){
 				result = parseRes.SUCCESS;
 				return params;
 			}
