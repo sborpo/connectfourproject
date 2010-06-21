@@ -65,7 +65,7 @@ public class TransmitWaiter extends Thread {
 		Collection<Viewer> viewers=client.getViewerList().values();
 		for (Viewer viewer : viewers) {
 			try {
-				client.logger.print_info("Sending to: " + viewer.getName()+ " move: " + move);
+				client.logger.print_info("Sending to: " + viewer.getName() + "on: " + viewer.getUDPPort() + " move: " + move);
 				client.getTransmitSocket().send(new DatagramPacket (buffer, buffer.length, viewer.getAddress(), viewer.getUDPPort()));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

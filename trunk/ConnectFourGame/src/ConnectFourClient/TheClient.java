@@ -109,7 +109,7 @@ public class TheClient {
 		{
 			return;
 		}
-		logger.print_info("Adding viewer: "+ viewer.getName());
+		logger.print_info("Adding viewer: "+ viewer.getName() + "to port:" + viewer.getUDPPort());
 		viewersList.put(name, viewer);
 	}
 	
@@ -297,7 +297,7 @@ public class TheClient {
 					Object resp=null;
 					// get server's response
 					try {
-						while((resp = response.readObject()) != null) {
+						if((resp = response.readObject()) != null) {
 							logger.print_info("Server Response is:" + resp);
 							parseResponse(resp);
 						}
@@ -382,6 +382,7 @@ public class TheClient {
 		game = new Game(clientName, null,gameId);
 		String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
 		logger.print_info("Send here to server: " + gameReport);
+		gameId = null;
 	}
 	
 	public void HandleGoGoGo(String [] params)
@@ -396,6 +397,7 @@ public class TheClient {
 		game = new Game(opponentName, clientName,gameId);
 		String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
 		logger.print_info("Send here to server: " + gameReport);
+		gameId = null;
 	}
 	
 	public void HandleEnjoyWatch(String [] params)

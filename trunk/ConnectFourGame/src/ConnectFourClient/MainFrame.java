@@ -37,7 +37,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	private JMenu menu1, menu2;
 	private JMenuItem menu1Item1;
 	private JMenuItem menu1Item2;
-	private String [] openGamesColumnsNames;
+	private String[] openGamesColumnsNames;
 	private String[] gamesForWatchColumnsNames;
 	private JPanel gamesPanel;
 	private JTable openGames;
@@ -69,8 +69,6 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		client=new TheClient(args);
 		setVisible(true);
 		new LoginWindow(this);
-		
-
 	}
 	private void setColumnsNames() {
 		openGamesColumnsNames= new String[3];
