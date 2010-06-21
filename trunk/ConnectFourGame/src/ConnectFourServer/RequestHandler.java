@@ -121,6 +121,9 @@ public class RequestHandler implements Runnable {
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
 				respondMsg = newGameTreat(Integer.parseInt(params[1]),params[2]);
 			}
+			else if(command.equals(ClientServerProtocol.BATCHGAMESREPORT)){
+				respondMsg = batchGamesReportTreat(params);
+			}
 			else if(command.equals(ClientServerProtocol.SIGNUP)){
 				respondMsg = signupTreat(params[1],params[2]);
 			}
@@ -141,6 +144,11 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
+	private Object batchGamesReportTreat(String[] params) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	private String watchTreat(int watcherPort, String gameId,String watcherName) {
 		String response = ClientServerProtocol.KNOWYA;
 		OnlineClient viewer=server.clients.getClient(watcherName);
