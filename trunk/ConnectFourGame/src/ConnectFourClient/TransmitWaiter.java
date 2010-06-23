@@ -3,13 +3,12 @@ package ConnectFourClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.Collection;
 
 import ConnectFourClient.TheClient.Viewer;
@@ -20,29 +19,33 @@ import theProtocol.ClientServerProtocol.msgType;
 public class TransmitWaiter extends Thread {
 	// the client to which the waiter is bind to
 	private TheClient client;
-
-	public TransmitWaiter(TheClient client) {
+	ServerSocket transmitWaiterSocket = null;
+	Socket transmitCommandSocket = null;
+	BufferedReader in = null;
+	
+	public TransmitWaiter(ServerSocket transmitWaiterSocket,TheClient client) {
 		this.client = client;
+		this.transmitWaiterSocket = transmitWaiterSocket;
+		transmitCommandSocket = null;
+		in = null;
 	}
 
 	public void run() {
 		// open a UDP socket , from which we will do the communications
 		// with the server
-		ServerSocket transmitWaiterSocket = null;
-		Socket transmitCommandSocket = null;
-		try {
-			transmitWaiterSocket = new ServerSocket(client.getTransmitWaiterPort());
-		} catch (IOException e) {
-			client.logger.print_error("Cannot open server socket: "+e.getMessage());
-			e.printStackTrace();
-		}
 		client.logger.print_info("Client starting waiting for transmit message on: "
 				+ client.getTransmitWaiterPort());
-		BufferedReader in = null;
 		try{
-			while (true) {
-					transmitCommandSocket = transmitWaiterSocket.accept();
-
+			while (transmitWaiterSocket != null) {
+					try{
+						transmitCommandSocket = transmitWaiterSocket.accept();
+						client.logger.print_info("Transmition socket was opened");
+					}
+					catch(SocketException sck_exc){
+						client.logger.print_info("Transmition socket was closed");
+						break;
+					}
+					
 					in = new BufferedReader(new InputStreamReader(transmitCommandSocket.getInputStream()));
 					String inputLine = null;
 					
@@ -56,20 +59,10 @@ public class TransmitWaiter extends Thread {
 						}
 				}
 			}	
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			client.logger.print_error("In transmit receiving");
 			e.printStackTrace();
-		}
-		
-		finally{
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					client.logger.print_error("Problem closing transmit listener socket: " + e.getMessage());
-					e.printStackTrace();
-				}
-			}
 		}
 	}
 	
@@ -103,20 +96,29 @@ public class TransmitWaiter extends Thread {
 			String watchName= messageCommand[3];
 			TheClient.Viewer viewer = new TheClient.Viewer(client,address,watcherPort,watchName);
 			client.addToViewerList(viewer);
-			//viewer.sendPreviousMoves();
+			viewer.sendPreviousMoves();
 		}
 		return result;
 	}
 	
 	public void endTransmition(){
-		if(client.transmitSocket != null){
-			try {
-				client.transmitSocket.close();
-			} catch (IOException e) {
-				client.logger.print_error("Problem closing socket: " + e.getMessage());
+		try {
+			client.logger.print_info("Closing transmit waiter socket");
+			if(in != null){
+				in.close();
+				in = null;
 			}
+			if(transmitCommandSocket != null){
+					transmitCommandSocket.close();
+					transmitCommandSocket = null;
+			}
+			if(transmitWaiterSocket != null){
+				transmitWaiterSocket.close();
+				transmitWaiterSocket = null;
+			}
+		} catch (IOException e) {
+			client.logger.print_error("Problem closing socket: " + e.getMessage());
 		}
-		this.interrupt();
+		
 	}
-
 }

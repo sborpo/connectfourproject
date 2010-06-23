@@ -121,19 +121,22 @@ public class RequestHandler implements Runnable {
 			String command = params[0];
 	
 			if(command.equals(ClientServerProtocol.MEETME)){
-				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],Integer.parseInt(params[3]),params[4]); 
+				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],params[3]); 
 			}
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
-				respondMsg = newGameTreat(Integer.parseInt(params[1]),params[2]);
+				respondMsg = newGameTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3]);
 			}
 			else if(command.equals(ClientServerProtocol.BATCHGAMESREPORT)){
 				respondMsg = batchGamesReportTreat(params);
+			}
+			else if(command.equals(ClientServerProtocol.GAMEREPORT)){
+				respondMsg = gamesReportTreat(params[1],params[2],Boolean.parseBoolean(params[3]),params[4]);
 			}
 			else if(command.equals(ClientServerProtocol.SIGNUP)){
 				respondMsg = signupTreat(params[1],params[2]);
 			}
 			else if(command.equals(ClientServerProtocol.PLAY)){
-				respondMsg = playTreat(Integer.parseInt(params[1]),params[2],params[3]);
+				respondMsg = playTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3],params[4]);
 			}
 			else if(command.equals(ClientServerProtocol.GAMELIST)){
 				respondMsg = getOnlineGamesTreat();
@@ -152,6 +155,12 @@ public class RequestHandler implements Runnable {
 	private Object batchGamesReportTreat(String[] params) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	private String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner){
+		String response = ClientServerProtocol.KNOWYA;
+		
+		return response;
 	}
 
 	private String watchTreat(int watcherPort, String gameId,String watcherName) {
@@ -214,68 +223,68 @@ public class RequestHandler implements Runnable {
 		
 	}
 
-	private String playTreat(int gamePort, String gameId,String clientName) {
+	private String playTreat(int gamePort, int transmitionPort, String gameId,String clientName) {
 		String response = ClientServerProtocol.KNOWYA;
 		//check if the client is in the list and not in a game
 		OnlineClient theClient = server.clients.getClient(clientName);
 		if(theClient != null){
-			if(theClient.getGame() == null){
-				//check if the game exists 
-				Game theGame = server.games.getGame(gameId);
-				if(theGame != null){
-					//and has no second player
-					Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
-					if(thePlayer == null){
-						theGame.addPlayer(clientName);
-						OnlineClient enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
-						if(enemy != null){
-							response = ClientServerProtocol.GOGOGO + " " 
-										+ enemy.getTCPPort() + " " 
-										+ enemy.getAddress().getHostAddress() + " " 
-										+ enemy.getName();
-							server.printer.print_info("Player has been added to the game: " + gameId + "\n");
-							theClient.setGameForClient(gameId);
-						}
-						else{
-							server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");
-							response = ClientServerProtocol.SERVPROB;
-						}
+			if(theClient.getGame() != null){			
+				server.printer.print_error("User is already in game, delete old game...");
+				server.games.removeGame(theClient.getGame());
+				theClient.resetGame();
+			}
+			theClient.setTransmitPort(transmitionPort);
+			//check if the game exists 
+			Game theGame = server.games.getGame(gameId);
+			if(theGame != null){
+				//and has no second player
+				Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
+				if(thePlayer == null){
+					theGame.addPlayer(clientName);
+					OnlineClient enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
+					if(enemy != null){
+						response = ClientServerProtocol.GOGOGO + " " 
+									+ enemy.getTCPPort() + " " 
+									+ enemy.getAddress().getHostAddress() + " " 
+									+ enemy.getName();
+						server.printer.print_info("Player has been added to the game: " + gameId + "\n");
+						theClient.setGameForClient(gameId);
 					}
 					else{
-						server.printer.print_error("Other man playing..." + thePlayer.getName() +"\n");
-						response = ClientServerProtocol.DENIED;
+						server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");
+						response = ClientServerProtocol.SERVPROB;
 					}
 				}
 				else{
-					server.printer.print_error("No such gameId:" + gameId);
+					server.printer.print_error("Other man playing..." + thePlayer.getName() +"\n");
 					response = ClientServerProtocol.DENIED;
 				}
 			}
 			else{
-				server.printer.print_error("User is already in game!");
+				server.printer.print_error("No such gameId:" + gameId);
 				response = ClientServerProtocol.DENIED;
-			}
+			}	
 		}
 		return response;
 	}
 
-	private String newGameTreat(int gamePort,String playerName) {
+	private String newGameTreat(int gamePort,int transmitionPort, String playerName) {
 		String response = ClientServerProtocol.KNOWYA;
 		//generate game id
 		String gameId = playerName + Long.toString(System.currentTimeMillis());
 		//check if the client is in the list 
 		OnlineClient theClient = server.clients.getClient(playerName);
 		if(theClient != null){
-			//and not in a game
+			//remove old online game of the client
 			if(theClient.getGame() != null){
 				server.printer.print_info("Removing old online game of the client");
-				server.games.removeGame(gameId);
+				server.games.removeGame(theClient.getGame());
 				theClient.resetGame();
 			}
 			//create new game
 			theClient.setTCPPort(gamePort);
-			Game newGame = null;
-			newGame = new Game(playerName, null, gameId);
+			theClient.setTransmitPort(transmitionPort);
+			Game newGame = new Game(playerName, null, gameId);
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
 			response = ClientServerProtocol.GAME + " " + gameId;
@@ -311,7 +320,7 @@ public class RequestHandler implements Runnable {
 		return server.games.getOnlineGamesForClient();
 	}
 	
-	private String meetMeTreat(int clientUDPPort,String clientName,int clientTransmitPort,String password){
+	private String meetMeTreat(int clientUDPPort,String clientName,String password){
 		boolean errFlag = false;
 		String response = ClientServerProtocol.SERVPROB;
 		try {
@@ -327,7 +336,7 @@ public class RequestHandler implements Runnable {
 			errFlag = true;
 		} 
 		if(!errFlag){
-			server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,clientTransmitPort));
+			server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,TheClient.unDEFport));
 			response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort());
 			server.udpListener.openTimerFor(clientName);
 		}

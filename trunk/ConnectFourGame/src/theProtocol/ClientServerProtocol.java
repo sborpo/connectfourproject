@@ -90,9 +90,9 @@ public class ClientServerProtocol {
 	}
 	
 	private void mapInit(){
-		numOfParametersForCmd.put(MEETME, 4);
-		numOfParametersForCmd.put(NEWGAME, 2);
-		numOfParametersForCmd.put(PLAY, 3);
+		numOfParametersForCmd.put(MEETME, 3);
+		numOfParametersForCmd.put(NEWGAME, 3);
+		numOfParametersForCmd.put(PLAY, 4);
 		numOfParametersForCmd.put(WATCH, 3);
 		numOfParametersForCmd.put(OK, 0);
 		numOfParametersForCmd.put(NOCONN, 0);

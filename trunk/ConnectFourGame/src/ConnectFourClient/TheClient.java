@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -59,7 +60,7 @@ public class TheClient {
 	public DatagramSocket aliveSocket = null;
 	
 	//UDP socket for receiving transmit requests
-	public Socket transmitSocket = null;
+	private ServerSocket transmitWaiterSocket = null;
 	
 	//this will send the alive messages to the server
 	private AliveSender 	echoServerListener = null;
@@ -88,8 +89,8 @@ public class TheClient {
 		return clientWatchPort;
 	}
 	
-	public Socket getTransmitSocket(){
-		return transmitSocket;
+	public ServerSocket getTransmitWaiterSocket(){
+		return transmitWaiterSocket;
 	}
 	
 	public ArrayList<String> getGameHistory(){
@@ -99,70 +100,63 @@ public class TheClient {
 	public static class Viewer extends  OnlineClient
 	{
 		private TheClient transmitter;
+		private Socket viewerSocket;
+		private PrintWriter viewerWriter;
 		private boolean firstMove;
 
 		public Viewer(TheClient transmitter, InetAddress hostAddr, int watcherPort, String name) {
 			super(hostAddr, TheClient.unDEFport, name, watcherPort,TheClient.unDEFport);
 			this.transmitter = transmitter;
+			try {
+				viewerSocket = new Socket(this.getAddress(),this.getTCPPort());
+				viewerWriter = new PrintWriter(viewerSocket.getOutputStream(),true);
+			} catch (IOException e) {
+				transmitter.logger.print_error("Cannont initialize connection with watcher");
+				e.printStackTrace();
+			}
 			firstMove = true;
 		}
 		
-		public void sendMove(String move){
-			Socket transmiterConnSocket = null;
-			try {
-				if(firstMove){
-					this.sendPreviousMoves();
-				}
-				transmiterConnSocket = new Socket(this.getAddress(),this.getTCPPort());
-				PrintWriter out = new PrintWriter(transmiterConnSocket.getOutputStream(),true);
-				
-				transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
-				out.println(move);
-				out.println();
-				
-				firstMove = false;
-				
-				if(out != null){
-					out.close();
-				}
-				if(transmiterConnSocket != null){
-					transmiterConnSocket.close();
-				}
-				
-			} catch (IOException e) {
-				transmitter.logger.print_error("In move sending to watcher: " + e.getMessage());
-				//e.printStackTrace();
+		public void endTransmition(){
+			if(viewerWriter != null){
+				viewerWriter.close();
 			}
+			if(viewerSocket != null){
+				try {
+					viewerSocket.close();
+				} catch (IOException e) {
+					transmitter.logger.print_error("Problem closing watcher socket");
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		public void sendMove(String move){
+//				if(firstMove){
+//					this.sendPreviousMoves();
+//				}			
+			transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
+			viewerWriter.println(move);
+			viewerWriter.println();
+			transmitter.logger.print_info("Move sent");
+			firstMove = false;
 		}
 		
 		public boolean isFirstMove(){
 			return firstMove;
 		}
 		
-		public void sendPreviousMoves() throws IOException{
-			Socket transmiterConnSocket = null;
-			PrintWriter out = null;
-			try {
-				transmiterConnSocket = new Socket(this.getAddress(),this.getTCPPort());
-				out = new PrintWriter(transmiterConnSocket.getOutputStream(),true);
-			} catch (IOException e1) {
-				transmitter.logger.print_error("Cannot open socket with watcher: " + e1.getMessage());
-				e1.printStackTrace();
-			}
-			
+		public void sendPreviousMoves(){
 			ArrayList<String> gameHistory= transmitter.getGameHistory();
+			//TODO: build string builder and then send
+			StringBuilder strBuilder = new StringBuilder();
 			for(String move : gameHistory){
 				transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
-				out.println(move);
+				//viewerWriter.println(move);
+				strBuilder.append(move + "\n");
 			}
-			out.println();
-			
-			if(out != null){
-				out.close();
-			}
-			if(transmiterConnSocket != null){
-				transmiterConnSocket.close();
-			}
+			viewerWriter.println(strBuilder.toString());
+			//viewerWriter.println();
 		}
 	}
 	
@@ -414,11 +408,22 @@ public class TheClient {
 		watcher = null;
 	}
 	
+	private void startTransmitionWaiter(){
+		try {
+			transmitWaiterSocket = new ServerSocket(clientTransmitWaiterPort);
+		} catch (IOException e) {
+			this.logger.print_error("Problem open transmit waiter socket");
+			e.printStackTrace();
+		}
+		transmitWaiter = new TransmitWaiter(transmitWaiterSocket,this);
+		transmitWaiter.start();
+	}
+	
 	private void closeTransmitions(){
-		if(transmitSocket != null){
+		if(transmitWaiterSocket != null){
 			this.getTransmitWaiter().endTransmition();
 		}
-		transmitSocket = null;
+		transmitWaiterSocket = null;
 		transmitWaiter = null;
 	}
 	
@@ -431,15 +436,17 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.MEETME)){
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
-			clientTransmitWaiterPort = Integer.parseInt(params[3]);
-			password = params[4];
+			//clientTransmitWaiterPort = Integer.parseInt(params[3]);
+			password = params[3];
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
+			clientTransmitWaiterPort = Integer.parseInt(params[2]);
 		}
 		else if(params[0].equals(ClientServerProtocol.PLAY)){
 			clientGamePort = Integer.parseInt(params[1]);
-			gameId = params[2];
+			clientTransmitWaiterPort = Integer.parseInt(params[2]);
+			gameId = params[3];
 		}
 		else if(params[0].equals(ClientServerProtocol.WATCH)){
 			clientWatchPort = Integer.parseInt(params[1]);
@@ -454,8 +461,6 @@ public class TheClient {
 		 serverUdpPort = Integer.parseInt(params[1]);
 		 echoServerListener = new AliveSender(this);
 		 echoServerListener.start();
-		 transmitWaiter = new TransmitWaiter(this);
-		 transmitWaiter.start();
 	}
 	
 	public void HandleGame(String [] params)
@@ -463,6 +468,7 @@ public class TheClient {
 		gameId = params[1];
 		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 		game = new Game(clientName, null,gameId);
+		this.startTransmitionWaiter();
 		String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
 		logger.print_info("Send here to server: " + gameReport);
 		gameId = null;
@@ -479,6 +485,7 @@ public class TheClient {
 							" port: " + opponentGamePort +
 							" game: " + gameId);
 		game = new Game(opponentName, clientName,gameId);
+		this.startTransmitionWaiter();
 		String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
 		logger.print_info("Send here to server: " + gameReport);
 		gameId = null;

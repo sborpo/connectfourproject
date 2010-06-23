@@ -140,7 +140,7 @@ public class Game implements Serializable{
 			String moveMsg = "GAME_MOVE" + " " + plays.getName() + " " + String.valueOf(colnum);
 			String[] parsed = prot.parseCommand(moveMsg);
 			if(parsed == null){
-				System.out.println(prot.result + ". Bad move report!");
+				System.out.println(prot.result + ". Bad move report: "+ moveMsg);
 			}
 			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
 			
@@ -166,7 +166,7 @@ public class Game implements Serializable{
 		gameReport = "GAME_REPORT" + " " + this.getId() + " " + theClient.getClientName() + " " + gameRes.toString() + " " + winner;
 		String[] parsed = prot.parseCommand(gameReport);
 		if(parsed == null){
-			System.out.println(prot.result + ". Bad game report!");
+			System.out.println(prot.result + ". Bad game report: "+ gameReport);
 		}
 		theClient.getTransmitWaiter().sendMoveToViewers(gameReport);
 		try {
