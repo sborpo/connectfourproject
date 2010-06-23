@@ -44,6 +44,10 @@ public class OnlineClient {
 		TCPport = port;
 	}
 	
+	public synchronized void setTransmitPort(int port){
+		transmitPort = port;
+	}
+	
 	public synchronized void resetGame(){
 		currentGame = null;
 	}

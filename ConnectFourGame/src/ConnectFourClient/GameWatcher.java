@@ -13,29 +13,36 @@ import theProtocol.ClientServerProtocol;
 
 public class GameWatcher implements Runnable{
 
+	static public class GameEndedException extends Exception{}; 
+	
 	TheClient client=null;
+	ServerSocket socket=null;
+	Socket watchSocket = null;
+	BufferedReader watcherIn = null;
+	
 	public GameWatcher(TheClient client)
 	{
 		this.client=client;
+		this.watcherIn = null;
 	}
 	
 	@Override
 	public void run() {
 		client.logger.print_info("Game Watcher Is Running! ");
-		ServerSocket socket=null;
 		try{
 			ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 			socket = new ServerSocket(client.getWatchPort());
+			watchSocket = socket.accept();
+			watcherIn =  new BufferedReader(new InputStreamReader(watchSocket.getInputStream()));
 			
 			String inputLine = null;
+			client.logger.print_info("Waiting for a transmit message...");
 			while(true){
-				Socket watchSocket = socket.accept();
-				BufferedReader in =  new BufferedReader(new InputStreamReader(watchSocket.getInputStream()));
-				
-				while((inputLine = in.readLine()) != null) {
+				while((inputLine = watcherIn.readLine()) != null) {
 					if(inputLine.equals("")){
 						break;
 					}
+					client.logger.print_info("Transmition received: " + inputLine);
 					String[] parsed = prot.parseCommand(inputLine);
 					if(parsed == null){
 						client.logger.print_error(prot.result + ". Bad move report received!");
@@ -48,22 +55,48 @@ public class GameWatcher implements Runnable{
 						String winner = parseReport(parsed);
 						if(winner != null){
 							client.logger.print_info(winner + " is a winner!");
-							client.stopWatching();
-							break;
+							throw new GameEndedException();
 						}
 						else{
 							client.logger.print_error("Don't understand who is the winner");
-							break;
+							throw new GameEndedException();
 						}
 					}
 					else{
 						client.logger.print_error("I don't understand what transmitter send");
-						break;
+						throw new GameEndedException();
 					}
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			client.logger.print_info(e.getMessage() + ". Stopping watching...");
+			this.stopWatching();
+			client.stopWatching();
+			e.printStackTrace();
+		}
+		catch (GameEndedException myExc){
+			client.logger.print_info("The game is over!");
+			this.stopWatching();
+			client.stopWatching();
+		}
+	}
+	
+	private void stopWatching(){
+		try {
+			if(watcherIn != null){
+				watcherIn.close();
+				watcherIn = null;
+			}
+			if(watchSocket != null){
+				watchSocket.close();
+				watchSocket = null;
+			}
+			if(socket != null){
+				socket.close();
+				socket = null;
+			}
+		} catch (IOException e) {
+			client.logger.print_error("Cannot close input stream for watch");
 			e.printStackTrace();
 		}
 	}

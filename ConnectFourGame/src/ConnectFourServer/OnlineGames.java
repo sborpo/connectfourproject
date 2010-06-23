@@ -78,8 +78,14 @@ public class OnlineGames {
 	}
 
 	public synchronized void removeGame(String gameId){
-		if(playingGames.containsKey(gameId)){
-			playingGames.remove(gameId);
+		if(gameId != null){
+			if(playingGames.containsKey(gameId)){
+				playingGames.remove(gameId);
+				server.printer.print_info("Game removed!");
+			}
+			else{
+				server.printer.print_error("No such online game: " + gameId);
+			}
 		}
 	}
 }
