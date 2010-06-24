@@ -1,6 +1,0 @@
-2010-06-23 10:21:43 Info: Server: localhost
-2010-06-23 10:21:43 Info: Server TCP port: 3333
-2010-06-23 10:21:43 Info: Client Udp Listen port: 5555
-2010-06-23 10:21:43 Info: Client TransmitWaiter port: 6666
-2010-06-23 10:21:43 Info: Client Game port: 7777
-2010-06-23 10:23:15 Error: Wrong message to server
