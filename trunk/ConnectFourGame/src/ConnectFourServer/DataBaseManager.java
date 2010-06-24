@@ -219,7 +219,9 @@ public class DataBaseManager {
 					if(!checkGameIdExists(gameId,conn)){
 						prepareStatement.execute();
 					}
-					throw new GameIdAlreadyExists();
+					else{
+						throw new GameIdAlreadyExists();
+					}
 			}
 		}
 		finally
@@ -248,6 +250,7 @@ public class DataBaseManager {
 		}	
 		
 	}
+	
 	
 	public static void makeReport(String gameId,String username,String report) throws SQLException
 	{

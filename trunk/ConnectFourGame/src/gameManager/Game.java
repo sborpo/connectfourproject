@@ -39,6 +39,16 @@ public class Game implements Serializable{
 	{
 		return (blue != null);
 	}
+	
+	public boolean isPlayer(String playerName){
+		boolean res = false;
+		if((red != null && red.getName().equals(playerName)) ||
+		   (blue != null && blue.getName().equals(playerName))){
+			res = true;
+		}
+		
+		return res;
+	}
 
 	public Game(String name1,String name2,String gameId) {
 		red = new Player(Player.Color.RED,name1);
@@ -240,7 +250,6 @@ public class Game implements Serializable{
 	}
 	
 	public void addPlayer(String player2){
-		System.out.println("Adding player: " + player2);
 		blue = new Player(Player.Color.BLUE,player2);
 	}
 	 

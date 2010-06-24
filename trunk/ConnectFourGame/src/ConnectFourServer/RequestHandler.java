@@ -21,6 +21,7 @@ import java.util.Random;
 import common.OnlineClient;
 
 import ConnectFourClient.TheClient;
+import ConnectFourServer.DataBaseManager.GameIdAlreadyExists;
 import ConnectFourServer.DataBaseManager.UserAlreadyExists;
 
 import theProtocol.ClientServerProtocol;
@@ -152,6 +153,38 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
+	private boolean isClientOnline(String clientName){
+		boolean res = false;
+		OnlineClient theClient = server.clients.getClient(clientName);
+		if(theClient != null){
+			res = true;
+		}
+		return res;
+	}
+	
+	private boolean isGameOnline(String gameId){
+		boolean res = false;
+		Game theGame = server.games.getGame(gameId);
+		if(theGame != null){
+			res= true;
+		}
+		return res;
+	}
+	
+	private boolean isClientInTheGame(String clientName,String gameId){
+		boolean res= false;
+		OnlineClient theClient = server.clients.getClient(clientName);
+		Game theGame = server.games.getGame(gameId);
+		
+		if(theClient != null && theGame != null){
+			if(theClient.getGame().equals(theGame.getId()) && theGame.isPlayer(clientName)){
+				res= true;
+			}
+		}
+		
+		return res;
+	}
+	
 	private Object batchGamesReportTreat(String[] params) {
 		// TODO Auto-generated method stub
 		return null;
@@ -159,7 +192,40 @@ public class RequestHandler implements Runnable {
 	
 	private String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner){
 		String response = ClientServerProtocol.KNOWYA;
-		
+		//check if the client is online
+		if(isClientOnline(clientName)){
+
+			//check if the game exists
+			if(isGameOnline(gameId)){
+				//check if the client is in this game
+				if(isClientInTheGame(clientName,gameId)){
+					//add the report
+					try {
+						server.printer.print_info("Adding the report to the database.");
+						DataBaseManager.makeReport(gameId, clientName, winner);
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						//THINK GOOD WHAT TO DO
+						e.printStackTrace();
+						response = ClientServerProtocol.SERVPROB;
+					}
+					//return ok message
+					response = ClientServerProtocol.OK;
+				}
+				else{
+					server.printer.print_error("The client: " + clientName + " is not in the game: "+gameId);
+					response = ClientServerProtocol.DENIED;
+				}
+			}
+			else{
+				server.printer.print_error("The game is not online: "+gameId);
+				response = ClientServerProtocol.DENIED;
+			}
+		}
+		else{
+			server.printer.print_error("The client is not online: "+clientName);
+			response = ClientServerProtocol.DENIED;
+		}
 		return response;
 	}
 
@@ -249,6 +315,20 @@ public class RequestHandler implements Runnable {
 									+ enemy.getName();
 						server.printer.print_info("Player has been added to the game: " + gameId + "\n");
 						theClient.setGameForClient(gameId);
+						try {
+							server.printer.print_info("Adding the game to database: " + gameId + "\n");
+							DataBaseManager.createGame(enemy.getName(), clientName, gameId);
+						} catch (SQLException e) {
+							server.printer.print_error("Cannot insert the game to the database: " + e.getMessage());
+							e.printStackTrace();
+							response = ClientServerProtocol.SERVPROB;
+							//TODO to do something
+						} catch (GameIdAlreadyExists e) {
+							server.printer.print_error("The game is already in the database: " + e.getMessage());
+							e.printStackTrace();
+							response = ClientServerProtocol.SERVPROB;
+							//TODO something
+						}
 					}
 					else{
 						server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");

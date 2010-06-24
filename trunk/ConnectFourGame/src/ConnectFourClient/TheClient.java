@@ -470,9 +470,20 @@ public class TheClient {
 		game = new Game(clientName, null,gameId);
 		this.startTransmitionWaiter();
 		String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
-		logger.print_info("Send here to server: " + gameReport);
 		gameId = null;
 		this.closeTransmitions();
+		//send the report to the server
+		try {
+			logger.print_info("Send report to server: " + gameReport);
+			Object resp = this.sendMessageToServer(gameReport);
+			if(!this.parseResponse(resp)){
+				throw new IOException("Bad server response");
+			}
+		} catch (IOException e) {
+			this.logger.print_error("Problem sending report to server: "+e.getMessage());
+			e.printStackTrace();
+			//TODO need to save the report
+		}
 	}
 	
 	public void HandleGoGoGo(String [] params)
@@ -487,9 +498,20 @@ public class TheClient {
 		game = new Game(opponentName, clientName,gameId);
 		this.startTransmitionWaiter();
 		String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
-		logger.print_info("Send here to server: " + gameReport);
 		gameId = null;
 		this.closeTransmitions();
+		//send the report to the server
+		try {
+			logger.print_info("Send report to server: " + gameReport);
+			Object resp = this.sendMessageToServer(gameReport);
+			if(!this.parseResponse(resp)){
+				throw new IOException("Bad server response");
+			}
+		} catch (IOException e) {
+			this.logger.print_error("Problem sending report to server: "+e.getMessage());
+			e.printStackTrace();
+			//TODO need to save the report
+		}
 	}
 	
 	public void HandleEnjoyWatch(String [] params)
@@ -553,6 +575,7 @@ public class TheClient {
 			responseRes = false;
 		}
 		else if(command.equals(ClientServerProtocol.OK)){
+			responseRes = true;
 		}
 		
 		return responseRes;
