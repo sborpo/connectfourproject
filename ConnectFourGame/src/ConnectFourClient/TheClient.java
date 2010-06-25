@@ -125,16 +125,13 @@ public class TheClient {
 				try {
 					viewerSocket.close();
 				} catch (IOException e) {
-					transmitter.logger.print_error("Problem closing watcher socket");
+					transmitter.logger.print_error("Problem closing watcher - " + this.getName() + " socket: " + e.getMessage());
 					e.printStackTrace();
 				}
 			}
 		}
 		
-		public void sendMove(String move){
-//				if(firstMove){
-//					this.sendPreviousMoves();
-//				}			
+		public void sendMove(String move){			
 			transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
 			viewerWriter.println(move);
 			viewerWriter.println();
@@ -148,20 +145,27 @@ public class TheClient {
 		
 		public void sendPreviousMoves(){
 			ArrayList<String> gameHistory= transmitter.getGameHistory();
-			//TODO: build string builder and then send
 			StringBuilder strBuilder = new StringBuilder();
 			for(String move : gameHistory){
 				transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
-				//viewerWriter.println(move);
 				strBuilder.append(move + "\n");
 			}
 			viewerWriter.println(strBuilder.toString());
-			//viewerWriter.println();
 		}
 	}
 	
 	public HashMap<String, Viewer> getViewerList(){
 		return viewersList;
+	}
+	
+	public void removeViewerIfExists(String viewerName){
+		if (viewersList.containsKey(viewerName))
+		{
+			this.logger.print_info("Removing the watcher: " + viewerName);
+			Viewer watcher = viewersList.get(viewerName);
+			watcher.endTransmition();
+			viewersList.remove(viewerName);
+		}
 	}
 	
 	public void addToViewerList(Viewer viewer)
@@ -252,20 +256,6 @@ public class TheClient {
 		clientWatchPort = Integer.parseInt(args[4]);
 		//clientWatchPort = Integer.parseInt(args[5]);
 		//logger.print_info("Client Watch port: "+clientWatchPort);
-		//clientUdp = Integer.parseInt(args[3]);
-		//System.out.println("Clent UDP: " +clientUdp);
-		//serverUdpPort = Integer.parseInt(args[4]);
-		//System.out.println(serverUdpPort);
-		//clientGamePort = Integer.parseInt(args[3]);
-		//System.out.println("Game port: " +clientGamePort);
-		//VALERIY: That are optional parameters, they will come only after game is created, not here
-		//opponentGameHost = args[6];
-		//System.out.println(opponentGameHost);
-		//opponentGamePort = Integer.parseInt(args[7]);
-		//System.out.println(opponentGamePort);
-		//clientStartsGame = args[8].equals("TRUE") ? true : false;
-		//System.out.println(clientStartsGame);
-
 	}
 	
 	public Object sendMessageToServer(String message) throws IOException

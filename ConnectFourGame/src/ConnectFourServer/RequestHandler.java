@@ -177,7 +177,7 @@ public class RequestHandler implements Runnable {
 		Game theGame = server.games.getGame(gameId);
 		
 		if(theClient != null && theGame != null){
-			if(theClient.getGame().equals(theGame.getId()) && theGame.isPlayer(clientName)){
+			if(theClient.getGame().equals(theGame.getId()) && theGame.isPlayer(clientName) != null){
 				res= true;
 			}
 		}
@@ -240,18 +240,14 @@ public class RequestHandler implements Runnable {
 			Game theGame = server.games.getGame(gameId);
 			server.printer.print_info("Looking for game: " + gameId);
 			if(theGame != null)
-			{
-				String redName=theGame.getPlayer(Color.RED).getName();
-				Player bluePlayer=theGame.getPlayer(Color.BLUE);
-				if(bluePlayer == null){
-					server.printer.print_error("No blue player in game");
-					response = ClientServerProtocol.DENIED;
-					return response;
-				}
-				String blueName = bluePlayer.getName();
-				
+			{				
 				server.printer.print_info("Game is found!");
 				String playerName = theGame.getPlayer(r).getName();
+				Player thePlayer = theGame.addWatcher(watcherName, playerName);
+				//if the watcher is already watching the game from another player
+				if(thePlayer.getName().equals(playerName)){
+					playerName = thePlayer.getName();
+				}
 				
 				OnlineClient client=server.clients.getClient(playerName);
 				InetAddress clientAddr=client.getAddress();

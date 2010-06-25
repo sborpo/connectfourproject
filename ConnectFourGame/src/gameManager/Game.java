@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import theProtocol.ClientServerProtocol;
@@ -29,6 +30,7 @@ public class Game implements Serializable{
 	private String gameId;
 	private Player red;
 	private Player blue;
+	private HashMap<String,Player> watchers;
 	private Board gameBoard;
 	private Player plays;
 	private GameState state;
@@ -40,14 +42,31 @@ public class Game implements Serializable{
 		return (blue != null);
 	}
 	
-	public boolean isPlayer(String playerName){
-		boolean res = false;
-		if((red != null && red.getName().equals(playerName)) ||
-		   (blue != null && blue.getName().equals(playerName))){
-			res = true;
+	public Player isPlayer(String playerName){
+		Player player = null;
+		if((red != null && red.getName().equals(playerName))){
+			player = red;
+		}
+		else if((blue != null && blue.getName().equals(playerName))){
+			player= blue;
 		}
 		
-		return res;
+		return player;
+	}
+	
+	synchronized public Player addWatcher(String watchName, String playerName){
+		Player player = isPlayer(playerName);
+		
+		if(player != null){
+			if(watchers.containsKey(watchName)){
+				player = watchers.get(watchName);
+			}
+			else{
+				watchers.put(watchName, player);
+			}
+		}
+		
+		return player;
 	}
 
 	public Game(String name1,String name2,String gameId) {
@@ -62,6 +81,7 @@ public class Game implements Serializable{
 		gameBoard = new Board();
 		gameHistory = new ArrayList<String>();
 		gameReport = "";
+		watchers = new HashMap<String,Player>();
 	}
 
 	public String startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
@@ -249,7 +269,7 @@ public class Game implements Serializable{
 		System.out.println("Changed to player: "+plays.getName());
 	}
 	
-	public void addPlayer(String player2){
+	synchronized public void addPlayer(String player2){
 		blue = new Player(Player.Color.BLUE,player2);
 	}
 	 
