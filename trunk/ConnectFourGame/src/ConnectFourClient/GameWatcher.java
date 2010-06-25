@@ -48,7 +48,6 @@ public class GameWatcher implements Runnable{
 						client.logger.print_error(prot.result + ". Bad move report received!");
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEMOVE)){
-						client.logger.print_info("Got This Move: "+inputLine);
 						//TODO: here we need to update the gameboard of watcher
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEREPORT)){

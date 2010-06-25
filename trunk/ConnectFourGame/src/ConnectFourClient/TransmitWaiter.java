@@ -94,6 +94,7 @@ public class TransmitWaiter extends Thread {
 				result = false;
 			}
 			String watchName= messageCommand[3];
+			client.removeViewerIfExists(watchName);
 			TheClient.Viewer viewer = new TheClient.Viewer(client,address,watcherPort,watchName);
 			client.addToViewerList(viewer);
 			viewer.sendPreviousMoves();
