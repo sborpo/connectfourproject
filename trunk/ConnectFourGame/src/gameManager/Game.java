@@ -167,7 +167,9 @@ public class Game implements Serializable{
 			}
 			//send the move to the viewers
 			String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
-			String moveMsg = "GAME_MOVE" + " " + plays.getName() + " " + String.valueOf(colnum);
+			String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
+																			plays.getName(),
+																			String.valueOf(colnum)});
 			String[] parsed = prot.parseCommand(moveMsg);
 			if(parsed == null){
 				System.out.println(prot.result + ". Bad move report: "+ moveMsg);
@@ -193,7 +195,11 @@ public class Game implements Serializable{
 			System.out.println(winner + " player has won the game!\n");
 		}
 		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
-		gameReport = "GAME_REPORT" + " " + this.getId() + " " + theClient.getClientName() + " " + gameRes.toString() + " " + winner;
+		gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
+																	 this.getId(),
+																	 theClient.getClientName(),
+																	 gameRes.toString(),
+																	 winner});
 		String[] parsed = prot.parseCommand(gameReport);
 		if(parsed == null){
 			System.out.println(prot.result + ". Bad game report: "+ gameReport);

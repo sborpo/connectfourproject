@@ -51,8 +51,12 @@ public class AliveSender extends Thread {
 			delayTimer.reset();
 			
 			//send to server client Alive message!
-			String aliveMsg = ClientServerProtocol.IMALIVE + " " + client.getClientName() + 
-			" " + client.getPassword() + " " + client.getTransmitWaiterPort()+ " " + client.getGameId() + " " + client.getGamePort();
+			String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
+																				client.getClientName(), 
+																				client.getPassword(),
+																				Integer.toString(client.getTransmitWaiterPort()),
+																				client.getGameId(),
+																				Integer.toString(client.getGamePort())});
 			client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
 			byte[] buffer = aliveMsg.getBytes();
 			try {

@@ -11,11 +11,12 @@ public class ClientServerProtocol {
 	
 	public static class parseRes{
 		public static final String SUCCESS = "SUCCESS";
-		public static final String WRONG_COMMAND = "WRONG COMMAND";
-		public static final String WRONG_NUM_OF_PARAMETERS = "WRONG NUMBER OF PARAMETERS";
+		public static final String WRONG_COMMAND = "WRONG_COMMAND";
+		public static final String WRONG_NUM_OF_PARAMETERS = "WRONG_NUMBER_OF_PARAMETERS";
 	}
 	
 	static public String noGame = "noGame";
+	static public String paramSeparator = ":PARAM:";
 	
 	private msgType type;
 	public static final String MEETME = "MEETME";
@@ -38,9 +39,9 @@ public class ClientServerProtocol {
 	public static final String BATCHGAMESREPORT="BATCH_GAMES_REPORTS";
 	public static final String USERNOTEXISTS="USER_NOT_EXISTS";
 	public static final String USERALREADYEXISTS= "USERNAME_ALREADY_EXISTS";
-	public static final String SIGNUP="SIGN_UP";
+	public static final String SIGNUP="SIGNUP";
 	public static final String GAMELIST="GAME_LIST";
-	//public static final String YOUALIVE ="ARE_YOU_ALIVE?";
+	public static final String GETPUBKEY= "GET_PUB_KEY";
 	public static final String IMALIVE ="I'M_ALIVE!";
 	
 	private ArrayList<String> legalCommands;
@@ -68,6 +69,7 @@ public class ClientServerProtocol {
 			legalCommands.add(SIGNUP);
 			legalCommands.add(GAMELIST);
 			legalCommands.add(BATCHGAMESREPORT);
+			legalCommands.add(GETPUBKEY);
 		}
 		//Commands CLIENT can receive
 		else{
@@ -96,7 +98,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(WATCH, 3);
 		numOfParametersForCmd.put(OK, 0);
 		numOfParametersForCmd.put(NOCONN, 0);
-		numOfParametersForCmd.put(KNOWYA, 0);
+		numOfParametersForCmd.put(KNOWYA, 1);
 		numOfParametersForCmd.put(WHAT, 0);
 		numOfParametersForCmd.put(DENIED, 0);
 		numOfParametersForCmd.put(NICETM, 1);
@@ -113,9 +115,11 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(SIGNUP, 2);
 		numOfParametersForCmd.put(GAMELIST, 0);
 		numOfParametersForCmd.put(BATCHGAMESREPORT, Integer.MAX_VALUE);
+		numOfParametersForCmd.put(GETPUBKEY, 0);
 	}
+	
 	public String[] parseCommand(String command){
-		String[] params = command.split(" +");
+		String[] params = command.split(paramSeparator);
 		if(legalCommands.contains(params[0])){ 
 		
 			if ((numOfParametersForCmd.get(params[0]).equals(Integer.MAX_VALUE))|| (numOfParametersForCmd.get(params[0]).equals(params.length - 1))){
@@ -131,5 +135,17 @@ public class ClientServerProtocol {
 			result = parseRes.WRONG_COMMAND;
 			return null;
 		}
+	}
+	
+	static public String buildCommand(String[] elements){
+		String command = "";
+		for(String elem : elements){
+			if(!command.equals("")){
+				command += paramSeparator;
+			}
+			command += elem;
+		}
+		
+		return command;
 	}
 }

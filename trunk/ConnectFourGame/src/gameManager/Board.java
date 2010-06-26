@@ -52,7 +52,7 @@ public class Board implements Serializable{
 					System.out.print("| R |");
 					continue;
 				}
-				System.out.print("| 0 |");
+				System.out.print("|   |");
 
 			}
 			System.out.println();		
