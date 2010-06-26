@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.security.Key;
 import java.util.ArrayList;
 
 import javax.swing.Box;
@@ -192,7 +193,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	{
 		int rowIndex=openGames.getSelectedRow();
 		try {
-			String response =(String)client.sendMessageToServer(ClientServerProtocol.PLAY+" "+String.valueOf(client.getGamePort())+" "+ String.valueOf(client.getTransmitWaiterPort()) +" "+openGames.getValueAt(rowIndex, 2)+" "+ client.getClientName());
+			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.PLAY,
+																								  String.valueOf(client.getGamePort()),
+																								  String.valueOf(client.getTransmitWaiterPort()),
+																								  (String)openGames.getValueAt(rowIndex, 2),
+																								  client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
 				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
@@ -218,7 +223,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	private void newGameClicked()
 	{
 		try {
-			String response =(String)client.sendMessageToServer(ClientServerProtocol.NEWGAME+" "+String.valueOf(client.getGamePort())+ " "+ String.valueOf(client.getTransmitWaiterPort()) +" "+client.getClientName());
+			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.NEWGAME,
+																												String.valueOf(client.getGamePort()),
+																												String.valueOf(client.getTransmitWaiterPort()),
+																												client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
 				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
@@ -240,7 +248,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	{
 		int rowIndex=gamesForWatch.getSelectedRow();
 		try {
-			String response =(String)client.sendMessageToServer(ClientServerProtocol.WATCH+" "+String.valueOf(client.getWatchPort())+" "+gamesForWatch.getValueAt(rowIndex, 4)+" "+client.getClientName());
+			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.WATCH,
+																												String.valueOf(client.getWatchPort()),
+																												(String)gamesForWatch.getValueAt(rowIndex, 4),
+																												client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
 				JOptionPane.showMessageDialog(null,"There was an error in server's response!");

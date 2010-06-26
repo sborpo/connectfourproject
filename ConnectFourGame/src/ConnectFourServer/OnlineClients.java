@@ -43,6 +43,9 @@ public class OnlineClients {
 		 if(udpClients.containsKey(clientName)){
 			 return udpClients.get(clientName);
 		 }
+		 for(String name : udpClients.keySet()){
+			 System.out.println("Client: '" + name + "'");
+		 }
 		 return null;
 	 }
 	 
@@ -66,7 +69,6 @@ public class OnlineClients {
 	 
 	 public synchronized void resetAlive(String clientName){
 			if(udpClients.containsKey(clientName)){
-				System.out.println("unset for "+clientName);
 				isAlive.put(clientName, false);
 			}
 		}

@@ -5,11 +5,15 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.spec.RSAPublicKeySpec;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
 import common.LogPrinter;
+import common.RSAgenerator;
 
 public class MainServer {
 
@@ -60,7 +64,10 @@ public class MainServer {
 			throw e;
 		}
 		parseServerArguments(args);
-		this.printer.print_info("TCP: "+serverTCPPort+" UDP: "+serverUDPPort+" dbName: "+DataBaseManager.getDBname());
+		this.printer.print_info("TCP: "+serverTCPPort+" UDP: "
+								+serverUDPPort+
+								" dbName: "+DataBaseManager.getDBname()+
+								" PubKey: "+RSAgenerator.getPubKey().toString());
 		initDatabase();
 		connectionsPool = Executors.newCachedThreadPool();
 		games = new OnlineGames(this);
@@ -139,10 +146,12 @@ public class MainServer {
 
 		MainServer server=null;
 		try {
+			RSAgenerator.generatePair();
 			server = new MainServer(args);
 			server.start();
 		} catch (Exception e) {
-			System.out.println(LogPrinter.error_msg("Server failure!"));
+			System.out.println(LogPrinter.error_msg("Server failure: " + e.getMessage()));
+			e.printStackTrace();
 		} 
 	}
 

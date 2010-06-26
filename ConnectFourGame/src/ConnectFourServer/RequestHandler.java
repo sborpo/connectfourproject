@@ -12,13 +12,23 @@ import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 import common.OnlineClient;
+import common.PasswordHashManager;
+import common.RSAgenerator;
+import common.PasswordHashManager.SystemUnavailableException;
 
 import ConnectFourClient.TheClient;
 import ConnectFourServer.DataBaseManager.GameIdAlreadyExists;
@@ -61,54 +71,55 @@ public class RequestHandler implements Runnable {
 			//VALERIY
 			Object response = ClientServerProtocol.WHAT;
 			//String response = ClientServerProtocol.WHAT;
+			StringBuilder strBuild = new StringBuilder();
 			// reads the input line by line and appends in to the string builder
 			while ((inputLine = in.readLine()) != null) {
 				if(inputLine.equals("")){
 					break;
 				}
-				
-				String logMessage = "From Client with host :" + clientHost + " IP: "
-				+ clientIP + " Recieved This Message: \n -------------\n"
-				+ inputLine + "\n-------------\n\n\n";
-				server.printer.print_info(logMessage);
-				//get the response
-				//VALERIY
-				response = respondToMessage(inputLine);
-				if(response == null){
-					server.printer.print_error("Can't respond the message");
-					continue;
+				if(strBuild.length() > 0){
+					strBuild.append("\n");
 				}
+				strBuild.append(inputLine);
+			}
 				
+			String message = strBuild.toString();
+			String logMessage = "From Client with host :" + clientHost + " IP: "
+			+ clientIP + " Recieved This Message: \n -------------\n"
+			+ message + "\n-------------";
+			server.printer.print_info(logMessage);
+			//get the response
+			//VALERIY
+			response = respondToMessage(message);
+			if(response == null){
+				server.printer.print_error("Can't respond the message");
+			}
+			else{
 				server.printer.print_info("Send to client: " + response);
 				//VALERIY
 				//out.writeObject(response);
 				out.writeObject(response);
 			}
-			
-			if (out != null) {
-				out.close();
-			}
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					server.printer.print_error("Problem closing socket from Client: "
-							+ clientHost + " with IP: " + clientIP);
-					e.printStackTrace();
-				}
-			}
-			if(clientSock != null){
-				try {
-					clientSock.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 		} catch (IOException ex) {
 			server.printer.print_error("Problem reading from Client: " + clientHost
 					+ " with IP: " + clientIP + " " + ex.getMessage());
 		} 
+		
+		try {
+			if (out != null) {
+				out.close();
+			}
+			if (in != null) {
+				in.close();
+			}
+			if(clientSock != null){
+				clientSock.close();
+			}
+		} catch (IOException e) {
+			server.printer.print_error("Problem closing socket from Client: "
+					+ clientHost + " with IP: " + clientIP);
+			e.printStackTrace();
+		}
 	}
 	
 	private Object respondToMessage(String message){
@@ -116,6 +127,7 @@ public class RequestHandler implements Runnable {
 		String[] params = parser.parseCommand(message);
 		Object respondMsg = null;
 		if(params == null){
+			server.printer.print_error("Server can't respod: " + parser.result);
 			respondMsg =  ClientServerProtocol.WHAT;
 		}
 		else{
@@ -144,6 +156,9 @@ public class RequestHandler implements Runnable {
 			}
 			else if(command.equals(ClientServerProtocol.WATCH)){
 				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3]);
+			}
+			else if(command.equals(ClientServerProtocol.GETPUBKEY)){
+				respondMsg = pubKeyTreat();
 			}
 			else{
 				respondMsg = ClientServerProtocol.WHAT;
@@ -190,8 +205,12 @@ public class RequestHandler implements Runnable {
 		return null;
 	}
 	
+	private Object pubKeyTreat(){
+		return RSAgenerator.getPubKey();
+	}
+	
 	private String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner){
-		String response = ClientServerProtocol.KNOWYA;
+		String response = ClientServerProtocol.KNOWYA ;
 		//check if the client is online
 		if(isClientOnline(clientName)){
 
@@ -263,6 +282,9 @@ public class RequestHandler implements Runnable {
 				response = ClientServerProtocol.DENIED;
 			}
 		}
+		else{
+			System.out.println("No such user: '" + watcherName + "'");
+		}
 		return response;
 	}
 
@@ -271,9 +293,11 @@ public class RequestHandler implements Runnable {
 		try {
 			Socket clientTsmtSocket = new Socket(clientAddr,clientPort);
 			PrintWriter out = new PrintWriter(clientTsmtSocket.getOutputStream(),true);
-			String message = ClientServerProtocol.VIEWERTRANSMIT+" "+ watcherPort +
-							" "+viewerAddr.getHostAddress()+" "+watcherName +
-							" "+clientSock.getInetAddress().getHostAddress();
+			String message = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.VIEWERTRANSMIT,
+																			Integer.toString(watcherPort),
+																			viewerAddr.getHostAddress(),
+																			watcherName,
+																			clientSock.getInetAddress().getHostAddress()});
 			server.printer.print_info("Transmit message: " + message +"\n");
 			out.println(message);		
 		} catch (IOException e) {
@@ -305,10 +329,10 @@ public class RequestHandler implements Runnable {
 					theGame.addPlayer(clientName);
 					OnlineClient enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
 					if(enemy != null){
-						response = ClientServerProtocol.GOGOGO + " " 
-									+ enemy.getTCPPort() + " " 
-									+ enemy.getAddress().getHostAddress() + " " 
-									+ enemy.getName();
+						response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GOGOGO, 
+																					Integer.toString(enemy.getTCPPort()), 
+																					enemy.getAddress().getHostAddress(),
+																					enemy.getName()});
 						server.printer.print_info("Player has been added to the game: " + gameId + "\n");
 						theClient.setGameForClient(gameId);
 						try {
@@ -363,7 +387,7 @@ public class RequestHandler implements Runnable {
 			Game newGame = new Game(playerName, null, gameId);
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
-			response = ClientServerProtocol.GAME + " " + gameId;
+			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});
 			server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
 
 		}
@@ -371,24 +395,35 @@ public class RequestHandler implements Runnable {
 	}
 
 	
+	private String hashPassword(String pass){
+		String hashed = null;
+		PasswordHashManager hashManager = PasswordHashManager.getInstance();
+		try {
+			hashed = hashManager.encrypt(pass);
+		} catch (SystemUnavailableException e) {
+			this.server.printer.print_error("Cannot hash the password: "+ e.getMessage());
+			e.printStackTrace();
+			hashed = null;
+		}
+		return hashed;
+	}
+	
 	private String signupTreat(String username , String password)
 	{
 		String response = ClientServerProtocol.SERVPROB;
 		try {
-				try {
-					DataBaseManager.insertUser(username, password);
-				} catch (UserAlreadyExists e) {
-					response=ClientServerProtocol.USERALREADYEXISTS;
-					return response;
-				}
-				response= ClientServerProtocol.OK;
-				return response;
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			server.printer.print_error(e.getMessage());
+			String decrypted = RSAgenerator.decrypt(password);
+			String hashedPswd = hashPassword(decrypted);
+			DataBaseManager.insertUser(username, hashedPswd);
+		} catch (UserAlreadyExists e) {
+			response=ClientServerProtocol.USERALREADYEXISTS;
 			return response;
+		} catch (Exception e) {
+			server.printer.print_error("Cannot decrypt password: " + e.getMessage());
+			e.printStackTrace();
 		}
-		
+		response= ClientServerProtocol.OK;
+		return response;
 	}
 	
 	private ArrayList<GameForClient> getOnlineGamesTreat()
@@ -400,7 +435,10 @@ public class RequestHandler implements Runnable {
 		boolean errFlag = false;
 		String response = ClientServerProtocol.SERVPROB;
 		try {
-			if(!DataBaseManager.authenticateUser(clientName, password)){
+			String decrypted = RSAgenerator.decrypt(password);
+			String hashedPswd = hashPassword(decrypted);
+			
+			if(!DataBaseManager.authenticateUser(clientName, hashedPswd)){
 				response = ClientServerProtocol.USERNOTEXISTS;
 				return response;
 			}
@@ -410,10 +448,15 @@ public class RequestHandler implements Runnable {
 		} catch (SQLException e) {
 			server.printer.print_error(e.getMessage());
 			errFlag = true;
-		} 
+		} catch (Exception e){
+			server.printer.print_error("Cannot decrypt password: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
 		if(!errFlag){
 			server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,TheClient.unDEFport));
-			response = ClientServerProtocol.NICETM + " " + Integer.toString(server.getServerUDPPort());
+			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.NICETM
+																		,Integer.toString(server.getServerUDPPort())});
 			server.udpListener.openTimerFor(clientName);
 		}
 		return response; 

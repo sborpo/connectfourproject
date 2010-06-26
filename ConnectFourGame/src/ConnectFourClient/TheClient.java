@@ -9,23 +9,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.Key;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Properties;
 
 import common.LogPrinter;
+import common.PasswordHashManager;
+import common.RSAgenerator;
 
-import ConnectFourServer.OnlineClients;
-import ConnectFourServer.OnlineGames;
 import common.OnlineClient;
+import common.PasswordHashManager.SystemUnavailableException;
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
@@ -223,8 +222,20 @@ public class TheClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}	
+	
+	private void getServerPublicKey(){
+		logger.print_info("Getting the public key of server...");
+		Key serverKey = null;
+		try {
+			serverKey = (Key)sendMessageToServer(ClientServerProtocol.GETPUBKEY);
+		} catch (IOException e) {
+			logger.print_error("Cannot get the public key from server");
+			e.printStackTrace();
+		}
+		RSAgenerator.setEncKey(serverKey);
 	}
-
+	
 	private void parseArguments(String[] args) {
 //		Properties props = new Properties();
 //		try {
@@ -261,53 +272,55 @@ public class TheClient {
 	public Object sendMessageToServer(String message) throws IOException
 	{
 		Socket serverConnection = null;
-			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
+		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
+		
+		String[] commandPar = parseCommand(message,parser);
+		if(commandPar == null){
+			this.logger.print_error("Wrong message to server");
+			return null;
+		}
+		
+		// send the command to the server
+		try{
+			serverConnection = new Socket(serverAddress, serverPort);
+		}
+		catch (IOException ex){
+			logger.print_error("Connection problems with server: "+ ex.getMessage());
+			throw ex;
+		}
+		
+		PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
+		
+		//send the message
+		String str  = ClientServerProtocol.buildCommand(commandPar);
+		logger.print_info("Sending your message: "+ str+" to the server...");
+		out.println(str);
+		out.println();
+		ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
+		logger.print_info("READING socket...");
+		Object resp=null;
+		// get server's response
+		try {
+			if((resp = response.readObject()) != null) {
+				logger.print_info("Server Response is:" + resp);
 				
-				String[] commandPar = parseCommand(message,parser);
-				if(commandPar == null){
-					this.logger.print_error("Wrong message to server");
-					return null;
-				}
-				
-				// send the command to the server
-				try{
-					serverConnection = new Socket(serverAddress, serverPort);
-				}
-				catch (IOException ex){
-					logger.print_error("Connection problems with server: "+ ex.getMessage());
-					throw ex;
-				}
-				logger.print_info("Sending your message: "+ message+" to the server...");
-				PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
-				
-				//send the message
-				out.println(message);
-				out.println();
-				ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
-				logger.print_info("READING socket...");
-				Object resp=null;
-				// get server's response
-				try {
-					if((resp = response.readObject()) != null) {
-						logger.print_info("Server Response is:" + resp);
-						
-					}
-				} catch (ClassNotFoundException e) {
-					//class will always be found
-				}
-				if(out != null){
-					out.close();
-				}
-				if(response!= null){
-					response.close();
-				}
-				if(serverConnection != null){
-					serverConnection.close();
-				}
-				return resp;
-	
-}
+			}
+		} catch (ClassNotFoundException e) {
+			//class will always be found
+		}
+		if(out != null){
+			out.close();
+		}
+		if(response!= null){
+			response.close();
+		}
+		if(serverConnection != null){
+			serverConnection.close();
+		}
+		return resp;
 
+}
+	
 	public void start() {
 		//ServerListener echoServerListener = new ServerListener(this);
 		
@@ -315,6 +328,11 @@ public class TheClient {
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 		try {
 			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
+			
+			logger.print_info("Getting the public key of server...");
+			Key serverKey = (Key)sendMessageToServer(ClientServerProtocol.GETPUBKEY);
+			RSAgenerator.setEncKey(serverKey);
+			
 			while(true)
 			{		
 				String inputLine;			
@@ -339,10 +357,12 @@ public class TheClient {
 						logger.print_error("Connection problems with server: "+ ex.getMessage());
 						break;
 					}
-					logger.print_info("Sending your message: "+ inputLine +" to the server...");
+					
 					PrintWriter out = new PrintWriter(serverConnection.getOutputStream(),true);
 					//send the message
-					out.println(inputLine);
+					String str  = ClientServerProtocol.buildCommand(commandPar);
+					logger.print_info("Sending your message: \n"+ str +" to the server...");
+					out.println(str);
 					out.println();
 					
 					ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
@@ -354,7 +374,9 @@ public class TheClient {
 					try {
 						if((resp = response.readObject()) != null) {
 							logger.print_info("Server Response is:" + resp);
-							parseResponse(resp);
+							if (!parseResponse(resp)){
+								logger.print_error("Bad SERVER reply...");
+							}
 						}
 					} catch (ClassNotFoundException e) {
 						// Class Will Always Be found
@@ -424,10 +446,18 @@ public class TheClient {
 			return null;
 		}
 		else if(params[0].equals(ClientServerProtocol.MEETME)){
+			getServerPublicKey();
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
-			//clientTransmitWaiterPort = Integer.parseInt(params[3]);
-			password = params[3];
+			password = this.hashPassword(params[3]);
+			try {
+				password =  RSAgenerator.encrypt(password);
+				System.out.println("Encrypted: " + password);
+				params[3] = password;
+			} catch (Exception e) {
+				logger.print_error("Cannot encrypt the password: " + e.getMessage());
+				e.printStackTrace();
+			}
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
@@ -441,8 +471,33 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.WATCH)){
 			clientWatchPort = Integer.parseInt(params[1]);
 		}
+		else if(params[0].equals(ClientServerProtocol.SIGNUP)){
+			getServerPublicKey();
+			clientName = params[1];
+			password = this.hashPassword(params[2]);
+			try {
+				password =  RSAgenerator.encrypt(password);
+				params[2] = password;
+			} catch (Exception e) {
+				logger.print_error("Cannot encrypt the password: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
 		
 		return params;
+	}
+	
+	private String hashPassword(String pass){
+		String hashed = null;
+		PasswordHashManager hashManager = PasswordHashManager.getInstance();
+		try {
+			hashed = hashManager.encrypt(pass);
+		} catch (SystemUnavailableException e) {
+			this.logger.print_error("Cannot hash the password: "+ e.getMessage());
+			e.printStackTrace();
+			hashed = null;
+		}
+		return hashed;
 	}
 	
 	
@@ -532,7 +587,6 @@ public class TheClient {
 		boolean responseRes = true;
 		
 		if(params == null){
-			logger.print_error("I don't understand what server say...");
 			responseRes = false;
 			return responseRes;
 		}

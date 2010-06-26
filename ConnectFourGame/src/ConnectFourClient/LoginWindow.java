@@ -2,6 +2,7 @@ package ConnectFourClient;
 
 import java.awt.BorderLayout;
 import theProtocol.*;
+
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -85,7 +86,10 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		if (e.getSource()==enterButton)
 		{
 			try {
-				String response=(String)father.client.sendMessageToServer("MEETME "+String.valueOf(father.client.getClientAlivePort())+" "+username.getText()+" "+password.getText());
+				String response=(String)father.client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.MEETME,
+																												String.valueOf(father.client.getClientAlivePort()),
+																												username.getText(),
+																												password.getText()}));
 				if (father.client.parseServerResponse(response)==null)
 				{
 					//TODO problem with syntax , server doesn't understand
