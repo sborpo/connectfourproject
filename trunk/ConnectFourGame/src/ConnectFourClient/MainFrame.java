@@ -144,10 +144,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 	{
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
 		DefaultTableModel watchModel= ((DefaultTableModel)openGames.getModel());
+	
 		while (model.getRowCount()>0)
 		{model.removeRow(0);}
 		while (watchModel.getRowCount()>0)
-		{model.removeRow(0);}
+		{watchModel.removeRow(0);}
 	}
 	public void setUpOnlineGames(ArrayList<GameForClient> games)
 	{
