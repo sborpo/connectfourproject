@@ -267,6 +267,8 @@ public class Game implements Serializable{
 
 	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,BufferedReader opponentIn,boolean startGame, PrintStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
 		try {
+			opponentIn.close();
+			clientToOpponent.close();
 			opponentSocket.close();
 		} catch (IOException e2) {
 			// TODO Auto-generated catch block
