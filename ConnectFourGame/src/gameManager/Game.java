@@ -119,6 +119,9 @@ public class Game implements Serializable{
 				clientPlayer = blue;
 				System.out.println("You Are The Blue Player \n");
 			}
+			//------This way we will know that the other side disconnected-----
+			opponentSocket.setKeepAlive(true);
+			//-----------
 			stdin = new BufferedReader(new InputStreamReader(System.in));
 			opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
 			clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
