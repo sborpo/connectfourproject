@@ -167,7 +167,7 @@ public class Game implements Serializable{
 						reconnectOnRead=false;
 						try{
 						//try to read from the opponent	
-						colnum = Integer.parseInt(opponentIn.readLine());
+							colnum = Integer.parseInt(opponentIn.readLine());
 						}
 						catch (IOException ex)
 						{
@@ -266,14 +266,11 @@ public class Game implements Serializable{
 	
 
 	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,BufferedReader opponentIn,boolean startGame, PrintStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
-		if (!opponentSocket.isClosed())
-		{
-			try {
-				opponentSocket.close();
-			} catch (IOException e) {
-				// we don't care , now we will continue
-				e.printStackTrace();
-			}
+		try {
+			opponentSocket.close();
+		} catch (IOException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
 		}
 		if (startGame)
 		{
