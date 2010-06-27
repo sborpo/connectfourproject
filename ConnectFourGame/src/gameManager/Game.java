@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -100,7 +101,8 @@ public class Game implements Serializable{
 				// can be a timeout how much to wait for an opponent
 				System.out.println("Waiting for opponent to connect ...\n");
 				opponentSocket = serverSocket.accept();
-			
+				serverSocket.close();
+				serverSocket=null;
 				clientPlayer = red;
 				System.out.println("Opponent Was Connected \n");
 				System.out.println("You Are The Red Player \n");
@@ -193,18 +195,35 @@ public class Game implements Serializable{
 			String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																			plays.getName(),
 																			String.valueOf(colnum)});
+			
 			String[] parsed = prot.parseCommand(moveMsg);
 			if(parsed == null){
 				System.out.println(prot.result + ". Bad move report: "+ moveMsg);
 			}
-			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
+			//theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
 			
 			//add the move to the game history
 			gameHistory.add(moveMsg);
 			
 			if (plays.equals(clientPlayer)) {
 				// write your move
-				clientToOpponent.println(colnum);
+				boolean reconnectOnRead= true;
+				while (reconnectOnRead)
+				{	
+					reconnectOnRead= false;
+					clientToOpponent.println(colnum);
+					if (clientToOpponent.checkError())
+					{
+						reconnectOnRead= true;
+						try {
+							handleReconnectionProcess(opponentSocket, serverSocket, opponentIn, startsGame, clientToOpponent, opponentHost, opponentPort);
+						} catch (TimeEnded e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				
 			}
 			nextPlayer();
 		}
