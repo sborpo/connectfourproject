@@ -69,12 +69,19 @@ public class XmlReports {
 	public String createGamesReportString()
 	{
 		ArrayList<GameReport> list = generateGameList();
-		StringBuilder sb= new StringBuilder();
-		sb.append(ClientServerProtocol.BATCHGAMESREPORT);
+		
+		ArrayList<String> params = new  ArrayList<String>();
+		params.add(ClientServerProtocol.BATCHGAMESREPORT);
+		
 		for (GameReport gameReport : list) {
-			sb.append(" "+gameReport.getGameId()+" "+gameReport.getClientName()+" "+gameReport.getStatus()+" "+gameReport.getWinner());
+			params.add(gameReport.getGameId());
+			params.add(gameReport.getClientName());
+			params.add(gameReport.getStatus());
+			params.add(gameReport.getWinner());
 		}
-		return sb.toString();
+		
+		String report = ClientServerProtocol.buildCommand((String[])params.toArray());
+		return report;
 	}
 	
 	public static ArrayList<GameReport> gameReportsFromReportString(String [] params)
