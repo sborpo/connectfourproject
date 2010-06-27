@@ -12,6 +12,8 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +24,8 @@ import theProtocol.ClientServerProtocol;
 import ConnectFourClient.TheClient;
 
 public class Game implements Serializable{
-
+	
+	public static class TimeEnded extends Exception{}
 	/**
 	 * 
 	 */
@@ -97,6 +100,7 @@ public class Game implements Serializable{
 				// can be a timeout how much to wait for an opponent
 				System.out.println("Waiting for opponent to connect ...\n");
 				opponentSocket = serverSocket.accept();
+			
 				clientPlayer = red;
 				System.out.println("Opponent Was Connected \n");
 				System.out.println("You Are The Red Player \n");
@@ -155,16 +159,35 @@ public class Game implements Serializable{
 					}
 				} else {
 					System.out.println("Waiting For Opponent Move!:\n");
-					colnum = Integer.parseInt(opponentIn.readLine());
+					boolean reconnectOnRead= true;
+					while (reconnectOnRead)
+					{	
+						reconnectOnRead=false;
+						try{
+						//try to read from the opponent	
+						colnum = Integer.parseInt(opponentIn.readLine());
+						}
+						catch (IOException ex)
+						{
+							reconnectOnRead=true;
+							handleReconnectionProcess(opponentSocket, serverSocket, opponentIn, startsGame, clientToOpponent, opponentHost, opponentPort);
+						}
+					}
 				}
 				state = gameBoard.playColumn(colnum, plays.getColor());
 			} catch (IllegalMove e) {
 				System.out.println("Illegal Move!!! Please Retry!\n\n");
 				continue;
-			} catch (IOException e) {
+			} 
+			catch (TimeEnded e)
+			{
+				//TODO what to do after retires
+			}
+			catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
 			//send the move to the viewers
 			String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
 			String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
@@ -220,6 +243,84 @@ public class Game implements Serializable{
 		return gameReport;
 
 	}
+	
+	
+
+	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,BufferedReader opponentIn,boolean startGame, PrintStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
+		if (!opponentSocket.isClosed())
+		{
+			try {
+				opponentSocket.close();
+			} catch (IOException e) {
+				// we don't care , now we will continue
+				e.printStackTrace();
+			}
+		}
+		if (startGame)
+		{
+			try {
+				serverSocket.setSoTimeout(20000);
+			} catch (SocketException e1) {
+				// There is a problem with the server socket
+				e1.printStackTrace();
+			}
+			int retries=0;
+			while (retries<3)
+			{
+				try {
+					
+					opponentSocket = serverSocket.accept();
+					opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
+					clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+					return;
+				} 
+				catch (SocketTimeoutException e) {
+					//There was a timeout , so the game must be closed and reoported as a winning
+					throw new TimeEnded();
+				}
+				catch (IOException e) {
+					// The client cannot start the server socket and reconnect
+					e.printStackTrace();
+					retries++;
+					//sleep for five second
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e1) {
+					}
+				}
+			}
+		
+		}
+		//the client was not the host of the game
+		else
+		{
+			int retries=0;
+			while (retries<3)
+			{
+					InetAddress address = null;
+					try {
+						address = InetAddress.getByName(opponentHost);
+						opponentSocket = new Socket(address, opponentPort);
+						opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
+						clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+						return;
+					} catch (UnknownHostException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					 catch (IOException e) {
+						try {
+							Thread.sleep(20000);
+						} catch (InterruptedException e1) {
+						}
+						e.printStackTrace();
+					}
+					 retries++;
+			}
+		}
+		throw new TimeEnded();
+}
+
 
 	public void startGame() {
 		System.out
