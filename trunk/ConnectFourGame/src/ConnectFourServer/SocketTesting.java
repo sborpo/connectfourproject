@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 
 public class SocketTesting {
@@ -15,7 +16,7 @@ public class SocketTesting {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean flag=true;
+		boolean flag=false;
 		if (flag)
 		{
 				ServerSocket serverSocket = null;
@@ -88,7 +89,25 @@ public class SocketTesting {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				int outputPort=opponentSocket.getPort();
+				SocketAddress add=opponentSocket.getRemoteSocketAddress();
+				while (true){
 				clientToOpponent.println("checks!");
+			
+				if (clientToOpponent.checkError())
+				{
+					try {
+						opponentSocket.connect(add);
+						opponentSocket.setReuseAddress(true);
+						 clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}
+				}
 		}
 	}
 
