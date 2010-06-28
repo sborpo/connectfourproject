@@ -7,6 +7,8 @@ import gameManager.Player.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -93,8 +95,8 @@ public class Game implements Serializable{
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
 		BufferedReader stdin = null;
-		BufferedReader opponentIn = null;
-		PrintStream clientToOpponent = null;
+		ObjectInputStream opponentIn = null;
+		ObjectOutputStream clientToOpponent = null;
 		try {
 			if (startsGame == true) {
 				serverSocket = new ServerSocket(clientPort);
@@ -123,13 +125,18 @@ public class Game implements Serializable{
 			opponentSocket.setKeepAlive(true);
 			//-----------
 			stdin = new BufferedReader(new InputStreamReader(System.in));
-			opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-			clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+			opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+			clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 			if(clientPlayer.equals(blue)){
-				clientToOpponent.println(clientPlayer.getName());
+				clientToOpponent.writeObject((clientPlayer.getName()));
 			}
 			else{
-				String name2 = opponentIn.readLine();
+				String name2 = null;
+				try {
+					name2 = (String)opponentIn.readObject();
+				} catch (ClassNotFoundException e) {
+					//cannot be
+				}
 				if( name2 != null){
 					addPlayer(name2);
 				}
@@ -154,7 +161,7 @@ public class Game implements Serializable{
 				if (plays.equals(clientPlayer)) {
 					System.out.println("Please Enter Your Move:\n");
 					while(colnum == -1){
-inLine = stdin.readLine();
+						inLine = stdin.readLine();
 						if(inLine.equals("")){
 							System.out.println("Empty move, try again...");
 						}
@@ -170,7 +177,14 @@ inLine = stdin.readLine();
 						reconnectOnRead=false;
 						try{
 						//try to read from the opponent	
-							colnum = Integer.parseInt(opponentIn.readLine());
+							try {
+								colnum = Integer.parseInt((String)opponentIn.readObject());
+							} catch (NumberFormatException e) {
+								//cannot be
+							} catch (ClassNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 					
 						}
 						catch (IOException ex)
@@ -215,8 +229,10 @@ inLine = stdin.readLine();
 				while (reconnectOnRead)
 				{	
 					reconnectOnRead= false;
-					clientToOpponent.println(colnum);
-					if (clientToOpponent.checkError())
+					try{
+						clientToOpponent.writeObject(String.valueOf(colnum));
+					}
+					catch (IOException ex)
 					{
 						reconnectOnRead= true;
 						try {
@@ -225,6 +241,7 @@ inLine = stdin.readLine();
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
+					
 					}
 				}
 				
@@ -269,7 +286,7 @@ inLine = stdin.readLine();
 	
 	
 
-	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,BufferedReader opponentIn,boolean startGame, PrintStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
+	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,ObjectInputStream opponentIn,boolean startGame, ObjectOutputStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
 		try {
 			opponentIn.close();
 			clientToOpponent.close();
@@ -292,8 +309,8 @@ inLine = stdin.readLine();
 				try {
 					
 					opponentSocket = serverSocket.accept();
-					opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-					clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+					opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+					clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 					return;
 				} 
 				catch (SocketTimeoutException e) {
@@ -323,8 +340,8 @@ inLine = stdin.readLine();
 					try {
 						address = InetAddress.getByName(opponentHost);
 						opponentSocket = new Socket(address, opponentPort);
-						opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-						clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+						opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+						clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 						return;
 					} catch (UnknownHostException e) {
 						// TODO Auto-generated catch block
