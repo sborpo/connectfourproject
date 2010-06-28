@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import common.UnhandeledReport;
+
 import theProtocol.ClientServerProtocol;
 
 import ConnectFourClient.TheClient;
@@ -90,7 +92,7 @@ public class Game implements Serializable{
 		watchers = new HashMap<String,Player>();
 	}
 
-	public String startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
+	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 		Player clientPlayer;
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
@@ -144,7 +146,7 @@ public class Game implements Serializable{
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
-			return gameReport;
+			return new UnhandeledReport(getId(), theClient.getClientName(), "0", "no-winner");
 		}
 
 		plays = red;
@@ -252,21 +254,13 @@ public class Game implements Serializable{
 		String winner = null;
 		if (state.equals(GameState.TIE)) {
 			System.out.println("The game ended with Tie!\n");
+			winner="tie";
 		}
 		else{
 			winner = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
 			System.out.println(winner + " player has won the game!\n");
 		}
 		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
-		gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
-																	 this.getId(),
-																	 theClient.getClientName(),
-																	 gameRes.toString(),
-																	 winner});
-		String[] parsed = prot.parseCommand(gameReport);
-		if(parsed == null){
-			System.out.println(prot.result + ". Bad game report: "+ gameReport);
-		}
 		theClient.getTransmitWaiter().sendMoveToViewers(gameReport);
 		try {
 			if( opponentSocket != null){
@@ -280,7 +274,7 @@ public class Game implements Serializable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return gameReport;
+		return new UnhandeledReport(this.getId(), theClient.getClientName()	, gameRes.toString(), winner);
 
 	}
 	

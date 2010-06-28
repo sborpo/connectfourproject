@@ -91,9 +91,8 @@ public class UnhandledReports {
 	}
 	
 	
-	public static ArrayList<UnhandeledReport> gameReportsFromReportString(String theCommand)
+	public static ArrayList<UnhandeledReport> gameReportsFromReportString(String [] params )
 	{
-		String[] params = theCommand.split(ClientServerProtocol.paramSeparator);
 		ArrayList<UnhandeledReport> list = new ArrayList<UnhandeledReport>();
 		int numOfReports= (params.length-1)/4;
 		for (int i=0; i<numOfReports; i++)

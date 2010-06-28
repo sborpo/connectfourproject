@@ -28,7 +28,11 @@ import javax.crypto.NoSuchPaddingException;
 import common.OnlineClient;
 import common.PasswordHashManager;
 import common.RSAgenerator;
+import common.UnhandeledReport;
+import common.UnhandledReports;
 import common.PasswordHashManager.SystemUnavailableException;
+import common.UnhandledReports.FileChanged;
+import common.UnhandledReports.NoReports;
 
 import ConnectFourClient.TheClient;
 import ConnectFourServer.DataBaseManager.GameIdAlreadyExists;
@@ -201,8 +205,9 @@ public class RequestHandler implements Runnable {
 	}
 	
 	private Object batchGamesReportTreat(String[] params) {
-		// TODO Auto-generated method stub
+		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportString(params);
 		return null;
+		
 	}
 	
 	private Object pubKeyTreat(){
@@ -226,7 +231,25 @@ public class RequestHandler implements Runnable {
 						// TODO Auto-generated catch block
 						//THINK GOOD WHAT TO DO
 						e.printStackTrace();
-						response = ClientServerProtocol.SERVPROB;
+						try {
+							UnhandledReports reports = new UnhandledReports(server.ReportFileName);
+							try {
+								reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
+								server.printer.print_error("The report was added correctly");
+							} catch (IOException e1) {
+								
+								//the server couldn't save the report, so return to the user the responsibilityy
+								server.printer.print_error("The server couln't save to report file: "+gameId);
+								response = ClientServerProtocol.DBERRORREPSAVED;
+								return response;
+							}
+						} catch (NoReports e1) {
+							//Ignore
+						} catch (FileChanged e1) {
+							//Ignore
+						}
+						server.printer.print_error("The server couldn't save to DB and to report file:  "+gameId);
+						response = ClientServerProtocol.DBERRORREPSAVED;
 					}
 					//return ok message
 					response = ClientServerProtocol.OK;
