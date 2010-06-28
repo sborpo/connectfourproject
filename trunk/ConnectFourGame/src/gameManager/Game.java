@@ -154,7 +154,7 @@ public class Game implements Serializable{
 				if (plays.equals(clientPlayer)) {
 					System.out.println("Please Enter Your Move:\n");
 					while(colnum == -1){
-						inLine = stdin.readLine();
+inLine = stdin.readLine();
 						if(inLine.equals("")){
 							System.out.println("Empty move, try again...");
 						}
@@ -171,6 +171,7 @@ public class Game implements Serializable{
 						try{
 						//try to read from the opponent	
 							colnum = Integer.parseInt(opponentIn.readLine());
+					
 						}
 						catch (IOException ex)
 						{
