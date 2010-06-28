@@ -106,6 +106,7 @@ public class Game implements Serializable{
 				clientPlayer = red;
 				System.out.println("Opponent Was Connected \n");
 				System.out.println("You Are The Red Player \n");
+			
 			} else {
 				InetAddress address = null;
 				try {
@@ -118,13 +119,14 @@ public class Game implements Serializable{
 				opponentSocket = new Socket(address, opponentPort);
 				clientPlayer = blue;
 				System.out.println("You Are The Blue Player \n");
+
 			}
 			//------This way we will know that the other side disconnected-----
 			opponentSocket.setKeepAlive(true);
 			//-----------
 			stdin = new BufferedReader(new InputStreamReader(System.in));
-			opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 			clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
+			opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 			if(clientPlayer.equals(blue)){
 				clientToOpponent.writeObject((clientPlayer.getName()));
 			}
