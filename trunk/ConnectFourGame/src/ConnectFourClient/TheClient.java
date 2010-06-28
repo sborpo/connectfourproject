@@ -22,9 +22,13 @@ import java.util.Properties;
 import common.LogPrinter;
 import common.PasswordHashManager;
 import common.RSAgenerator;
+import common.UnhandeledReport;
+import common.UnhandledReports;
 
 import common.OnlineClient;
 import common.PasswordHashManager.SystemUnavailableException;
+import common.UnhandledReports.FileChanged;
+import common.UnhandledReports.NoReports;
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
@@ -514,23 +518,60 @@ public class TheClient {
 		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 		game = new Game(clientName, null,gameId);
 		this.startTransmitionWaiter();
-		String gameReport = game.startOnlineGame(clientGamePort, null,-1, true,this);
+		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, null,-1, true,this);
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
-		try {
-			logger.print_info("Send report to server: " + gameReport);
-			Object resp = this.sendMessageToServer(gameReport);
-			if(!this.parseResponse(resp)){
-				throw new IOException("Bad server response");
-			}
-		} catch (IOException e) {
-			this.logger.print_error("Problem sending report to server: "+e.getMessage());
-			e.printStackTrace();
-			//TODO need to save the report
-		}
+		makeReportToServer(gameReportH);
+
 	}
 	
+	private void makeReportToServer(UnhandeledReport gameReportH) {
+		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
+		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
+				gameReportH.getGameId(),
+				gameReportH.getClientName(),
+				gameReportH.getGameResult(),
+				gameReportH.getWinner()});
+		logger.print_info("Send report to server: " + gameReport);
+		Object resp = null;
+		try {
+			resp = this.sendMessageToServer(gameReport);
+		if(!this.parseResponse(resp)){
+			throw new IOException("Bad server response");
+		}
+		String [] response = parseServerResponse((String)resp);
+		if (response[0].equals(ClientServerProtocol.DBERRORREPSAVED))
+		{
+			throw new IOException();
+		}
+		
+		}catch (IOException e1) {
+			saveLocalReport(gameReportH);
+		}
+		
+	}
+
+	private void saveLocalReport(UnhandeledReport gameReportH) {
+		//server couldn't save the file in his file system/DB , we should save it in ours
+		UnhandledReports reports = null;
+		try {
+			reports = new UnhandledReports(clientName);
+		} catch (NoReports e) {
+			//igonore
+			e.printStackTrace();
+		} catch (FileChanged e) {
+			//igonore
+		}
+		try {
+			reports.addReport(gameReportH);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
 	public void HandleGoGoGo(String [] params)
 	{
 		opponentGamePort = Integer.parseInt(params[1]);
@@ -542,21 +583,11 @@ public class TheClient {
 							" game: " + gameId);
 		game = new Game(opponentName, clientName,gameId);
 		this.startTransmitionWaiter();
-		String gameReport = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
+		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
-		try {
-			logger.print_info("Send report to server: " + gameReport);
-			Object resp = this.sendMessageToServer(gameReport);
-			if(!this.parseResponse(resp)){
-				throw new IOException("Bad server response");
-			}
-		} catch (IOException e) {
-			this.logger.print_error("Problem sending report to server: "+e.getMessage());
-			e.printStackTrace();
-			//TODO need to save the report
-		}
+		makeReportToServer(gameReportH);
 	}
 	
 	public void HandleEnjoyWatch(String [] params)

@@ -16,6 +16,8 @@ import common.LogPrinter;
 import common.RSAgenerator;
 
 public class MainServer {
+	
+	public String ReportFileName="server";
 
 	// the connection pool of the server. each incoming
 	// connection is handled by this thread pool
