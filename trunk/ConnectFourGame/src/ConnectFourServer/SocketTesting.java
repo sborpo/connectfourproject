@@ -18,7 +18,7 @@ public class SocketTesting {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean flag=true;
+		boolean flag=false;
 		if (flag)
 		{
 				ServerSocket serverSocket = null;
@@ -55,12 +55,18 @@ public class SocketTesting {
 				while (true)
 				{
 					try {
-						String what=opponentIn.readLine();
+						String what = null;
+						try {
+							what = (String)opponentIn.readObject();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						System.out.println(what);
 					} catch (IOException e) {
 						 try {
 							opponentSocket= serverSocket.accept();
-							opponentIn =opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+							opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
