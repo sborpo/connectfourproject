@@ -7,9 +7,14 @@ import org.xml.sax.SAXException;
 
 import ConnectFourClient.GameTechDetails;
 
-import common.GameReport;
-import common.XmlReports;
-import common.XmlReports.WrongSchema;
+import common.AESmanager;
+
+import common.UnhandeledReport;
+import common.UnhandledReports;
+
+import common.UnhandledReports.FileChanged;
+import common.UnhandledReports.NoReports;
+
 
 public class TestingClass {
 
@@ -59,7 +64,7 @@ public class TestingClass {
 //		System.out.println(s);	
 //		
 //		System.out.println("\n\nThe List array:\n\n");
-//		for (GameReport report : XmlReports.gameReportsFromReportString(s.split(" +"))) {
+//		for (GameReport report : XmlReports.gameReportsFromReportString(s)) {
 //			System.out.println(report.toString());
 //		}	
 //		} catch (SAXException e) {
@@ -73,13 +78,35 @@ public class TestingClass {
 //			System.out.println("The Document Is not Valid!");
 //		}
 		
-		GameTechDetails.GameDet det = new GameTechDetails.GameDet("asf", "asfasf", "Asf", "asfasf", "asfasf");
-		GameTechDetails details = new GameTechDetails("avi");
+//		GameTechDetails.GameDet det = new GameTechDetails.GameDet("asf", "asfasf", "Asf", "asfasf", "asfasf");
+//		GameTechDetails details = new GameTechDetails("avi");
+//
+//		GameTechDetails.GameDet det2= details.loadGame();
+//	
+//		System.out.println(det2);
+//		details.removeGame();
+		
+		UnhandledReports rep;
+		try {
+		
+			rep = new UnhandledReports("aviv");
+			System.out.println(rep.printReports());
+			rep.addReport(new UnhandeledReport("asf", "saf", "asf", "qwrqwr"));
+			rep.addReport(new UnhandeledReport("124", "asf", "asfasf", "asfasf"));
+			System.out.println(rep.printReports());
+		} catch (NoReports e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileChanged e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 
-		GameTechDetails.GameDet det2= details.loadGame();
-	
-		System.out.println(det2);
-		details.removeGame();
 		
 	}
 
