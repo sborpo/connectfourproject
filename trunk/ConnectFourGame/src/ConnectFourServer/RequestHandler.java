@@ -206,7 +206,16 @@ public class RequestHandler implements Runnable {
 	
 	private Object batchGamesReportTreat(String[] params) {
 		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportString(params);
-		return null;
+		ArrayList<String> correctGameIds= new ArrayList<String>();
+		for (UnhandeledReport unhandeledReport : reports) {
+			try {
+				DataBaseManager.makeReport(unhandeledReport.getGameId(), unhandeledReport.getClientName(), unhandeledReport.getWinner());
+				correctGameIds.add(unhandeledReport.getGameId());
+			} catch (SQLException e) {
+				//There was a problem to add this game report so dont add it to the reported games
+			}
+		}
+		return correctGameIds;
 		
 	}
 	
