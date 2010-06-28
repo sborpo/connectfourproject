@@ -23,6 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import common.UnhandledReports.FileChanged;
+
 public class LoginWindow extends JDialog implements MouseListener  {
 	private JPanel mainPane;
 	private JLabel command;
@@ -103,6 +105,20 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				}
 				//else log the user into the main window
 				father.client.handleNICETM(father.client.parseServerResponse(response));
+				
+				try{
+					
+					boolean res=father.client.reportUnhandeledReports();
+					if (res)
+					{
+						JOptionPane.showMessageDialog(null,"Sent to the server the unreported games. ");
+						return;
+					}
+				}
+				catch (FileChanged ex) {
+					JOptionPane.showMessageDialog(null,"Someone changed the ");
+					return;
+				}
 				father.getOnlineGames();
 				this.setVisible(false);
 			} catch (IOException e1) {
@@ -110,7 +126,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				e1.printStackTrace();
 				JOptionPane.showMessageDialog(null,"A problem with server connection");
 				return;
-			}
+			} 
 		}
 		else{
 		new SingUpWindow(this,father);

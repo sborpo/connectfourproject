@@ -35,6 +35,10 @@ public class UnhandledReports {
 			AESmanager manager = new AESmanager();
 			stream = new ObjectInputStream(manager.getDecryptedInStream(f));
 			reports=(HashMap<String,UnhandeledReport>)stream.readObject();
+			if (reports.size()==0)
+			{
+				throw new NoReports();
+			}
 		} catch (FileNotFoundException e) {
 			throw new NoReports();
 		} catch (IOException e) {
@@ -42,6 +46,15 @@ public class UnhandledReports {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			throw new FileChanged();
+		}
+	}
+	
+	public void removeReportsFile()
+	{
+		File f= new File(fileName);
+		if (!f.exists())
+		{
+			f.delete();
 		}
 	}
 	

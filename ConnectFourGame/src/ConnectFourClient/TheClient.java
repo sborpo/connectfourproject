@@ -3,6 +3,7 @@ package ConnectFourClient;
 import gameManager.Game;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import common.LogPrinter;
@@ -666,5 +668,30 @@ public class TheClient {
 			System.out.println(LogPrinter.error_msg("Client had failed!"));
 		}
 
+	}
+
+	public boolean reportUnhandeledReports() throws FileChanged, IOException {
+		UnhandledReports reports=null;
+		try {
+			reports = new UnhandledReports(clientName);
+		} catch (NoReports e) {
+			return false;
+		} catch (FileChanged e) {
+			// Someone tried to change the file ,remove it!
+			reports.removeReportsFile();
+			throw new FileChanged();
+			
+		}
+		reports.createGamesReportString();
+		ArrayList<String> response=(ArrayList<String>)sendMessageToServer(ClientServerProtocol.buildCommand(reports.createGamesReportString().split(ClientServerProtocol.paramSeparator)));
+		if (response==null)
+		{
+			throw new IOException();
+		}
+		for (String unhandeledReport : response) {
+			reports.removeReport(unhandeledReport);
+		}
+		return true;
+		
 	}
 }
