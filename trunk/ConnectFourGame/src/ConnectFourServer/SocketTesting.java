@@ -18,7 +18,7 @@ public class SocketTesting {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean flag=false;
+		boolean flag=true;
 		if (flag)
 		{
 				ServerSocket serverSocket = null;
@@ -51,6 +51,10 @@ public class SocketTesting {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+				int localport = opponentSocket.getLocalPort();
+				int theirPort= opponentSocket.getPort();
+				InetAddress add= opponentSocket.getInetAddress();
+				InetAddress localAdd=opponentSocket.getLocalAddress();
 			
 				while (true)
 				{
@@ -65,8 +69,31 @@ public class SocketTesting {
 						System.out.println(what);
 					} catch (IOException e) {
 						 try {
-							opponentSocket= serverSocket.accept();
-							opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+						 if (e.getMessage().equals("Connection reset"))
+						 {
+							 		try{
+									opponentSocket.close(); 
+										} catch (IOException ex1) {
+											// TODO Auto-generated catch block
+											ex1.printStackTrace();
+										}	
+									opponentSocket= serverSocket.accept();
+									opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+						 }
+						 else
+						 {
+							 		try{
+									opponentSocket.close(); 
+									opponentSocket= new Socket(add, theirPort, localAdd	,localport);
+									//opponentSocket.close(); 
+										} catch (IOException ex1) {
+											// TODO Auto-generated catch block
+											ex1.printStackTrace();
+										}	
+									//opponentSocket= serverSocket.accept();
+									opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+						 }
+								
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
