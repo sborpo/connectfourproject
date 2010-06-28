@@ -213,6 +213,22 @@ public class RequestHandler implements Runnable {
 				correctGameIds.add(unhandeledReport.getGameId());
 			} catch (SQLException e) {
 				//There was a problem to add this game report so dont add it to the reported games
+				//Try to move the game to the server's unhandeled reports file
+				try {
+					UnhandledReports localReports = new UnhandledReports(server.ReportFileName);
+					try {
+						localReports.addReport(unhandeledReport);
+						//the server added it , so we can tell the client that it was reported
+						correctGameIds.add(unhandeledReport.getGameId());
+					} catch (IOException e1) {
+						
+					}
+				} catch (NoReports e1) {
+					//Ignore
+				} catch (FileChanged e1) {
+					//Ignore
+				}
+				
 			}
 		}
 		return correctGameIds;
