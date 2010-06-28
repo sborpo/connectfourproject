@@ -23,6 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import ConnectFourClient.MainFrame.MsgType;
+
 import common.UnhandledReports.FileChanged;
 
 public class LoginWindow extends JDialog implements MouseListener  {
@@ -95,12 +97,12 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				if (father.client.parseServerResponse(response)==null)
 				{
 					//TODO problem with syntax , server doesn't understand
-					JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+					father.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
 					return;
 				}
 				if (father.client.parseServerResponse(response)[0].equals(ClientServerProtocol.USERNOTEXISTS))
 				{
-					JOptionPane.showMessageDialog(null,"The username that you have typed doesn't exists \n Please Sign Up");
+					father.showMessageDialog("The username that you have typed doesn't exists \n Please Sign Up",MsgType.error);
 					return;
 				}
 				//else log the user into the main window
@@ -111,12 +113,16 @@ public class LoginWindow extends JDialog implements MouseListener  {
 					boolean res=father.client.reportUnhandeledReports();
 					if (res)
 					{
-						JOptionPane.showMessageDialog(null,"Sent to the server the unreported games. ");
+						father.showMessageDialog("Sent to the server the unreported games.",MsgType.info);
 						return;
 					}
 				}
 				catch (FileChanged ex) {
-					JOptionPane.showMessageDialog(null,"Someone changed the ");
+					father.showMessageDialog("Someone changed the report file",MsgType.error);
+					return;
+				}
+				catch (IOException ex) {
+					father.showMessageDialog("Problem sending the report file",MsgType.error);
 					return;
 				}
 				father.getOnlineGames();
@@ -124,12 +130,12 @@ public class LoginWindow extends JDialog implements MouseListener  {
 			} catch (IOException e1) {
 				// TODO Handle connection problem
 				e1.printStackTrace();
-				JOptionPane.showMessageDialog(null,"A problem with server connection");
+				father.showMessageDialog("A problem with server connection",MsgType.error);
 				return;
 			} 
 		}
 		else{
-		new SingUpWindow(this,father);
+			new SingUpWindow(this,father);
 		}
 		
 	}

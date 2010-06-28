@@ -28,6 +28,11 @@ import ConnectFourServer.GameForClient;
 
 
 public class MainFrame extends JFrame implements MouseListener , ActionListener{
+	public static class MsgType{
+		public static final String error = "ERROR";
+		public static final String info = "INFO";
+	}
+	
 	private JMenuBar menuBar;
 	private JMenu menu1, menu2;
 	private JMenuItem menu1Item1;
@@ -314,6 +319,16 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 			return;
 		}
 		
+	}
+	
+	public void showMessageDialog(String msg,String type){
+		if(type.equals(MsgType.info)){
+			client.logger.print_info(msg);
+		}
+		else{
+			client.logger.print_error(msg);
+		}
+		JOptionPane.showMessageDialog(this,msg);
 	}
 
 }

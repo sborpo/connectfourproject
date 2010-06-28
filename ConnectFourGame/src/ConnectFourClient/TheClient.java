@@ -242,37 +242,40 @@ public class TheClient {
 		RSAgenerator.setEncKey(serverKey);
 	}
 	
+	private Properties getProperties(){
+		Properties prop = new Properties();
+		try {
+			prop.load(new FileInputStream("client.configurations"));
+		} catch (FileNotFoundException e) {
+			//file will be found
+			logger.print_error("Properties file was not found: " + e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			//will be read
+			logger.print_error("Problem loading file: " + e.getMessage());
+			e.printStackTrace();
+		}	
+		return prop;
+	}
+	
 	private void parseArguments(String[] args) {
-//		Properties props = new Properties();
-//		try {
-//			props.load(new FileInputStream("src\\ConnectFourClient\\client.configurations"));
-//		} catch (FileNotFoundException e) {
-//			//file will be found
-//			
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			//will be read
-//			e.printStackTrace();
-//		}	
+		Properties props = getProperties();
 		
-		
-		//serverHost = props.getProperty("SERVER_HOST");
-		serverHost = (args[0]);
+		//serverHost = (args[0]);
+		serverHost = props.getProperty("SERVER_HOST");
 		logger.print_info("Server: " + serverHost);
-		//serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-		serverPort = Integer.parseInt(args[1]);
+		//serverPort = Integer.parseInt(args[1]);
+		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
 		logger.print_info("Server TCP port: "+serverPort);
-		//clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-		clientUdp = Integer.parseInt(args[2]);
+		//clientUdp = Integer.parseInt(args[2]);
+		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
 		logger.print_info("Client Udp Listen port: "+clientUdp);
-		//clientTransmitPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_PORT"));
-		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
 		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-		clientGamePort = Integer.parseInt(args[4]);
+		//clientGamePort = Integer.parseInt(args[4]);
+		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
 		logger.print_info("Client Game port: "+clientGamePort);
-		clientWatchPort = Integer.parseInt(args[4]);
-		//clientWatchPort = Integer.parseInt(args[5]);
-		//logger.print_info("Client Watch port: "+clientWatchPort);
 	}
 	
 	public Object sendMessageToServer(String message) throws IOException
@@ -282,7 +285,7 @@ public class TheClient {
 		
 		String[] commandPar = parseCommand(message,parser);
 		if(commandPar == null){
-			this.logger.print_error("Wrong message to server");
+			this.logger.print_error("Wrong message to server: " + parser.result);
 			return null;
 		}
 		
@@ -335,9 +338,9 @@ public class TheClient {
 		try {
 			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 			
-			logger.print_info("Getting the public key of server...");
-			Key serverKey = (Key)sendMessageToServer(ClientServerProtocol.GETPUBKEY);
-			RSAgenerator.setEncKey(serverKey);
+//			logger.print_info("Getting the public key of server...");
+//			Key serverKey = (Key)sendMessageToServer(ClientServerProtocol.GETPUBKEY);
+//			RSAgenerator.setEncKey(serverKey);
 			
 			while(true)
 			{		
@@ -529,7 +532,6 @@ public class TheClient {
 	}
 	
 	private void makeReportToServer(UnhandeledReport gameReportH) {
-		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 				gameReportH.getGameId(),
 				gameReportH.getClientName(),
@@ -539,16 +541,17 @@ public class TheClient {
 		Object resp = null;
 		try {
 			resp = this.sendMessageToServer(gameReport);
-		if(!this.parseResponse(resp)){
-			throw new IOException("Bad server response");
-		}
-		String [] response = parseServerResponse((String)resp);
-		if (response[0].equals(ClientServerProtocol.DBERRORREPSAVED))
-		{
-			throw new IOException();
-		}
+			if(!this.parseResponse(resp)){
+				throw new IOException("Bad server response");
+			}
+			String [] response = parseServerResponse((String)resp);
+			if (response[0].equals(ClientServerProtocol.SERVPROB))
+			{
+				throw new IOException();
+			}
 		
 		}catch (IOException e1) {
+			this.logger.print_error(e1.getMessage());
 			saveLocalReport(gameReportH);
 		}
 		
@@ -678,18 +681,24 @@ public class TheClient {
 			return false;
 		} catch (FileChanged e) {
 			// Someone tried to change the file ,remove it!
-			reports.removeReportsFile();
+			if(reports != null){
+				reports.removeReportsFile();
+			}	
 			throw new FileChanged();
-			
 		}
-		reports.createGamesReportString();
-		ArrayList<String> response=(ArrayList<String>)sendMessageToServer(ClientServerProtocol.buildCommand(reports.createGamesReportString().split(ClientServerProtocol.paramSeparator)));
-		if (response==null)
-		{
-			throw new IOException();
+		String gameReports = reports.createGamesReportString();
+		if(gameReports != null){
+			ArrayList<String> response=(ArrayList<String>)sendMessageToServer(gameReports);
+			if (response==null)
+			{
+				throw new IOException("Bad server response");
+			}
+			for (String unhandeledReport : response) {
+				reports.removeReport(unhandeledReport);
+			}
 		}
-		for (String unhandeledReport : response) {
-			reports.removeReport(unhandeledReport);
+		else{
+			return false;
 		}
 		return true;
 		

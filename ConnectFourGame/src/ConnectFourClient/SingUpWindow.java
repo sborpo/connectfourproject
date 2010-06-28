@@ -20,6 +20,8 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import ConnectFourClient.MainFrame.MsgType;
+
 import theProtocol.ClientServerProtocol;
 
 public class SingUpWindow extends JDialog implements MouseListener{
@@ -98,17 +100,17 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		
 		if (username.getText().equals(""))
 		{
-			JOptionPane.showMessageDialog(null, "The username field is empty!");
+			main.showMessageDialog("The username field is empty!",MsgType.error);
 			return;
 		}
 		if (password.getText().equals(""))
 		{
-			JOptionPane.showMessageDialog(null, "The password field is empty!");
+			main.showMessageDialog("The password field is empty!",MsgType.error);
 			return;
 		}
 		if (!(password.getText().equals(confirmpassword.getText())))
 		{
-			JOptionPane.showMessageDialog(null, "The password and the confirmation password doesn't match!");
+			main.showMessageDialog("The password and the confirmation password doesn't match!",MsgType.error);
 			return;
 		}
 		try {
@@ -118,25 +120,25 @@ public class SingUpWindow extends JDialog implements MouseListener{
 			if (main.client.parseServerResponse(response)==null)
 			{
 				//TODO problem with syntax , server doesn't understand
-				JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+				main.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
 				return;
 			}
 			if (main.client.parseServerResponse(response)[0].equals(ClientServerProtocol.USERALREADYEXISTS))
 			{
-				JOptionPane.showMessageDialog(null,"The username that you have already exists in the system \n please choose other username");
+				main.showMessageDialog("The username that you have entered already exists in the system \n please choose other username",MsgType.error);
 				return;
 			}
 			if (main.client.parseServerResponse(response)[0].equals(ClientServerProtocol.OK))
 			{
-				JOptionPane.showMessageDialog(null,"Your username has been added successfully \n You can sign in right now.");
+				main.showMessageDialog("Your username has been added successfully \n You can sign in right now.",MsgType.info);
 				return;
 			}
-			JOptionPane.showMessageDialog(null,"The server had a problem serving your request , please retry.");
+			main.showMessageDialog("The server had a problem serving your request , please retry.",MsgType.error);
 			return;
 	
 		} catch (IOException e1) {
 			//TODO: handle with server problems , retry reconnect
-			JOptionPane.showMessageDialog(null,"A problem with server connection");
+			main.showMessageDialog("A problem with server connection",MsgType.error);
 			return;
 		}
 		
