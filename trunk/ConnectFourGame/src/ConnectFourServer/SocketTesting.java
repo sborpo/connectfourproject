@@ -3,6 +3,8 @@ package ConnectFourServer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -35,20 +37,21 @@ public class SocketTesting {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				BufferedReader opponentIn=null;
+				ObjectOutputStream clientToOpponent=null;
 				try {
-					 opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				PrintStream clientToOpponent=null;
-				try {
-					 clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+					 clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				ObjectInputStream opponentIn=null;
+				try {
+					 opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			
 				while (true)
 				{
 					try {
@@ -57,7 +60,7 @@ public class SocketTesting {
 					} catch (IOException e) {
 						 try {
 							opponentSocket= serverSocket.accept();
-							opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
+							opponentIn =opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -86,40 +89,42 @@ public class SocketTesting {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				BufferedReader opponentIn=null;
+				
+				ObjectOutputStream clientToOpponent=null;
 				try {
-					 opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				PrintStream clientToOpponent=null;
-				try {
-					 clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+					 clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				ObjectInputStream opponentIn=null;
+				try {
+					opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
 				int localport = opponentSocket.getLocalPort();
-			
+				int theirPort= opponentSocket.getPort();
 				InetAddress localAdd=opponentSocket.getLocalAddress();
 				SocketAddress add=opponentSocket.getRemoteSocketAddress();
 				while (true){
-				clientToOpponent.println("checks!");
-			
-				if (clientToOpponent.checkError())
-				{
-					try {
-						opponentSocket.close();
-						opponentSocket.connect(add);
-						 clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
-
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					try{
+				clientToOpponent.writeObject("checks!");
 					}
-					
-				}
+					catch (IOException ex)
+					{
+							try {
+								opponentSocket.close();
+								opponentSocket= new Socket(address, theirPort, localAdd	,localport);
+								 clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
+		
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+					}
 				}
 		}
 	}
