@@ -16,7 +16,7 @@ public class SocketTesting {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean flag=false;
+		boolean flag=true;
 		if (flag)
 		{
 				ServerSocket serverSocket = null;
@@ -51,6 +51,7 @@ public class SocketTesting {
 				}
 				try {
 					String what=opponentIn.readLine();
+					System.out.println(what);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -89,7 +90,9 @@ public class SocketTesting {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				int outputPort=opponentSocket.getPort();
+				int localport = opponentSocket.getLocalPort();
+			
+				InetAddress localAdd=opponentSocket.getLocalAddress();
 				SocketAddress add=opponentSocket.getRemoteSocketAddress();
 				while (true){
 				clientToOpponent.println("checks!");
@@ -97,8 +100,8 @@ public class SocketTesting {
 				if (clientToOpponent.checkError())
 				{
 					try {
+						opponentSocket.close();
 						opponentSocket.connect(add);
-						opponentSocket.setReuseAddress(true);
 						 clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
 
 					} catch (IOException e) {
