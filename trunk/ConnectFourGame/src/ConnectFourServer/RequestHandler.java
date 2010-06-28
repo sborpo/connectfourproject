@@ -265,7 +265,7 @@ public class RequestHandler implements Runnable {
 								
 								//the server couldn't save the report, so return to the user the responsibilityy
 								server.printer.print_error("The server couln't save to report file: "+gameId);
-								response = ClientServerProtocol.DBERRORREPSAVED;
+								response = ClientServerProtocol.SERVPROB;
 								return response;
 							}
 						} catch (NoReports e1) {
@@ -274,7 +274,7 @@ public class RequestHandler implements Runnable {
 							//Ignore
 						}
 						server.printer.print_error("The server couldn't save to DB and to report file:  "+gameId);
-						response = ClientServerProtocol.DBERRORREPSAVED;
+						response = ClientServerProtocol.SERVPROB;
 					}
 					//return ok message
 					response = ClientServerProtocol.OK;

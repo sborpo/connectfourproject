@@ -72,7 +72,9 @@ public class UnhandledReports {
 	public String createGamesReportString()
 	{
 	    Collection<UnhandeledReport> list = reports.values();
-		
+		if(list.isEmpty()){
+			return null;
+		}
 		ArrayList<String> params = new  ArrayList<String>();
 		params.add(ClientServerProtocol.BATCHGAMESREPORT);
 		
