@@ -103,8 +103,6 @@ public class Game implements Serializable{
 				// can be a timeout how much to wait for an opponent
 				System.out.println("Waiting for opponent to connect ...\n");
 				opponentSocket = serverSocket.accept();
-				serverSocket.close();
-				serverSocket=null;
 				clientPlayer = red;
 				System.out.println("Opponent Was Connected \n");
 				System.out.println("You Are The Red Player \n");
