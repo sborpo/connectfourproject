@@ -49,12 +49,22 @@ public class SocketTesting {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				try {
-					String what=opponentIn.readLine();
-					System.out.println(what);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				while (true)
+				{
+					try {
+						String what=opponentIn.readLine();
+						System.out.println(what);
+					} catch (IOException e) {
+						 try {
+							opponentSocket= serverSocket.accept();
+							opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+	
+						e.printStackTrace();
+					}
 				}
 		}
 		else
