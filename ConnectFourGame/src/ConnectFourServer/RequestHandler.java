@@ -24,6 +24,7 @@ import java.util.Random;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.net.ssl.SSLSocket;
 
 import common.OnlineClient;
 import common.PasswordHashManager;
@@ -49,12 +50,12 @@ public class RequestHandler implements Runnable {
 
 	// The client's socket from where we should read the
 	// request and act according to it.
-	private Socket clientSock;
+	private SSLSocket clientSock;
 
 	// the server which the Request was sent to
 	private MainServer server;
 
-	public RequestHandler(Socket clientSocket, MainServer server) {
+	public RequestHandler(SSLSocket clientSocket, MainServer server) {
 		clientSock = clientSocket;
 		this.server = server;
 	}
@@ -147,7 +148,7 @@ public class RequestHandler implements Runnable {
 				respondMsg = batchGamesReportTreat(params);
 			}
 			else if(command.equals(ClientServerProtocol.GAMEREPORT)){
-				respondMsg = gamesReportTreat(params[1],params[2],Boolean.parseBoolean(params[3]),params[4]);
+				respondMsg = gamesReportTreat(params[1],params[2],Boolean.parseBoolean(params[3]),params[4],params[5]);
 			}
 			else if(command.equals(ClientServerProtocol.SIGNUP)){
 				respondMsg = signupTreat(params[1],params[2]);
@@ -190,15 +191,32 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
-	private boolean isClientInTheGame(String clientName,String gameId){
+	private boolean wasClientInTheGame(String clientName,String gameId){
 		boolean res= false;
 		OnlineClient theClient = server.clients.getClient(clientName);
 		Game theGame = server.games.getGame(gameId);
-		
-		if(theClient != null && theGame != null){
-			if(theClient.getGame().equals(theGame.getId()) && theGame.isPlayer(clientName) != null){
-				res= true;
+		try {
+			if(theClient != null){
+				//game is not online
+				if(theGame == null){
+					boolean wasGamePlayed;
+					wasGamePlayed = DataBaseManager.isGameIdExists(gameId);
+					//if the game exists in database
+					if(wasGamePlayed){
+						//if the player was one of the players of the game
+						if(DataBaseManager.isClientPlayedGame(clientName, gameId)){
+							res = true;
+						}
+					}
+				}
+				//the game is online
+				else if(theClient.getGame().equals(theGame.getId()) && theGame.isPlayer(clientName) != null){
+					res= true;
+				}
 			}
+		} catch (SQLException e) {
+			server.printer.print_error("Server database problems");
+			e.printStackTrace();
 		}
 		
 		return res;
@@ -239,54 +257,70 @@ public class RequestHandler implements Runnable {
 		return RSAgenerator.getPubKey();
 	}
 	
-	private String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner){
+	private String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
 		String response = ClientServerProtocol.KNOWYA ;
 		//check if the client is online
 		if(isClientOnline(clientName)){
-
-			//check if the game exists
-			if(isGameOnline(gameId)){
-				//check if the client is in this game
-				if(isClientInTheGame(clientName,gameId)){
-					//add the report
-					try {
-						server.printer.print_info("Adding the report to the database.");
-						DataBaseManager.makeReport(gameId, clientName, winner);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						//THINK GOOD WHAT TO DO
-						e.printStackTrace();
-						try {
-							UnhandledReports reports = new UnhandledReports(server.ReportFileName);
-							try {
-								reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
-								server.printer.print_error("The report was added correctly");
-							} catch (IOException e1) {
-								
-								//the server couldn't save the report, so return to the user the responsibilityy
-								server.printer.print_error("The server couln't save to report file: "+gameId);
-								response = ClientServerProtocol.SERVPROB;
-								return response;
-							}
-						} catch (NoReports e1) {
-							//Ignore
-						} catch (FileChanged e1) {
-							//Ignore
-						}
-						server.printer.print_error("The server couldn't save to DB and to report file:  "+gameId);
-						response = ClientServerProtocol.SERVPROB;
+			try {
+				if(!server.authUser(clientName,password)){
+					response = ClientServerProtocol.DENIED;
+					return response;
+				}
+				//check if the game exists
+				
+				if(DataBaseManager.isGameIdExists(gameId)){
+					if(isGameOnline(gameId)){
+						server.games.removeGame(gameId);
+						//TREAT STATISTICS FOR THIS GAME PLAYERS
 					}
-					//return ok message
-					response = ClientServerProtocol.OK;
+					//check if the client is/was in this game
+					if(wasClientInTheGame(clientName,gameId)){
+						OnlineClient theClient = server.clients.getClient(clientName);
+						theClient.resetGame();
+						//add the report
+						try {
+							server.printer.print_info("Adding the report to the database.");
+							DataBaseManager.makeReport(gameId, clientName, winner);
+						} catch (SQLException e) {
+							// TODO Auto-generated catch block
+							//THINK GOOD WHAT TO DO
+							e.printStackTrace();
+							try {
+								UnhandledReports reports = new UnhandledReports(server.ReportFileName);
+								try {
+									reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
+									server.printer.print_error("The report was added correctly");
+								} catch (IOException e1) {
+									
+									//the server couldn't save the report, so return to the user the responsibilityy
+									server.printer.print_error("The server couln't save to report file: "+gameId);
+									response = ClientServerProtocol.SERVPROB;
+									return response;
+								}
+							} catch (NoReports e1) {
+								//Ignore
+							} catch (FileChanged e1) {
+								//Ignore
+							}
+							server.printer.print_error("The server couldn't save to DB and to report file:  "+gameId);
+							response = ClientServerProtocol.SERVPROB;
+						}
+						//return ok message
+						response = ClientServerProtocol.OK;
+					}
+					else{
+						server.printer.print_error("The client: " + clientName + " is not in the game: "+gameId);
+						response = ClientServerProtocol.DENIED;
+					}
 				}
 				else{
-					server.printer.print_error("The client: " + clientName + " is not in the game: "+gameId);
+					server.printer.print_error("The game is not exists: "+gameId);
 					response = ClientServerProtocol.DENIED;
 				}
-			}
-			else{
-				server.printer.print_error("The game is not online: "+gameId);
-				response = ClientServerProtocol.DENIED;
+			} catch (SQLException e) {
+				server.printer.print_error("Server database problem");
+				response = ClientServerProtocol.SERVPROB;
+				e.printStackTrace();
 			}
 		}
 		else{
@@ -441,27 +475,13 @@ public class RequestHandler implements Runnable {
 		}
 		return response;
 	}
-
-	
-	private String hashPassword(String pass){
-		String hashed = null;
-		PasswordHashManager hashManager = PasswordHashManager.getInstance();
-		try {
-			hashed = hashManager.encrypt(pass);
-		} catch (SystemUnavailableException e) {
-			this.server.printer.print_error("Cannot hash the password: "+ e.getMessage());
-			e.printStackTrace();
-			hashed = null;
-		}
-		return hashed;
-	}
 	
 	private String signupTreat(String username , String password)
 	{
 		String response = ClientServerProtocol.SERVPROB;
 		try {
 			String decrypted = RSAgenerator.decrypt(password);
-			String hashedPswd = hashPassword(decrypted);
+			String hashedPswd = server.hashPassword(decrypted);
 			DataBaseManager.insertUser(username, hashedPswd);
 		} catch (UserAlreadyExists e) {
 			response=ClientServerProtocol.USERALREADYEXISTS;
@@ -480,33 +500,20 @@ public class RequestHandler implements Runnable {
 	}
 	
 	private String meetMeTreat(int clientUDPPort,String clientName,String password){
-		boolean errFlag = false;
 		String response = ClientServerProtocol.SERVPROB;
-		try {
-			String decrypted = RSAgenerator.decrypt(password);
-			String hashedPswd = hashPassword(decrypted);
-			
-			if(!DataBaseManager.authenticateUser(clientName, hashedPswd)){
-				response = ClientServerProtocol.USERNOTEXISTS;
-				return response;
-			}
-			else{
-				server.printer.print_info("User entered: " + clientName);	
-			}
-		} catch (SQLException e) {
-			server.printer.print_error(e.getMessage());
-			errFlag = true;
-		} catch (Exception e){
-			server.printer.print_error("Cannot decrypt password: " + e.getMessage());
-			e.printStackTrace();
+		
+		if(!server.authUser(clientName,password)){
+			response = ClientServerProtocol.USERNOTEXISTS;
+			return response;
+		}
+		else{
+			server.printer.print_info("User entered: " + clientName);	
 		}
 		
-		if(!errFlag){
-			server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,TheClient.unDEFport));
-			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.NICETM
-																		,Integer.toString(server.getServerUDPPort())});
-			server.udpListener.openTimerFor(clientName);
-		}
+		server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,TheClient.unDEFport));
+		response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.NICETM
+																	,Integer.toString(server.getServerUDPPort())});
+		server.udpListener.openTimerFor(clientName);
 		return response; 
 	}
 

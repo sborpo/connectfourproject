@@ -11,6 +11,8 @@ import java.net.UnknownHostException;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.Collection;
 
+import common.AESmanager;
+
 import ConnectFourClient.TheClient.Viewer;
 
 import theProtocol.ClientServerProtocol;
@@ -46,7 +48,7 @@ public class TransmitWaiter extends Thread {
 						break;
 					}
 					
-					in = new BufferedReader(new InputStreamReader(transmitCommandSocket.getInputStream()));
+					in = new BufferedReader(new InputStreamReader(AESmanager.getDecryptedInStream(transmitCommandSocket.getInputStream())));
 					String inputLine = null;
 					
 					if((inputLine = in.readLine()) != null) {

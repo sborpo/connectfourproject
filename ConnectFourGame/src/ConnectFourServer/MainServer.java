@@ -12,10 +12,18 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+
 import common.LogPrinter;
+import common.PasswordHashManager;
 import common.RSAgenerator;
+import common.PasswordHashManager.SystemUnavailableException;
 
 public class MainServer {
+	
+	final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
 	
 	public String ReportFileName="server";
 
@@ -92,6 +100,35 @@ public class MainServer {
 		this.printer.print_info("Done loading the database");
 	}
 	
+	public String hashPassword(String pass) throws SystemUnavailableException{
+		String hashed = null;
+		PasswordHashManager hashManager = PasswordHashManager.getInstance();
+		try {
+			hashed = hashManager.encrypt(pass);
+		} catch (SystemUnavailableException e) {
+			this.printer.print_error("Cannot hash the password: "+ e.getMessage());
+			throw e;
+			//hashed = null;
+		}
+		return hashed;
+	}
+	
+	public boolean authUser(String clientName, String password){
+		boolean result = false;
+		try{
+			String decrypted = RSAgenerator.decrypt(password);
+			String hashedPswd = hashPassword(decrypted);
+			if(DataBaseManager.authenticateUser(clientName, hashedPswd)){
+				result = true;
+			}
+		} catch (SQLException e) {
+			printer.print_error("Database error: " + e.getMessage());
+		} catch (Exception e){
+			printer.print_error("Cannot decrypt password: " + e.getMessage());
+		}
+		return result;
+	}
+	
 	/**
 	 * The method parses the given arguments and initializes the fields of the
 	 * server
@@ -109,9 +146,12 @@ public class MainServer {
 	 * connections
 	 */
 	public void start() {
-		ServerSocket serverSocket = null;
+		SSLServerSocketFactory sslserversocketfactory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+		SSLServerSocket serverSocket = null;
 		try {
-			serverSocket = new ServerSocket(serverTCPPort);
+			serverSocket = (SSLServerSocket) sslserversocketfactory.createServerSocket(serverTCPPort);
+			
+			serverSocket.setEnabledCipherSuites(enabledCipherSuites);
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
@@ -131,7 +171,7 @@ public class MainServer {
 			// and acts according to the algorithms of the game (checking that
 			// the client is still connection and etc..)
 			try {
-				connectionsPool.execute(new RequestHandler(serverSocket
+				connectionsPool.execute(new RequestHandler((SSLSocket)serverSocket
 						.accept(), this));
 			} catch (IOException e) {
 				// TODO problem inserting client connection

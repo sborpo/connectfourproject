@@ -67,7 +67,6 @@ public class OnlineGames {
 	}
 	
 	public synchronized Game getGame(String gameId){
-		server.printer.print_info("Looking for: " + gameId + "\n");
 		if(playingGames.containsKey(gameId)){
 			return playingGames.get(gameId);
 		}
@@ -81,7 +80,7 @@ public class OnlineGames {
 		if(gameId != null){
 			if(playingGames.containsKey(gameId)){
 				playingGames.remove(gameId);
-				server.printer.print_info("Game removed!");
+				server.printer.print_info("Game removed: "+ gameId);
 			}
 			else{
 				server.printer.print_error("No such online game: " + gameId);

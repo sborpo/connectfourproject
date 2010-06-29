@@ -167,6 +167,21 @@ public class DataBaseManager {
 			return rowExists(prepareStatement);
 	}
 	
+	public static boolean isGameIdExists(String gameId) throws SQLException{
+		Connection conn= getConnection(DataBaseManager.dbName);
+		return checkGameIdExists(gameId,conn);
+	}
+	
+	public static boolean isClientPlayedGame(String clientName, String gameId) throws SQLException{
+		Connection conn= getConnection(DataBaseManager.dbName);
+		String query= "SELECT * FROM games WHERE gameid=? AND (user1 =? OR user2 =?)";
+		PreparedStatement prepareStatement = conn.prepareStatement(query);
+		prepareStatement.setString(1,gameId);
+		prepareStatement.setString(2,clientName);
+		prepareStatement.setString(3,clientName);
+		return rowExists(prepareStatement);
+	}
+	
 	private static boolean checkGameIdExists(String gameId,Connection conn) throws SQLException
 	{
 			String query= "SELECT * FROM games WHERE gameid=?";
