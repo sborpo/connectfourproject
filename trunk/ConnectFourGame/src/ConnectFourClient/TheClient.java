@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Properties;
 
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import common.LogPrinter;
 import common.PasswordHashManager;
 import common.RSAgenerator;
@@ -41,6 +45,8 @@ import theProtocol.ClientServerProtocol.msgType;
  */
 public class TheClient {
 
+	final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
+	
 	static public int unDEFport = -1; 
 	
 	public LogPrinter logger = null;
@@ -74,6 +80,8 @@ public class TheClient {
 	private TransmitWaiter transmitWaiter = null;
 
 	private GameWatcher watcher = null;
+	
+	private SSLSocketFactory  sslsocketfactory;
 	
 	private InetAddress serverAddress;
 	
@@ -215,6 +223,7 @@ public class TheClient {
 
 	public TheClient(String[] args) throws IOException {
 		try {
+			sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 			logger = new LogPrinter("Client");
 		} catch (IOException e) {
 			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
@@ -280,7 +289,7 @@ public class TheClient {
 	
 	public Object sendMessageToServer(String message) throws IOException
 	{
-		Socket serverConnection = null;
+		SSLSocket serverConnection = null;
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 		
 		String[] commandPar = parseCommand(message,parser);
@@ -291,7 +300,8 @@ public class TheClient {
 		
 		// send the command to the server
 		try{
-			serverConnection = new Socket(serverAddress, serverPort);
+			serverConnection = (SSLSocket)sslsocketfactory.createSocket(serverAddress, serverPort);
+			serverConnection.setEnabledCipherSuites(enabledCipherSuites);
 		}
 		catch (IOException ex){
 			logger.print_error("Connection problems with server: "+ ex.getMessage());
@@ -333,7 +343,7 @@ public class TheClient {
 	public void start() {
 		//ServerListener echoServerListener = new ServerListener(this);
 		
-		Socket serverConnection = null;
+		SSLSocket serverConnection = null;
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 		try {
 			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
@@ -360,7 +370,8 @@ public class TheClient {
 					
 					// send the command to the server
 					try{
-						serverConnection = new Socket(serverAddress, serverPort);
+						serverConnection = (SSLSocket)sslsocketfactory.createSocket(serverAddress, serverPort);
+						serverConnection.setEnabledCipherSuites(enabledCipherSuites);
 					}
 					catch (IOException ex){
 						logger.print_error("Connection problems with server: "+ ex.getMessage());
@@ -448,6 +459,17 @@ public class TheClient {
 		transmitWaiter = null;
 	}
 	
+	private String preparePassword(String password){
+		String preparedPass = this.hashPassword(password);
+		try {
+			preparedPass =  RSAgenerator.encrypt(preparedPass);
+		} catch (Exception e) {
+			logger.print_error("Cannot encrypt the password: " + e.getMessage());
+			e.printStackTrace();
+		}
+		return preparedPass;
+	}
+	
 	private String[] parseCommand(String command,ClientServerProtocol parser){
 		String[] params = parser.parseCommand(command);
 		
@@ -458,15 +480,8 @@ public class TheClient {
 			getServerPublicKey();
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
-			password = this.hashPassword(params[3]);
-			try {
-				password =  RSAgenerator.encrypt(password);
-				System.out.println("Encrypted: " + password);
-				params[3] = password;
-			} catch (Exception e) {
-				logger.print_error("Cannot encrypt the password: " + e.getMessage());
-				e.printStackTrace();
-			}
+			password = preparePassword(params[3]);
+			params[3] = password;
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
@@ -483,14 +498,11 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.SIGNUP)){
 			getServerPublicKey();
 			clientName = params[1];
-			password = this.hashPassword(params[2]);
-			try {
-				password =  RSAgenerator.encrypt(password);
-				params[2] = password;
-			} catch (Exception e) {
-				logger.print_error("Cannot encrypt the password: " + e.getMessage());
-				e.printStackTrace();
-			}
+			password = preparePassword(params[2]);
+			params[2] = password;
+		}
+		else if(params[0].equals(ClientServerProtocol.GAMEREPORT)){
+			
 		}
 		
 		return params;
@@ -536,7 +548,8 @@ public class TheClient {
 				gameReportH.getGameId(),
 				gameReportH.getClientName(),
 				gameReportH.getGameResult(),
-				gameReportH.getWinner()});
+				gameReportH.getWinner(),
+				this.password});
 		logger.print_info("Send report to server: " + gameReport);
 		Object resp = null;
 		try {

@@ -108,7 +108,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(SERVPROB, 0);
 		numOfParametersForCmd.put(VIEWERTRANSMIT, 4);
 		numOfParametersForCmd.put(GAMEMOVE, 2);
-		numOfParametersForCmd.put(GAMEREPORT, 4);
+		numOfParametersForCmd.put(GAMEREPORT, 5);
 		numOfParametersForCmd.put(IMALIVE, 5);
 		numOfParametersForCmd.put(ENJOYWATCH, 0);
 		numOfParametersForCmd.put(USERNOTEXISTS, 0);

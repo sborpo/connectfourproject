@@ -135,13 +135,12 @@ public class UdpListener implements Runnable {
 	}
 	
 	private void addAliveClient(String[] message,DatagramPacket packet){
-		try {
 			String clientName = message[1];
 			String password = message[2];
 			int transmitPort = Integer.parseInt(message[3]);
 			String gameId   = message[4];
 			int tcpPort = Integer.parseInt(message[5]);
-			if(DataBaseManager.authenticateUser(clientName,password)){
+			if(server.authUser(clientName, password)){
 				OnlineClient theClient = new OnlineClient(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
 				server.clients.addClientToUdpList(theClient);
 				if(!gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
@@ -163,10 +162,6 @@ public class UdpListener implements Runnable {
 			else{
 				server.printer.print_error("Authentication had failed for: " + clientName);
 			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	@SuppressWarnings("unchecked")
