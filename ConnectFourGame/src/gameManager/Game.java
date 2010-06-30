@@ -36,16 +36,16 @@ public class Game implements Serializable{
 	 */
 	
 	public static final String Surrended="SURRENDED";
-	private static final long serialVersionUID = 1L;
-	private String gameId;
-	private Player red;
-	private Player blue;
-	private HashMap<String,Player> watchers;
-	private Board gameBoard;
-	private Player plays;
-	private GameState state;
-	private ArrayList<String> gameHistory;
-	private String gameReport;
+	protected static final long serialVersionUID = 1L;
+	protected String gameId;
+	protected Player red;
+	protected Player blue;
+	protected HashMap<String,Player> watchers;
+	protected Board gameBoard;
+	protected Player plays;
+	protected GameState state;
+	protected ArrayList<String> gameHistory;
+	protected String gameReport;
 	
 	public boolean isGameFull()
 	{
@@ -476,6 +476,8 @@ public class Game implements Serializable{
 	public ArrayList<String> getGameHistory(){
 		return gameHistory;
 	}
+
+
 
 //	public static void main(String[] args) {
 //		Game game = new Game();
