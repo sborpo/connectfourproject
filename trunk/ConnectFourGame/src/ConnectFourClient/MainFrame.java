@@ -1,6 +1,7 @@
 package ConnectFourClient;
 
 import java.awt.GridLayout;
+import java.awt.Dialog.ModalExclusionType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -71,6 +72,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		client=new TheClient(args);
 		this.addWindowListener(this);
 		setVisible(true);
+		setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
 		new LoginWindow(this);
 	}
 	private void setColumnsNames() {
@@ -219,7 +221,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
 			{
 				JOptionPane.showMessageDialog(null,"You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!");
-				client.HandleGoGoGo(client.parseServerResponse(response));
+				client.HandleGoGoGoGUI(client.parseServerResponse(response),this);
 				return;
 			}
 		} catch (IOException e1) {
@@ -245,7 +247,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				JOptionPane.showMessageDialog(null,"There was a server internal error");
 				return;
 			}
-			client.HandleGame(client.parseServerResponse(response));
+			client.HandleGameGUI(client.parseServerResponse(response),this);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

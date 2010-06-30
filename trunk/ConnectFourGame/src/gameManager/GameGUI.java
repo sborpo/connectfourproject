@@ -1,12 +1,16 @@
 package gameManager;
 
-import gameManager.BoardGUI.GameState;
-import gameManager.BoardGUI.IllegalMove;
+import gameManager.Board.GameState;
+import gameManager.Board.IllegalMove;
 import gameManager.Player.Color;
 
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -20,31 +24,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
-import javax.swing.*;
-import java.awt.event.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+
+import common.UnhandeledReport;
 
 import theProtocol.ClientServerProtocol;
 
+import ConnectFourClient.MainFrame;
 import ConnectFourClient.TheClient;
 
-public class GameGUI implements Serializable{
+public class GameGUI extends Game implements MouseListener, Serializable{
 	
-	public static class TimeEnded extends Exception{}
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private String gameId;
-	private Player red;
-	private Player blue;
-	private HashMap<String,Player> watchers;
-	protected BoardGUI gameBoard;
-	private Player plays;
-	private GameState state;
-	private ArrayList<String> gameHistory;
-	private String gameReport;
-
-	
+	private JDialog gameFrame;
+	private int clickedColNum;
+	private String clickedByPlayer;
+	private UnhandeledReport gameResult;
 	
 	public boolean isGameFull()
 	{
@@ -78,45 +74,39 @@ public class GameGUI implements Serializable{
 		return player;
 	}
 
-	public GameGUI(String name1,String name2,String gameId) {
-		red = new Player(Player.Color.RED,name1);
-		if(name2 != null){
-			blue = new Player(Player.Color.BLUE,name2);
-		}
-		else{
-			blue = null;
-		}
-		this.gameId = gameId;
-		gameBoard = new BoardGUI();
-		gameHistory = new ArrayList<String>();
-		gameReport = "";
-		watchers = new HashMap<String,Player>();
-		
+	public GameGUI(String name1,String name2,String gameId,MainFrame f, int clientGamePort, Object opponentHost, int i, boolean b, TheClient theClient) {
+		super(name1, name2, gameId);
+		gameFrame = new JDialog(f,name1+" VS "+name2,true);
+		gameBoard= new BoardGUI(this);
+		gameFrame.getContentPane().add(((BoardGUI)gameBoard).getPanel());
+		gameFrame.setSize(700, 700);
+		gameFrame.setTitle(name1+" VS "+name2);
+		gameFrame.setVisible(true);
+		 gameResult=startOnlineGame(clientGamePort,(String)opponentHost,i,b,theClient);
 	}
-
-	public String startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
-		
+	
+	public UnhandeledReport getReportStatus() {
+		return gameResult;
+	}
+	public synchronized UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
+		gameFrame.setModal(true);
+		gameFrame.repaint();
 		Player clientPlayer;
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
 		BufferedReader stdin = null;
-		BufferedReader opponentIn = null;
-		PrintStream clientToOpponent = null;
-		
+		ObjectInputStream opponentIn = null;
+		ObjectOutputStream clientToOpponent = null;
 		try {
 			if (startsGame == true) {
 				serverSocket = new ServerSocket(clientPort);
 				// can be a timeout how much to wait for an opponent
 				System.out.println("Waiting for opponent to connect ...\n");
-				JOptionPane.showMessageDialog(null, "Waiting for opponent to connect ...");
 				opponentSocket = serverSocket.accept();
-				serverSocket.close();
-				serverSocket=null;
 				clientPlayer = red;
-				//System.out.println("Opponent Was Connected \n");
-				//System.out.println("You Are The Red Player \n");
-				JOptionPane.showMessageDialog(null, "Opponent Was Connected ");
-				JOptionPane.showMessageDialog(null, "You Are The Red Player ");
+				System.out.println("Opponent Was Connected \n");
+				System.out.println("You Are The Red Player \n");
+			
 			} else {
 				InetAddress address = null;
 				try {
@@ -128,20 +118,25 @@ public class GameGUI implements Serializable{
 				// the opponent starts the game
 				opponentSocket = new Socket(address, opponentPort);
 				clientPlayer = blue;
-				//System.out.println("You Are The Blue Player \n");
-				JOptionPane.showMessageDialog(null, "You Are The Blue Player ");
+				System.out.println("You Are The Blue Player \n");
+
 			}
 			//------This way we will know that the other side disconnected-----
 			opponentSocket.setKeepAlive(true);
 			//-----------
 			stdin = new BufferedReader(new InputStreamReader(System.in));
-			opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-			clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+			clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
+			opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 			if(clientPlayer.equals(blue)){
-				clientToOpponent.println(clientPlayer.getName());
+				clientToOpponent.writeObject((clientPlayer.getName()));
 			}
 			else{
-				String name2 = opponentIn.readLine();
+				String name2 = null;
+				try {
+					name2 = (String)opponentIn.readObject();
+				} catch (ClassNotFoundException e) {
+					//cannot be
+				}
 				if( name2 != null){
 					addPlayer(name2);
 				}
@@ -149,7 +144,7 @@ public class GameGUI implements Serializable{
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
-			return gameReport;
+			return new UnhandeledReport(getId(), theClient.getClientName(), "0", "no-winner");
 		}
 
 		plays = red;
@@ -157,38 +152,63 @@ public class GameGUI implements Serializable{
 		state = GameState.PROCEED;
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		while (state.equals(GameState.PROCEED)) {
-			gameBoard.PrintBoard();
+//			TODO: gameBoard.PrintBoard();
 			int colnum = -1;
 			String inLine = null;
 			try {
-//				System.out.println("The client is: "+ clientPlayer.getName());
-//				System.out.println("Plays: " + plays.getName());
-				JOptionPane.showMessageDialog(null, "The client is: "+ clientPlayer.getName());
-				JOptionPane.showMessageDialog(null, "Plays: " + plays.getName());
-				
+				System.out.println("The client is: "+ clientPlayer.getName());
+				System.out.println("Plays: " + plays.getName());
 				if (plays.equals(clientPlayer)) {
-//					System.out.println("Please Enter Your Move:\n");
-//					JOptionPane.showMessageDialog(null, "Please Enter Your Move ");
+					System.out.println("Please Enter Your Move:\n");
 					while(colnum == -1){
-						inLine = stdin.readLine();
+						try {
+							//wait for a user input from the mouse
+							wait();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						inLine=clickedByPlayer;
 						if(inLine.equals("")){
-//							System.out.println("Empty move, try again...");
-							JOptionPane.showMessageDialog(null, "Empty move, try again... ");
+							System.out.println("Empty move, try again...");
 						}
 						else{
-							colnum	=	Integer.parseInt(inLine);
+							if (inLine.equals(Surrended))
+							{
+								state=GameState.I_SURRENDED;
+								break;
+							}
+							else
+							{
+								colnum	=	Integer.parseInt(inLine);
+							}
 						}
 					}
 				} else {
-//					System.out.println("Waiting For Opponent Move!:\n");
-					JOptionPane.showMessageDialog(null, "Waiting For Opponent Move! ");
+					System.out.println("Waiting For Opponent Move!:\n");
 					boolean reconnectOnRead= true;
 					while (reconnectOnRead)
 					{	
 						reconnectOnRead=false;
 						try{
 						//try to read from the opponent	
-							colnum = Integer.parseInt(opponentIn.readLine());
+							try {
+								String move=(String)opponentIn.readObject();
+								if (move.equals(Surrended))
+								{
+									state=GameState.OPPONENT_SURRENDED;
+								}
+								else
+								{
+									colnum = Integer.parseInt(move);
+								}
+							} catch (NumberFormatException e) {
+								//cannot be
+							} catch (ClassNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+					
 						}
 						catch (IOException ex)
 						{
@@ -197,34 +217,33 @@ public class GameGUI implements Serializable{
 						}
 					}
 				}
-				state = gameBoard.playColumn(colnum, plays.getColor());
-			} 
-			
-			catch (IllegalMove e) {
+				//the clients not surrended
+				if (state.equals(GameState.PROCEED))
+				{
+					state = gameBoard.playColumn(colnum, plays.getColor());
+				}
+			} catch (IllegalMove e) {
 				System.out.println("Illegal Move!!! Please Retry!\n\n");
-				JOptionPane.showMessageDialog(null, "Illegal Move!!! Please Retry! ");
 				continue;
 			} 
 			catch (TimeEnded e)
 			{
 				//TODO what to do after retires
-			}	
-			catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
+		
 			
 			//send the move to the viewers
-			String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
+			//String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
+			String move= (state.equals(GameState.I_SURRENDED) || state.equals(GameState.OPPONENT_SURRENDED)) ? Surrended : String.valueOf(colnum);
 			String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																			plays.getName(),
-																			String.valueOf(colnum)});
+																			move});
 			
 			String[] parsed = prot.parseCommand(moveMsg);
 			if(parsed == null){
 				System.out.println(prot.result + ". Bad move report: "+ moveMsg);
 			}
-			//theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
+			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
 			
 			//add the move to the game history
 			gameHistory.add(moveMsg);
@@ -235,8 +254,10 @@ public class GameGUI implements Serializable{
 				while (reconnectOnRead)
 				{	
 					reconnectOnRead= false;
-					clientToOpponent.println(colnum);
-					if (clientToOpponent.checkError())
+					try{
+						clientToOpponent.writeObject(move);
+					}
+					catch (IOException ex)
 					{
 						reconnectOnRead= true;
 						try {
@@ -245,29 +266,23 @@ public class GameGUI implements Serializable{
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
+					
 					}
 				}
 				
 			}
 			nextPlayer();
 		}
-		gameBoard.PrintBoard();
+	//TODO:	gameBoard.PrintBoard();
 		String winner = null;
-		if (state.equals(GameState.TIE)) {
-			//System.out.println("The game ended with Tie!\n");
-			JOptionPane.showMessageDialog(null, "The game ended with Tie! ");
-		}
-		else{
-			winner = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
-			//System.out.println(winner + " player has won the game!\n");
-			JOptionPane.showMessageDialog(null, winner + " player has won the game!");
-		}
+		winner=decideWinner();
 		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
 		gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 																	 this.getId(),
 																	 theClient.getClientName(),
 																	 gameRes.toString(),
-																	 winner});
+																	 winner,
+																	 "dummy"});
 		String[] parsed = prot.parseCommand(gameReport);
 		if(parsed == null){
 			System.out.println(prot.result + ". Bad game report: "+ gameReport);
@@ -285,10 +300,39 @@ public class GameGUI implements Serializable{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return gameReport;
+		return new UnhandeledReport(this.getId(), theClient.getClientName()	, gameRes.toString(), winner);
 
-	}	
-	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,BufferedReader opponentIn,boolean startGame, PrintStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
+	}
+	
+	
+
+	private String decideWinner() {
+		String winner;
+		if (state.equals(GameState.TIE)) {
+			System.out.println("The game ended with Tie!\n");
+			return "tie";
+		}
+		if (state.equals(GameState.I_SURRENDED))
+		{
+			System.out.println("You have surrended!\n");
+			winner = (plays.getColor().equals(Color.BLUE)) ? red.getName() : blue.getName();
+			System.out.println(winner + " player has won the game!\n");
+			return winner;
+		}
+	    if (state.equals(GameState.OPPONENT_SURRENDED))
+		{
+			System.out.println("The opponent has surrended!\n");
+			winner = (plays.getColor().equals(Color.RED)) ? red.getName() : blue.getName();
+			System.out.println(winner + " player has won the game!\n");
+			return winner;
+		}
+	    winner=state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
+		System.out.println(winner + " player has won the game!\n");
+		return winner;
+		
+	}
+
+	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,ObjectInputStream opponentIn,boolean startGame, ObjectOutputStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
 		try {
 			opponentIn.close();
 			clientToOpponent.close();
@@ -311,8 +355,8 @@ public class GameGUI implements Serializable{
 				try {
 					
 					opponentSocket = serverSocket.accept();
-					opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-					clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+					opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+					clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 					return;
 				} 
 				catch (SocketTimeoutException e) {
@@ -342,8 +386,8 @@ public class GameGUI implements Serializable{
 					try {
 						address = InetAddress.getByName(opponentHost);
 						opponentSocket = new Socket(address, opponentPort);
-						opponentIn = new BufferedReader(new InputStreamReader(opponentSocket.getInputStream()));
-						clientToOpponent = new PrintStream(opponentSocket.getOutputStream());
+						opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+						clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 						return;
 					} catch (UnknownHostException e) {
 						// TODO Auto-generated catch block
@@ -363,63 +407,45 @@ public class GameGUI implements Serializable{
 }
 
 
-
-	
 	public void startGame() {
-		//System.out.println("Please Choose who will be Red and who will be Blue\n");
-		//JOptionPane.showMessageDialog(null,"Please Choose who will be Red and who will be Blue");
-
+		System.out
+				.println("Please Choose who will be Red and who will be Blue\n");
 		Random randGen = new Random();
 		String playerStr;
 		int player = randGen.nextInt(2);
 		plays = (player == 0) ? red : blue;
 		GameState state = GameState.PROCEED;
 		String playerStarts = (player == 0) ? "Red" : "Blue";
-		//System.out.println(playerStarts + " Player will start the game!\n");
-		JOptionPane.showMessageDialog(null,playerStarts + " Player will start the game!");
-		gameBoard.PrintBoard();
+		System.out.println(playerStarts + " Player will start the game!\n");
 		while (state.equals(GameState.PROCEED)) {
-			
-			gameBoard.PrintBoard();
+		//TODO:	gameBoard.PrintBoard();
 			playerStr = (plays.getColor().equals(Player.Color.RED)) ? "Red"
 					: "Blue";
-			//System.out.println("\n" + playerStr+ "Player, Please Enter You column number: ");
-			//JOptionPane.showMessageDialog(null,playerStr+ "Player, Please Enter You column number: ");
-			
+			System.out.println("\n" + playerStr
+					+ "Player, Please Enter You column number: ");
 			int colnum = -1;
-			//BufferedReader stdin;
-
+			BufferedReader stdin;
 			try {
-				//stdin = new BufferedReader(new InputStreamReader(System.in));
-				//colnum = Integer.parseInt(stdin.readLine());
-				colnum = getNextMove();
-				JOptionPane.showMessageDialog(null,"The next move is: " + colnum + " played by: " + plays.getColor());
+				stdin = new BufferedReader(new InputStreamReader(System.in));
+				colnum = Integer.parseInt(stdin.readLine());
 				state = gameBoard.playColumn(colnum, plays.getColor());
-			
 			} catch (IllegalMove e) {
-				//System.out.println("Illegal Move!!! Please Retry!\n\n");
-				JOptionPane.showMessageDialog(null,"Illegal Move!!! Please Retry!");
+				System.out.println("Illegal Move!!! Please Retry!\n\n");
 				continue;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-			
 			nextPlayer();
 
 		}
-		
-		gameBoard.PrintBoard();
-		
+	//TODO:	gameBoard.PrintBoard();
 		if (state.equals(GameState.TIE)) {
-			//System.out.println("The game ended with Tie!\n\n");
-			JOptionPane.showMessageDialog(null,"The game ended with Tie!");
+			System.out.println("The game ended with Tie!\n\n");
 		}
 		String won = state.equals(GameState.RED_WON) ? "Red" : "Blue";
 
-		//System.out.println(won + " player has won the game!\n\n");
-		JOptionPane.showMessageDialog(null,won + " player has won the game!");
+		System.out.println(won + " player has won the game!\n\n");
 		
 		return;
 
@@ -443,12 +469,6 @@ public class GameGUI implements Serializable{
 		return pColor.equals(Player.Color.RED) ? red : blue;
 	}
 
-	private int getNextMove(){
-		ConnectFourListener listener = new ConnectFourListener(this);
-		int colmun = listener.nextMove;
-		return colmun;
-	}
-
 	public String getId(){
 		return gameId;
 	}
@@ -457,8 +477,47 @@ public class GameGUI implements Serializable{
 		return gameHistory;
 	}
 
+	@Override
+	public synchronized void mouseClicked(MouseEvent e) {
+		String buttonName=((JButton)e.getComponent()).getName();
+		if (buttonName.equals(Surrended))
+		{
+			this.clickedByPlayer=buttonName;
+		}
+		else
+		{
+			this.clickedByPlayer =buttonName.split(" ")[1];
+		}
+		System.out.println("notified");
+		this.notify();
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	public static void main(String[] args) {
-		GameGUI game = new GameGUI("liat","gabby","liat12345");
-		game.startGame();
+	//
+//		game.startGame();
 	}
 }

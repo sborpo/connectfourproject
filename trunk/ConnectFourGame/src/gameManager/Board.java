@@ -26,12 +26,12 @@ public class Board implements Serializable{
 		TIE, RED_WON, BLUE_WON, PROCEED , I_SURRENDED,OPPONENT_SURRENDED
 	}
 
-	private Cell[][] board;
-	private int[] columnsFil;
-	private int width;
-	private int height;
-	private int numOfSteps;
-	private int winTokens = 4;
+	protected Cell[][] board;
+	protected int[] columnsFil;
+	protected int width;
+	protected int height;
+	protected int numOfSteps;
+	protected int winTokens = 4;
 
 	public Board() {
 		width = 7;
@@ -111,7 +111,7 @@ public class Board implements Serializable{
 
 	}
 
-	private GameState checkWinning(int lastRow, int lastCol, Player.Color color) {
+	protected GameState checkWinning(int lastRow, int lastCol, Player.Color color) {
 		Cell cellColor;
 		GameState canWin;
 		if (color.equals(Player.Color.BLUE)) {
@@ -139,7 +139,7 @@ public class Board implements Serializable{
 		return GameState.PROCEED;
 	}
 
-	private boolean checkRow(int lastRow, int lastCol, Cell color) {
+	protected boolean checkRow(int lastRow, int lastCol, Cell color) {
 		int count = 1;
 		for (int j = lastCol + 1; j < width; j++) {
 			if (board[lastRow][j].equals(color)) {
@@ -163,7 +163,7 @@ public class Board implements Serializable{
 
 	}
 
-	private boolean checkColumn(int lastRow, int lastCol, Cell color) {
+	protected boolean checkColumn(int lastRow, int lastCol, Cell color) {
 		int count = 1;
 		for (int i = lastRow + 1; i < height; i++) {
 			if (board[i][lastCol].equals(color)) {
@@ -187,7 +187,7 @@ public class Board implements Serializable{
 
 	}
 
-	private boolean checkDiagonals(int lastRow, int lastCol, Cell color) {
+	protected boolean checkDiagonals(int lastRow, int lastCol, Cell color) {
 		int count = 1;
 		int i, j;
 		// check first diagonal

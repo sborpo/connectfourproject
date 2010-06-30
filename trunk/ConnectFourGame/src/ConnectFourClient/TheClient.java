@@ -1,6 +1,7 @@
 package ConnectFourClient;
 
 import gameManager.Game;
+import gameManager.GameGUI;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -109,6 +110,8 @@ public class TheClient {
 	public ArrayList<String> getGameHistory(){
 		return game.getGameHistory();
 	}
+	
+
 	
 	public static class Viewer extends  OnlineClient
 	{
@@ -269,32 +272,32 @@ public class TheClient {
 	
 	private void parseArguments(String[] args) {
 		//From Prroperites
-		Properties props = getProperties();
-		
-		//serverHost = (args[0]);
-		serverHost = props.getProperty("SERVER_HOST");
-		logger.print_info("Server: " + serverHost);
-		//serverPort = Integer.parseInt(args[1]);
-		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-		logger.print_info("Server TCP port: "+serverPort);
-		//clientUdp = Integer.parseInt(args[2]);
-		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-		logger.print_info("Client Udp Listen port: "+clientUdp);
-		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-		//clientGamePort = Integer.parseInt(args[4]);
-		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-		logger.print_info("Client Game port: "+clientGamePort);
+//		Properties props = getProperties();
+//		
+//		//serverHost = (args[0]);
+//		serverHost = props.getProperty("SERVER_HOST");
+//		logger.print_info("Server: " + serverHost);
+//		//serverPort = Integer.parseInt(args[1]);
+//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+//		logger.print_info("Server TCP port: "+serverPort);
+//		//clientUdp = Integer.parseInt(args[2]);
+//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+//		logger.print_info("Client Udp Listen port: "+clientUdp);
+//		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+//		//clientGamePort = Integer.parseInt(args[4]);
+//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+//		logger.print_info("Client Game port: "+clientGamePort);
 		
 		
 		//From command line
 		
-//		serverHost = (args[0]);
-//		serverPort = Integer.parseInt(args[1]);
-//		clientUdp = Integer.parseInt(args[2]);
-//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientGamePort = Integer.parseInt(args[4]);
+		serverHost = (args[0]);
+		serverPort = Integer.parseInt(args[1]);
+		clientUdp = Integer.parseInt(args[2]);
+		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientGamePort = Integer.parseInt(args[4]);
 	}
 	
 	public Object sendMessageToServer(String message) throws IOException
@@ -539,6 +542,20 @@ public class TheClient {
 		 echoServerListener.start();
 	}
 	
+	public void HandleGameGUI(String [] params,MainFrame f)
+	{
+		gameId = params[1];
+		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
+		this.startTransmitionWaiter();
+		game = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this);
+		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
+		gameId = null;
+		this.closeTransmitions();
+		//send the report to the server
+		makeReportToServer(gameReportH);
+
+	}
+	
 	public void HandleGame(String [] params)
 	{
 		gameId = params[1];
@@ -612,6 +629,24 @@ public class TheClient {
 		game = new Game(opponentName, clientName,gameId);
 		this.startTransmitionWaiter();
 		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
+		gameId = null;
+		this.closeTransmitions();
+		//send the report to the server
+		makeReportToServer(gameReportH);
+	}
+	
+	public void HandleGoGoGoGUI(String [] params, MainFrame f)
+	{
+		opponentGamePort = Integer.parseInt(params[1]);
+		opponentGameHost = params[2];
+		opponentName = params[3];
+		logger.print_info("Accepted game with: " + opponentName + 
+							" host: " + opponentGameHost + 
+							" port: " + opponentGamePort +
+							" game: " + gameId);
+		this.startTransmitionWaiter();
+		game = new  GameGUI(opponentName, clientName,gameId,f,clientGamePort,opponentGameHost,opponentGamePort, false,this);
+		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
@@ -755,4 +790,6 @@ public class TheClient {
 		return true;
 		
 	}
+	
+	
 }
