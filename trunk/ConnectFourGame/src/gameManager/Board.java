@@ -23,7 +23,7 @@ public class Board implements Serializable{
 	}
 
 	public static enum GameState implements Serializable{
-		TIE, RED_WON, BLUE_WON, PROCEED
+		TIE, RED_WON, BLUE_WON, PROCEED , I_SURRENDED,OPPONENT_SURRENDED
 	}
 
 	private Cell[][] board;

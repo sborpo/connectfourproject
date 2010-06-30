@@ -34,6 +34,8 @@ public class Game implements Serializable{
 	/**
 	 * 
 	 */
+	
+	public static final String Surrended="SURRENDED";
 	private static final long serialVersionUID = 1L;
 	private String gameId;
 	private Player red;
@@ -168,7 +170,14 @@ public class Game implements Serializable{
 							System.out.println("Empty move, try again...");
 						}
 						else{
-							colnum	=	Integer.parseInt(inLine);
+							if (inLine.equals(Surrended))
+							{
+								state=GameState.I_SURRENDED;
+							}
+							else
+							{
+								colnum	=	Integer.parseInt(inLine);
+							}
 						}
 					}
 				} else {
@@ -180,7 +189,15 @@ public class Game implements Serializable{
 						try{
 						//try to read from the opponent	
 							try {
-								colnum = Integer.parseInt((String)opponentIn.readObject());
+								String move=(String)opponentIn.readObject();
+								if (move.equals(Surrended))
+								{
+									state=GameState.OPPONENT_SURRENDED;
+								}
+								else
+								{
+									colnum = Integer.parseInt(move);
+								}
 							} catch (NumberFormatException e) {
 								//cannot be
 							} catch (ClassNotFoundException e) {
@@ -196,7 +213,11 @@ public class Game implements Serializable{
 						}
 					}
 				}
-				state = gameBoard.playColumn(colnum, plays.getColor());
+				//the clients not surrended
+				if (state.equals(GameState.PROCEED))
+				{
+					state = gameBoard.playColumn(colnum, plays.getColor());
+				}
 			} catch (IllegalMove e) {
 				System.out.println("Illegal Move!!! Please Retry!\n\n");
 				continue;
@@ -212,9 +233,10 @@ public class Game implements Serializable{
 			
 			//send the move to the viewers
 			//String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
+			String move= (state.equals(GameState.I_SURRENDED) || state.equals(GameState.OPPONENT_SURRENDED)) ? Surrended : String.valueOf(colnum);
 			String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																			plays.getName(),
-																			String.valueOf(colnum)});
+																			move});
 			
 			String[] parsed = prot.parseCommand(moveMsg);
 			if(parsed == null){
@@ -232,7 +254,7 @@ public class Game implements Serializable{
 				{	
 					reconnectOnRead= false;
 					try{
-						clientToOpponent.writeObject(String.valueOf(colnum));
+						clientToOpponent.writeObject(move);
 					}
 					catch (IOException ex)
 					{
@@ -252,14 +274,7 @@ public class Game implements Serializable{
 		}
 		gameBoard.PrintBoard();
 		String winner = null;
-		if (state.equals(GameState.TIE)) {
-			System.out.println("The game ended with Tie!\n");
-			winner="tie";
-		}
-		else{
-			winner = state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
-			System.out.println(winner + " player has won the game!\n");
-		}
+		winner=decideWinner();
 		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
 		gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 																	 this.getId(),
@@ -289,6 +304,32 @@ public class Game implements Serializable{
 	}
 	
 	
+
+	private String decideWinner() {
+		String winner;
+		if (state.equals(GameState.TIE)) {
+			System.out.println("The game ended with Tie!\n");
+			return "tie";
+		}
+		if (state.equals(GameState.I_SURRENDED))
+		{
+			System.out.println("You have surrended!\n");
+			winner = (plays.getColor().equals(Color.BLUE)) ? red.getName() : blue.getName();
+			System.out.println(winner + " player has won the game!\n");
+			return winner;
+		}
+	    if (state.equals(GameState.OPPONENT_SURRENDED))
+		{
+			System.out.println("The opponent has surrended!\n");
+			winner = (plays.getColor().equals(Color.RED)) ? red.getName() : blue.getName();
+			System.out.println(winner + " player has won the game!\n");
+			return winner;
+		}
+	    winner=state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
+		System.out.println(winner + " player has won the game!\n");
+		return winner;
+		
+	}
 
 	private void handleReconnectionProcess(Socket opponentSocket,ServerSocket serverSocket,ObjectInputStream opponentIn,boolean startGame, ObjectOutputStream clientToOpponent, String opponentHost, int opponentPort) throws  TimeEnded {
 		try {
