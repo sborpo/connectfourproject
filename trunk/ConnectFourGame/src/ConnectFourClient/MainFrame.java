@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.security.Key;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ import theProtocol.ClientServerProtocol;
 import ConnectFourServer.GameForClient;
 
 
-public class MainFrame extends JFrame implements MouseListener , ActionListener{
+public class MainFrame extends JFrame implements MouseListener , ActionListener , WindowListener{
 	public static class MsgType{
 		public static final String error = "ERROR";
 		public static final String info = "INFO";
@@ -67,6 +69,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 		this.add(gamesPanel);
 		setSize(500, 500);
 		client=new TheClient(args);
+		this.addWindowListener(this);
 		setVisible(true);
 		new LoginWindow(this);
 	}
@@ -329,6 +332,41 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener{
 			client.logger.print_error(msg);
 		}
 		JOptionPane.showMessageDialog(this,msg);
+	}
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowClosing(WindowEvent e) {
+		client.disconnect();
+		
+	}
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

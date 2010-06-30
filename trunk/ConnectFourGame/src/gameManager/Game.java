@@ -173,6 +173,7 @@ public class Game implements Serializable{
 							if (inLine.equals(Surrended))
 							{
 								state=GameState.I_SURRENDED;
+								break;
 							}
 							else
 							{
