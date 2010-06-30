@@ -458,7 +458,7 @@ public class GameGUI implements Serializable{
 	}
 
 	public static void main(String[] args) {
-		Game game = new Game("liat","gabby","liat12345");
+		GameGUI game = new GameGUI("liat","gabby","liat12345");
 		game.startGame();
 	}
 }

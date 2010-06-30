@@ -268,6 +268,7 @@ public class TheClient {
 	}
 	
 	private void parseArguments(String[] args) {
+		//From Prroperites
 		Properties props = getProperties();
 		
 		//serverHost = (args[0]);
@@ -285,6 +286,15 @@ public class TheClient {
 		//clientGamePort = Integer.parseInt(args[4]);
 		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
 		logger.print_info("Client Game port: "+clientGamePort);
+		
+		
+		//From command line
+		
+//		serverHost = (args[0]);
+//		serverPort = Integer.parseInt(args[1]);
+//		clientUdp = Integer.parseInt(args[2]);
+//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientGamePort = Integer.parseInt(args[4]);
 	}
 	
 	public Object sendMessageToServer(String message) throws IOException
