@@ -144,6 +144,9 @@ public class RequestHandler implements Runnable {
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
 				respondMsg = newGameTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3]);
 			}
+			else if(command.equals(ClientServerProtocol.DISCONNECT)){
+				respondMsg = playerDisconnectTreat(params[1]);
+			}
 			else if(command.equals(ClientServerProtocol.BATCHGAMESREPORT)){
 				respondMsg = batchGamesReportTreat(params);
 			}
@@ -173,6 +176,11 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
+	private Object playerDisconnectTreat(String clientName) {
+		server.clients.removeClient(clientName);
+		return ClientServerProtocol.OK;
+	}
+
 	private boolean isClientOnline(String clientName){
 		boolean res = false;
 		OnlineClient theClient = server.clients.getClient(clientName);
@@ -357,7 +365,6 @@ public class RequestHandler implements Runnable {
 				InetAddress viewerAddr= viewer.getAddress();
 				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
 				SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
-				response = ClientServerProtocol.ENJOYWATCH;
 			}
 			else{
 				server.printer.print_error("No game found with id: " + gameId);

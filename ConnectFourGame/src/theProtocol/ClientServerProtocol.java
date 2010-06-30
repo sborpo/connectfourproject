@@ -43,6 +43,7 @@ public class ClientServerProtocol {
 	public static final String GAMELIST="GAME_LIST";
 	public static final String GETPUBKEY= "GET_PUB_KEY";
 	public static final String IMALIVE ="I'M_ALIVE!";
+	public static final String DISCONNECT = "DISCONNECT";
 	
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
@@ -70,6 +71,7 @@ public class ClientServerProtocol {
 			legalCommands.add(GAMELIST);
 			legalCommands.add(BATCHGAMESREPORT);
 			legalCommands.add(GETPUBKEY);
+			legalCommands.add(DISCONNECT);
 		}
 		//Commands CLIENT can receive
 		else{
@@ -117,6 +119,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GAMELIST, 0);
 		numOfParametersForCmd.put(BATCHGAMESREPORT, Integer.MAX_VALUE);
 		numOfParametersForCmd.put(GETPUBKEY, 0);
+		numOfParametersForCmd.put(DISCONNECT, 1);
 		//numOfParametersForCmd.put(DBERRORREPSAVED, 0);
 	}
 	

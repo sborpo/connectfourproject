@@ -74,6 +74,23 @@ public class OnlineClients {
 		}
 	 
 	 
+	public synchronized void removeClient(String clientName)
+	{
+		server.printer.print_info("Removing Client: "+ clientName +"...");
+		OnlineClient theClient = server.clients.getClient(clientName);
+		if(theClient == null){
+			server.printer.print_info("SOME PROBLEM WHILE REMOVING: " + clientName);
+			return;
+		}
+		Game game = server.games.getGame(theClient.getGame());
+		if(game != null){
+			server.printer.print_info("Removing game : "+ game.getId() +"...");
+			server.games.removeGame(game.getId());
+		}
+		udpClients.remove(clientName);
+		isAlive.remove(clientName);
+	}
+	
 	public synchronized void removeIfNotAlive(){
 		ArrayList<String> toRemove = new ArrayList<String>();
 		for(String key : isAlive.keySet()){

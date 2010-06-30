@@ -686,6 +686,35 @@ public class TheClient {
 
 	}
 
+	public void disconnect()
+	{
+		String disconnectStr = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.DISCONNECT,
+				clientName});
+		logger.print_info("Send disconnection to server: " + disconnectStr);
+		Object resp = null;
+		try{
+			resp = this.sendMessageToServer(disconnectStr);
+			if(!this.parseResponse(resp)){
+				throw new IOException("Bad server response");
+			}
+		}
+		catch (IOException ex)
+		{
+			//never mind , it will remove us because of the udp listener
+		}
+		while (true)
+		{
+			try{
+				echoServerListener.interrupt();
+				break;
+			}
+			catch (SecurityException ex)
+			{
+				//currently sending the message
+			}
+		}
+			
+	}
 	public boolean reportUnhandeledReports() throws FileChanged, IOException {
 		UnhandledReports reports=null;
 		try {
