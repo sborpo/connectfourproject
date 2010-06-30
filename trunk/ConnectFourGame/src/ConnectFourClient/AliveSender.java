@@ -23,11 +23,11 @@ public class AliveSender extends Thread {
 	
 	private int delayTime = 100;
 	//this will wait some time
-	private Timer delayTimer;
+	//private Timer delayTimer;
 
 	public AliveSender(TheClient client) {
 		this.client = client;
-		delayTimer = new Timer(delayTime);
+		//delayTimer = new Timer(delayTime);
 	}
 
 	public void run() {
@@ -43,13 +43,18 @@ public class AliveSender extends Thread {
 		// with the server
 		client.logger.print_info("Client starting sending alive messages from: "
 				+client.getClientAlivePort() + " to: "+ client.serverUDPPort());
-		delayTimer.start();
+	//	delayTimer.start();
 		while (true) {
-			if(!delayTimer.isTimedOut()){
-				continue;
+//			if(!delayTimer.isTimedOut()){
+//				continue;
+//			}
+//			delayTimer.reset();
+			try {
+				Thread.sleep(delayTime*1000);
+			} catch (InterruptedException e1) {
+				//asked to close this thread
+				return;
 			}
-			delayTimer.reset();
-			
 			//send to server client Alive message!
 			String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
 																				client.getClientName(), 
