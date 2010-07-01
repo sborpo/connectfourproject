@@ -41,6 +41,21 @@ import java.lang.reflect.InvocationTargetException;
 public class BoardGUI extends Board implements Serializable{
 
 
+	public static class MessagePrinter implements Runnable
+	{
+		public MessagePrinter(JLabel printLabel, String text) {
+			super();
+			this.printLabel = printLabel;
+			this.text = text;
+		}
+		JLabel printLabel;
+		String text;
+		@Override
+		public void run() {
+			printLabel.setText(text);	
+		}
+		
+	}
 	
 	public static class Painter implements Runnable
 	{

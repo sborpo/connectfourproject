@@ -31,7 +31,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
@@ -72,6 +74,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	 * 
 	 */
 
+	//LOGIC PARAMETERS
 	protected String gameId;
 	protected Player red;
 	protected Player blue;
@@ -82,6 +85,26 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	protected ArrayList<String> gameHistory;
 	protected String gameReport;
 	protected Pending pending;
+	
+	
+	//START ONLINE GAME PARAMETERS
+	private int clientGamePort;
+	private Object opponentHost;
+	private int i;
+	boolean b;
+	
+	
+	
+	//GUI COMPONENTS
+	private MainFrame f;
+	private TheClient theClient;
+	private JButton startGame;
+    private JButton surrender;
+	private JPanel boardPane;
+	private Box upperBox;
+	private JButton[][] slots;
+	private JLabel consoleArea;
+	private JLabel connAs;
 	
 	public boolean isGameFull()
 	{
@@ -115,16 +138,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		return player;
 	}
 	
-	private MainFrame f;
-	private int clientGamePort;
-	private Object opponentHost;
-	private int i;
-	boolean b;
-	TheClient theClient;
-	JButton startGame;
-	private JPanel boardPane;
-	private Box upperBox;
-	private JButton[][] slots;
+
 
 	public GameGUI(String name1,String name2,String gameId,MainFrame f, int clientGamePort, Object opponentHost, int i, boolean b, TheClient theClient) {
 		this.f=f;
@@ -150,21 +164,32 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		boardPane= new JPanel();
 		adjustGrid();
 		upperBox.add(boardPane);
-		Box lowerBox = Box.createVerticalBox();
-		Box lowerBox2 = Box.createVerticalBox();
+		Box lowerBox = Box.createHorizontalBox();
 		startGame=new JButton("StartTheGame");
 		startGame.addMouseListener(this);
-		JButton startGame2=new JButton("StartTheGame");
-		startGame2.addMouseListener(this);
-		lowerBox2.add(startGame2);
+		startGame.setHorizontalAlignment(SwingConstants.LEFT);
+		surrender= new JButton("Surrender");
+		surrender.setName("SURRENDED");
+		surrender.addMouseListener(this);
+		surrender.setHorizontalAlignment(SwingConstants.RIGHT);
 		lowerBox.add(startGame);
+		lowerBox.add(surrender);
+		Box lowerBox3 = Box.createHorizontalBox();
+		Box TopMost = Box.createHorizontalBox();
+		 connAs= new JLabel();
+		TopMost.add(connAs);
+		lowerBox3.setSize(700, 200);
+		consoleArea = new JLabel("asf");
+		lowerBox3.setAlignmentX(SwingConstants.LEFT);
+		consoleArea.setAlignmentX(LEFT_ALIGNMENT);
+		lowerBox3.add(consoleArea);
 		this.theClient=theClient;
 		gameBoard= new BoardGUI(this);
+		this.getContentPane().add(TopMost);
 		this.getContentPane().add(upperBox);
 		this.getContentPane().add(lowerBox);
-		this.getContentPane().add(lowerBox2);
-		setSize(700, 700);
-		
+		this.getContentPane().add(lowerBox3);
+		setSize(700,700);
 		setModal(true);
 		
 
@@ -184,7 +209,6 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 			slots[row][column].setName(String.valueOf(row)+" "+String.valueOf(column));
 			slots[row][column].setHorizontalAlignment(SwingConstants.CENTER);
 			slots[row][column].addMouseListener(this);
-			slots[row][column].setText("stam");
 			boardPane.add(slots[row][column]);
 		}
 		}
@@ -193,6 +217,32 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	
 	public UnhandeledReport getReportStatus() {
 		return gameResult;
+	}
+	
+	public void writeClients(String message)
+	{
+		try {
+			SwingUtilities.invokeAndWait(new BoardGUI.MessagePrinter(connAs,message));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void writeToScreen(String message)
+	{
+		try {
+			SwingUtilities.invokeAndWait(new BoardGUI.MessagePrinter(consoleArea,message));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 		Player clientPlayer;
@@ -205,11 +255,10 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 			if (startsGame == true) {
 				serverSocket = new ServerSocket(clientPort);
 				// can be a timeout how much to wait for an opponent
-				System.out.println("Waiting for opponent to connect ...\n");
+				writeToScreen("Waiting for opponent to connect ...");
 				opponentSocket = serverSocket.accept();
 				clientPlayer = red;
-				System.out.println("Opponent Was Connected \n");
-				System.out.println("You Are The Red Player \n");
+				writeToScreen("Opponent Was Connected ,You Are The Red Player!  ");
 			
 			} else {
 				InetAddress address = null;
@@ -222,7 +271,8 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				// the opponent starts the game
 				opponentSocket = new Socket(address, opponentPort);
 				clientPlayer = blue;
-				System.out.println("You Are The Blue Player \n");
+				writeToScreen("You Are The Blue Player!  ");
+				writeClients("Connected As: "+blue.getName()+" "+"Playing Against: "+red.getName());
 
 			}
 			//------This way we will know that the other side disconnected-----
@@ -243,6 +293,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				}
 				if( name2 != null){
 					addPlayer(name2);
+					writeClients("Connected As: "+red.getName()+" "+"Playing Against: "+name2);
 				}
 			}
 		} catch (IOException e) {
@@ -260,10 +311,9 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 			int colnum = -1;
 			String inLine = null;
 			try {
-				System.out.println("The client is: "+ clientPlayer.getName());
-				System.out.println("Plays: " + plays.getName());
+				//writeToScreen("The client is: "+ clientPlayer.getName()+"   "+"Plays: " + plays.getName());
 				if (plays.equals(clientPlayer)) {
-					System.out.println("Please Enter Your Move:\n");
+					writeToScreen("Please Click Your Move");
 					while(colnum == -1){
 						synchronized (pending) {
 							try {
@@ -279,7 +329,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 						
 						inLine=clickedByPlayer;
 						if(inLine.equals("")){
-							System.out.println("Empty move, try again...");
+							writeToScreen("Empty move, try again...");
 						}
 						else{
 							if (inLine.equals(Surrended))
@@ -294,7 +344,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 						}
 					}
 				} else {
-					System.out.println("Waiting For Opponent Move!:\n");
+					writeToScreen("Waiting For Opponent Move!:\n");
 					boolean reconnectOnRead= true;
 					while (reconnectOnRead)
 					{	
@@ -341,7 +391,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 					}
 				}
 			} catch (IllegalMove e) {
-				System.out.println("Illegal Move!!! Please Retry!\n\n");
+				writeToScreen("Illegal Move!!! Please Retry!\n\n");
 				continue;
 			} 
 			catch (TimeEnded e)
@@ -359,7 +409,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 			
 			String[] parsed = prot.parseCommand(moveMsg);
 			if(parsed == null){
-				System.out.println(prot.result + ". Bad move report: "+ moveMsg);
+				writeToScreen(prot.result + ". Bad move report: "+ moveMsg);
 			}
 			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
 			
@@ -427,25 +477,25 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	private String decideWinner() {
 		String winner;
 		if (state.equals(GameState.TIE)) {
-			System.out.println("The game ended with Tie!\n");
+			writeToScreen("The game ended with Tie!\n");
 			return "tie";
 		}
 		if (state.equals(GameState.I_SURRENDED))
 		{
 			System.out.println("You have surrended!\n");
 			winner = (plays.getColor().equals(Color.BLUE)) ? red.getName() : blue.getName();
-			System.out.println(winner + " player has won the game!\n");
+			writeToScreen(winner + " player has won the game!\n");
 			return winner;
 		}
 	    if (state.equals(GameState.OPPONENT_SURRENDED))
 		{
 			System.out.println("The opponent has surrended!\n");
 			winner = (plays.getColor().equals(Color.RED)) ? red.getName() : blue.getName();
-			System.out.println(winner + " player has won the game!\n");
+			writeToScreen(winner + " player has won the game!\n");
 			return winner;
 		}
 	    winner=state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
-		System.out.println(winner + " player has won the game!\n");
+	    writeToScreen(winner + " player has won the game!\n");
 		return winner;
 		
 	}
@@ -600,6 +650,8 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		
 		if (e.getComponent()==startGame)
 		{
+			startGame.removeMouseListener(this);
+			startGame.setEnabled(false);
 			Thread t= new Thread(this);
 			t.start();
 		 return;
