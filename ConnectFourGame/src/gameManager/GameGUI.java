@@ -4,6 +4,7 @@ import gameManager.Board.GameState;
 import gameManager.Board.IllegalMove;
 import gameManager.Player.Color;
 
+import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedReader;
@@ -14,6 +15,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -24,9 +26,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
+
+import com.sun.java.swing.SwingUtilities3;
 
 import common.UnhandeledReport;
 
@@ -35,12 +45,45 @@ import theProtocol.ClientServerProtocol;
 import ConnectFourClient.MainFrame;
 import ConnectFourClient.TheClient;
 
-public class GameGUI extends Game implements MouseListener, Serializable{
+public class GameGUI extends JDialog implements MouseListener, Serializable, Runnable {
 	
-	private JDialog gameFrame;
+
 	private int clickedColNum;
 	private String clickedByPlayer;
 	private UnhandeledReport gameResult;
+	public static class Pending{
+		public Pending()
+		{
+			pending=false;
+		}
+		public boolean isPending() {
+			return pending;
+		}
+
+		public void setPending(boolean pending) {
+			this.pending = pending;
+		}
+
+		private boolean pending;
+		
+	}
+	public static class TimeEnded extends Exception{}
+	/**
+	 * 
+	 */
+	
+	public static final String Surrended="SURRENDED";
+	protected static final long serialVersionUID = 1L;
+	protected String gameId;
+	protected Player red;
+	protected Player blue;
+	protected HashMap<String,Player> watchers;
+	protected Board gameBoard;
+	protected Player plays;
+	protected GameState state;
+	protected ArrayList<String> gameHistory;
+	protected String gameReport;
+	protected Pending pending;
 	
 	public boolean isGameFull()
 	{
@@ -73,24 +116,87 @@ public class GameGUI extends Game implements MouseListener, Serializable{
 		
 		return player;
 	}
+	
+	private MainFrame f;
+	private int clientGamePort;
+	private Object opponentHost;
+	private int i;
+	boolean b;
+	TheClient theClient;
+	JButton startGame;
+	private JPanel boardPane;
+	private Box upperBox;
+	private JButton[][] slots;
 
 	public GameGUI(String name1,String name2,String gameId,MainFrame f, int clientGamePort, Object opponentHost, int i, boolean b, TheClient theClient) {
-		super(name1, name2, gameId);
-		gameFrame = new JDialog(f,name1+" VS "+name2,true);
+		this.f=f;
+		this.clientGamePort=clientGamePort;
+		this.opponentHost=opponentHost;
+		pending = new Pending();
+		this.i=i;
+		this.b=b;
+		red = new Player(Player.Color.RED,name1);
+		if(name2 != null){
+			blue = new Player(Player.Color.BLUE,name2);
+		}
+		else{
+			blue = null;
+		}
+		this.gameId = gameId;
+		gameBoard = new BoardGUI(this);
+		gameHistory = new ArrayList<String>();
+		gameReport = "";
+		watchers = new HashMap<String,Player>();
+		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
+		 upperBox = Box.createVerticalBox();
+		boardPane= new JPanel();
+		adjustGrid();
+		upperBox.add(boardPane);
+		Box lowerBox = Box.createVerticalBox();
+		Box lowerBox2 = Box.createVerticalBox();
+		startGame=new JButton("StartTheGame");
+		startGame.addMouseListener(this);
+		JButton startGame2=new JButton("StartTheGame");
+		startGame2.addMouseListener(this);
+		lowerBox2.add(startGame2);
+		lowerBox.add(startGame);
+		this.theClient=theClient;
 		gameBoard= new BoardGUI(this);
-		gameFrame.getContentPane().add(((BoardGUI)gameBoard).getPanel());
-		gameFrame.setSize(700, 700);
-		gameFrame.setTitle(name1+" VS "+name2);
-		gameFrame.setVisible(true);
-		 gameResult=startOnlineGame(clientGamePort,(String)opponentHost,i,b,theClient);
+		this.getContentPane().add(upperBox);
+		this.getContentPane().add(lowerBox);
+		this.getContentPane().add(lowerBox2);
+		setSize(700, 700);
+		
+		setModal(true);
+		
+
+		
+		
+	}
+	
+	private void adjustGrid()
+	{
+		boardPane.setLayout(new GridLayout(6,7));
+		boardPane.setBorder(new LineBorder(java.awt.Color.black));
+		slots = new JButton[6][7];
+		for (int row=5; row>=0; row--) {
+		for (int column=0; column<7; column++) {
+			slots[row][column] = new JButton();
+			slots[row][column].setBorder(new LineBorder(java.awt.Color.black));
+			slots[row][column].setName(String.valueOf(row)+" "+String.valueOf(column));
+			slots[row][column].setHorizontalAlignment(SwingConstants.CENTER);
+			slots[row][column].addMouseListener(this);
+			slots[row][column].setText("stam");
+			boardPane.add(slots[row][column]);
+		}
+		}
+		boardPane.setSize(700,600);
 	}
 	
 	public UnhandeledReport getReportStatus() {
 		return gameResult;
 	}
-	public synchronized UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
-		gameFrame.setModal(true);
-		gameFrame.repaint();
+	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 		Player clientPlayer;
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
@@ -161,13 +267,18 @@ public class GameGUI extends Game implements MouseListener, Serializable{
 				if (plays.equals(clientPlayer)) {
 					System.out.println("Please Enter Your Move:\n");
 					while(colnum == -1){
-						try {
-							//wait for a user input from the mouse
-							wait();
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						synchronized (pending) {
+							try {
+								pending.setPending(true);
+								//wait for a user input from the mouse
+								pending.wait();
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							pending.setPending(false);
 						}
+						
 						inLine=clickedByPlayer;
 						if(inLine.equals("")){
 							System.out.println("Empty move, try again...");
@@ -221,6 +332,15 @@ public class GameGUI extends Game implements MouseListener, Serializable{
 				if (state.equals(GameState.PROCEED))
 				{
 					state = gameBoard.playColumn(colnum, plays.getColor());
+					try {
+						SwingUtilities.invokeAndWait(new BoardGUI.Painter(((BoardGUI)gameBoard).getColumnsFil(), colnum, plays.getColor(), slots));
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			} catch (IllegalMove e) {
 				System.out.println("Illegal Move!!! Please Retry!\n\n");
@@ -478,18 +598,32 @@ public class GameGUI extends Game implements MouseListener, Serializable{
 	}
 
 	@Override
-	public synchronized void mouseClicked(MouseEvent e) {
-		String buttonName=((JButton)e.getComponent()).getName();
-		if (buttonName.equals(Surrended))
+	public  void mouseClicked(MouseEvent e) {
+		
+		if (e.getComponent()==startGame)
 		{
-			this.clickedByPlayer=buttonName;
+			Thread t= new Thread(this);
+			t.start();
+		 return;
 		}
-		else
+		synchronized (pending) {
+		if (pending.isPending())
 		{
-			this.clickedByPlayer =buttonName.split(" ")[1];
+			String buttonName=((JButton)e.getComponent()).getName();
+			if (buttonName.equals(Surrended))
+			{
+				this.clickedByPlayer=buttonName;
+			}
+			else
+			{
+				int colnum= (new Integer(Integer.parseInt(buttonName.split(" ")[1])));
+				this.clickedByPlayer =(new Integer(colnum)).toString();
+			}
+				pending.setPending(false);
+				pending.notify();
+			}
 		}
-		System.out.println("notified");
-		this.notify();
+
 	}
 
 	@Override
@@ -517,7 +651,18 @@ public class GameGUI extends Game implements MouseListener, Serializable{
 	}
 
 	public static void main(String[] args) {
-	//
-//		game.startGame();
+	
+	GameGUI game = new GameGUI("asf","asf","asf",null, 3455, null, 5325, true, null);
+	game.setVisible(true);
 	}
+
+	@Override
+	public void run() {
+
+		gameResult=startOnlineGame(clientGamePort,(String)opponentHost,i,b,theClient);
+	
+		
+	}
+
+
 }
