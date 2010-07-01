@@ -85,7 +85,8 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	protected ArrayList<String> gameHistory;
 	protected String gameReport;
 	protected Pending pending;
-	
+	private Player clientPlayer;
+	private Player opponentPlayer;
 	
 	//START ONLINE GAME PARAMETERS
 	private int clientGamePort;
@@ -104,7 +105,9 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	private Box upperBox;
 	private JButton[][] slots;
 	private JLabel consoleArea;
-	private JLabel connAs;
+	private JLabel connAs1;
+	private JLabel connAs2;
+	
 	
 	public boolean isGameFull()
 	{
@@ -176,10 +179,12 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		lowerBox.add(surrender);
 		Box lowerBox3 = Box.createHorizontalBox();
 		Box TopMost = Box.createHorizontalBox();
-		 connAs= new JLabel();
-		TopMost.add(connAs);
+		 connAs1= new JLabel();
+		 connAs2= new JLabel();
+		TopMost.add(connAs1);
+		TopMost.add(connAs2);
 		lowerBox3.setSize(700, 200);
-		consoleArea = new JLabel("asf");
+		consoleArea = new JLabel("Console Printer");
 		lowerBox3.setAlignmentX(SwingConstants.LEFT);
 		consoleArea.setAlignmentX(LEFT_ALIGNMENT);
 		lowerBox3.add(consoleArea);
@@ -219,10 +224,10 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		return gameResult;
 	}
 	
-	public void writeClients(String message)
+	public void writeClients(String playerName1,Color player1Col,String playerName2,Color player2Col)
 	{
 		try {
-			SwingUtilities.invokeAndWait(new BoardGUI.MessagePrinter(connAs,message));
+			SwingUtilities.invokeAndWait(new BoardGUI.ConnectionBoxPrinter(connAs1, connAs2, playerName1, player1Col, playerName2, player2Col));
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -245,7 +250,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		}
 	}
 	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
-		Player clientPlayer;
+	
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
 		BufferedReader stdin = null;
@@ -258,6 +263,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				writeToScreen("Waiting for opponent to connect ...");
 				opponentSocket = serverSocket.accept();
 				clientPlayer = red;
+				opponentPlayer=blue;
 				writeToScreen("Opponent Was Connected ,You Are The Red Player!  ");
 			
 			} else {
@@ -271,8 +277,9 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				// the opponent starts the game
 				opponentSocket = new Socket(address, opponentPort);
 				clientPlayer = blue;
+				opponentPlayer=red;
 				writeToScreen("You Are The Blue Player!  ");
-				writeClients("Connected As: "+blue.getName()+" "+"Playing Against: "+red.getName());
+				writeClients(blue.getName(),blue.getColor(),red.getName(),red.getColor());
 
 			}
 			//------This way we will know that the other side disconnected-----
@@ -293,7 +300,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				}
 				if( name2 != null){
 					addPlayer(name2);
-					writeClients("Connected As: "+red.getName()+" "+"Playing Against: "+name2);
+					writeClients(red.getName(),red.getColor(),blue.getName(),blue.getColor());
 				}
 			}
 		} catch (IOException e) {
@@ -441,7 +448,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 			}
 			nextPlayer();
 		}
-	//TODO:	gameBoard.PrintBoard();
+
 		String winner = null;
 		winner=decideWinner();
 		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
@@ -483,18 +490,21 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		if (state.equals(GameState.I_SURRENDED))
 		{
 			System.out.println("You have surrended!\n");
-			winner = (plays.getColor().equals(Color.BLUE)) ? red.getName() : blue.getName();
+//			winner = (plays.getColor().equals(Color.BLUE)) ? red.getName() : blue.getName();
+			winner= opponentPlayer.getName();
 			writeToScreen(winner + " player has won the game!\n");
 			return winner;
 		}
 	    if (state.equals(GameState.OPPONENT_SURRENDED))
 		{
 			System.out.println("The opponent has surrended!\n");
-			winner = (plays.getColor().equals(Color.RED)) ? red.getName() : blue.getName();
+//			winner = (plays.getColor().equals(Color.RED)) ? red.getName() : blue.getName();
+			winner= clientPlayer.getName();
 			writeToScreen(winner + " player has won the game!\n");
 			return winner;
 		}
-	    winner=state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
+//	    winner=state.equals(GameState.RED_WON) ? red.getName() : blue.getName();
+	    winner= clientPlayer.getName();
 	    writeToScreen(winner + " player has won the game!\n");
 		return winner;
 		
