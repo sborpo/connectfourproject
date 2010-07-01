@@ -41,6 +41,41 @@ import java.lang.reflect.InvocationTargetException;
 public class BoardGUI extends Board implements Serializable{
 
 
+	public static class ConnectionBoxPrinter implements Runnable
+	{
+	
+		public ConnectionBoxPrinter(JLabel printLabel, JLabel printLabe2,
+				String playerName1, Color player1Col, String playerName2,
+				Color player2Col) {
+			super();
+			this.printLabel = printLabel;
+			this.printLabe2 = printLabe2;
+			this.playerName1 = playerName1;
+			this.player1Col = player1Col;
+			this.playerName2 = playerName2;
+			this.player2Col = player2Col;
+		}
+
+		JLabel printLabel;
+		JLabel printLabe2;
+		String playerName1;
+		Color player1Col;
+		String playerName2;
+		Color player2Col;
+	
+		@Override
+		public void run() {
+			printLabel.setText("Connected As: "+playerName1);
+			printLabel.setForeground(player1Col.equals(Color.RED) ? java.awt.Color.RED : java.awt.Color.BLUE);
+			printLabe2.setText("Playing Against: "+playerName2);
+			printLabe2.setForeground(player2Col.equals(Color.RED) ? java.awt.Color.RED : java.awt.Color.BLUE);
+			
+			
+			
+		}
+		
+	}
+	
 	public static class MessagePrinter implements Runnable
 	{
 		public MessagePrinter(JLabel printLabel, String text) {
