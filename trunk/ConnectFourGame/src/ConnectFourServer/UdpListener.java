@@ -2,6 +2,7 @@ package ConnectFourServer;
 
 
 import gameManager.Game;
+import gameManager.GameImp;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -147,7 +148,7 @@ public class UdpListener implements Runnable {
 					Game theGame = server.games.getGame(gameId);
 					if(theGame == null){
 						server.printer.print_info("Creating new game: " + gameId);
-						theGame = new Game(clientName, null, gameId);
+						theGame = new GameImp(clientName, null, gameId);
 						server.games.addGame(theGame);
 						theClient.setGameForClient(gameId);
 					}

@@ -2,6 +2,7 @@ package ConnectFourClient;
 
 import gameManager.Game;
 import gameManager.GameGUI;
+import gameManager.GameImp;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -548,9 +549,9 @@ public class TheClient {
 		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 		this.startTransmitionWaiter();
 		
-		GameGUI g = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this);
-		g.setVisible(true);
-		UnhandeledReport gameReportH = g.getReportStatus();
+		game  = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this);
+		((GameGUI)game).setVisible(true);
+		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
@@ -562,7 +563,7 @@ public class TheClient {
 	{
 		gameId = params[1];
 		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
-		game = new Game(clientName, null,gameId);
+		game = new GameImp(clientName, null,gameId);
 		this.startTransmitionWaiter();
 		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, null,-1, true,this);
 		gameId = null;
@@ -628,7 +629,7 @@ public class TheClient {
 							" host: " + opponentGameHost + 
 							" port: " + opponentGamePort +
 							" game: " + gameId);
-		game = new Game(opponentName, clientName,gameId);
+		game = new GameImp(opponentName, clientName,gameId);
 		this.startTransmitionWaiter();
 		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
 		gameId = null;
@@ -647,9 +648,9 @@ public class TheClient {
 							" port: " + opponentGamePort +
 							" game: " + gameId);
 		this.startTransmitionWaiter();
-		GameGUI g = new  GameGUI(opponentName, clientName,gameId,f,clientGamePort,opponentGameHost,opponentGamePort, false,this);
-		g.setVisible(true);
-		UnhandeledReport gameReportH = (g).getReportStatus();
+		game= new  GameGUI(opponentName, clientName,gameId,f,clientGamePort,opponentGameHost,opponentGamePort, false,this);
+		((GameGUI)game).setVisible(true);
+		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
