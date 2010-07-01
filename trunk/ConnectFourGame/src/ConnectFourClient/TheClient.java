@@ -547,8 +547,10 @@ public class TheClient {
 		gameId = params[1];
 		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 		this.startTransmitionWaiter();
-		game = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this);
-		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
+		
+		GameGUI g = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this);
+		g.setVisible(true);
+		UnhandeledReport gameReportH = g.getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
@@ -645,8 +647,9 @@ public class TheClient {
 							" port: " + opponentGamePort +
 							" game: " + gameId);
 		this.startTransmitionWaiter();
-		game = new  GameGUI(opponentName, clientName,gameId,f,clientGamePort,opponentGameHost,opponentGamePort, false,this);
-		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
+		GameGUI g = new  GameGUI(opponentName, clientName,gameId,f,clientGamePort,opponentGameHost,opponentGamePort, false,this);
+		g.setVisible(true);
+		UnhandeledReport gameReportH = (g).getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
 		//send the report to the server
