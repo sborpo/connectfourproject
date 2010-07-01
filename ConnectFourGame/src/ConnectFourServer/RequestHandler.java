@@ -1,6 +1,7 @@
 package ConnectFourServer;
 
 import gameManager.Game;
+import gameManager.GameImp;
 import gameManager.Player;
 import gameManager.Player.Color;
 
@@ -473,7 +474,7 @@ public class RequestHandler implements Runnable {
 			//create new game
 			theClient.setTCPPort(gamePort);
 			theClient.setTransmitPort(transmitionPort);
-			Game newGame = new Game(playerName, null, gameId);
+			Game newGame = new GameImp(playerName, null, gameId);
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
 			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});
