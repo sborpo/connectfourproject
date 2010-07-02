@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 public class SocketTesting {
@@ -18,7 +19,7 @@ public class SocketTesting {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean flag=true;
+		boolean flag=false;
 		if (flag)
 		{
 				ServerSocket serverSocket = null;
@@ -108,7 +109,7 @@ public class SocketTesting {
 				
 				InetAddress address = null;
 				try {
-					address = InetAddress.getByName("10.0.0.1");
+					address = InetAddress.getByName("10.0.0.6");
 					
 				} catch (UnknownHostException e) {
 					// TODO Auto-generated catch block
