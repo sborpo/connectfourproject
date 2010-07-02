@@ -30,6 +30,7 @@ public class DataBaseManager {
 	private static Integer userslock;
 	private static Integer gameslock;
 	
+	
 	static
 	{
 		dbName="db";
@@ -88,10 +89,19 @@ public class DataBaseManager {
 		 		",`user1rep` VARCHAR(45) NULL " +
 		 		",`user2rep` VARCHAR(45) NULL " +
 		 		",PRIMARY KEY (`gameid`) );";
-		 
 		 //statment= conn.prepareStatement(games);
 		 //statment.setString(1,"`" + DataBaseManager.dbName + "`.`games`");
 		 statment.executeUpdate(games); 
+		 
+		 tableName = "`" + DataBaseManager.dbName + "`.`stats`";
+		 String stats="CREATE  TABLE IF NOT EXISTS " + tableName +" " +
+		 		"(`username` varchar(100) NOT NULL," +
+		 		"`wins` int(11) NOT NULL," +
+		 		"`loses` int(11) NOT NULL," +
+		 		"PRIMARY KEY (`username`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+		 statment.executeUpdate(stats); 
+		 
+		
 		}
 		finally
 		{
@@ -194,29 +204,46 @@ public class DataBaseManager {
 	{
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
+		PreparedStatement preparedStatementStas= null;
 		try{
 			conn = getConnection(DataBaseManager.dbName);
+			conn.setAutoCommit(false);
 			String query= "INSERT INTO users VALUES(?,?);";
 			prepareStatement = conn.prepareStatement(query);
 			prepareStatement.setString(1,username);
 			prepareStatement.setString(2,password);
+			query= "INSERT INTO stats VALUES(?,?,?);";
+			preparedStatementStas=conn.prepareStatement(query);
+			preparedStatementStas.setString(1,username);
+			preparedStatementStas.setInt(2,0);
+			preparedStatementStas.setInt(3,0);
 			synchronized (userslock) {
 				if (!checkUserExists(username, conn))
 				{
 					System.out.println("Inserting....");
 					prepareStatement.execute();
+					preparedStatementStas.execute();
+					conn.commit();
 				}
 				else{
 					System.out.println("Exists....");
 					throw new UserAlreadyExists();
 				}
-			}	
+				
+			}
+		
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
 		}
 		finally
 		{
 			if(prepareStatement!=null){prepareStatement.close();}
+			if(preparedStatementStas!=null){preparedStatementStas.close();}
 			if (conn!=null){conn.close();}
 		}
+
 	}
 	
 	public static void createGame(String username1,String username2,String gameId) throws SQLException, GameIdAlreadyExists

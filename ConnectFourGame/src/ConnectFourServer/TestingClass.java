@@ -2,10 +2,12 @@ package ConnectFourServer;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 
 import org.xml.sax.SAXException;
 
 import ConnectFourClient.GameTechDetails;
+import ConnectFourServer.DataBaseManager.UserAlreadyExists;
 
 import common.AESmanager;
 
@@ -86,25 +88,17 @@ public class TestingClass {
 //		System.out.println(det2);
 //		details.removeGame();
 		
-		UnhandledReports rep;
-		try {
-		
-			rep = new UnhandledReports("aviv");
-			System.out.println(rep.printReports());
-			rep.addReport(new UnhandeledReport("asf", "saf", "asf", "qwrqwr"));
-			rep.addReport(new UnhandeledReport("124", "asf", "asfasf", "asfasf"));
-			System.out.println(rep.printReports());
-		} catch (NoReports e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileChanged e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+//		
+
+	try {
+		DataBaseManager.insertUser("yosi", "safasf");
+	} catch (SQLException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} catch (UserAlreadyExists e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
 		
 
 		
