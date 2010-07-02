@@ -7,6 +7,8 @@ import gameManager.Player.Color;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -47,12 +49,9 @@ import theProtocol.ClientServerProtocol;
 import ConnectFourClient.MainFrame;
 import ConnectFourClient.TheClient;
 
-public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
+public class GameGUI extends JDialog implements MouseListener, Runnable,Game,WindowListener {
 	
 
-	private int clickedColNum;
-	private String clickedByPlayer;
-	private UnhandeledReport gameResult;
 	public static class Pending{
 		public Pending()
 		{
@@ -73,6 +72,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	/**
 	 * 
 	 */
+	public static class AutomaticSurrender extends Exception{}
 
 	//LOGIC PARAMETERS
 	protected String gameId;
@@ -87,6 +87,10 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	protected Pending pending;
 	private Player clientPlayer;
 	private Player opponentPlayer;
+	private boolean iSurrend=false;
+	private ServerSocket serverSocket;
+	private Socket opponentSocket;
+	
 	
 	//START ONLINE GAME PARAMETERS
 	private int clientGamePort;
@@ -107,6 +111,10 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	private JLabel consoleArea;
 	private JLabel connAs1;
 	private JLabel connAs2;
+	private int clickedColNum;
+	private String clickedByPlayer;
+	private UnhandeledReport gameResult;
+	private Thread gameThread;
 	
 	
 	public boolean isGameFull()
@@ -197,6 +205,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		setSize(700,700);
 		setModal(true);
 		
+		
 
 		
 		
@@ -251,8 +260,8 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	}
 	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort, boolean startsGame, TheClient theClient) {
 	
-		ServerSocket serverSocket = null;
-		Socket opponentSocket = null;
+		serverSocket = null;
+		opponentSocket = null;
 		ObjectInputStream opponentIn = null;
 		ObjectOutputStream clientToOpponent = null;
 		try {
@@ -306,8 +315,7 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 								//wait for a user input from the mouse
 								pending.wait();
 							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								//
 							}
 							pending.setPending(false);
 						}
@@ -356,6 +364,10 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 						}
 						catch (IOException ex)
 						{
+							if (iSurrend)
+							{
+								return null;
+							}
 							reconnectOnRead=true;
 							handleReconnectionProcess(opponentSocket, serverSocket, opponentIn, startsGame, clientToOpponent, opponentHost, opponentPort);
 						}
@@ -410,6 +422,10 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 					}
 					catch (IOException ex)
 					{
+						if (iSurrend)
+						{
+							return null;
+						}
 						reconnectOnRead= true;
 						try {
 							handleReconnectionProcess(opponentSocket, serverSocket, opponentIn, startsGame, clientToOpponent, opponentHost, opponentPort);
@@ -442,10 +458,12 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		try {
 			if( opponentSocket != null){
 				opponentSocket.close();
+				opponentSocket=null;
 			}
 			
 			if(serverSocket != null){
 				serverSocket.close();
+				serverSocket=null;
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -658,8 +676,8 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		{
 			startGame.removeMouseListener(this);
 			startGame.setEnabled(false);
-			Thread t= new Thread(this);
-			t.start();
+			gameThread= new Thread(this);
+			gameThread.start();
 		 return;
 		}
 		synchronized (pending) {
@@ -717,6 +735,81 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 
 		gameResult=startOnlineGame(clientGamePort,(String)opponentHost,i,b,theClient);
 	
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		if (gameResult!=null)
+		{
+			//the game finished good
+			return;
+		}
+		if ((red==null) || (blue==null))
+		{
+			gameResult=null;
+			return;
+		}
+		if (gameThread!=null)
+		{
+			if (opponentSocket!=null){ try {
+				opponentSocket.close();
+				opponentSocket=null;
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}}
+			if (serverSocket!=null)
+			{
+				try {
+					serverSocket.close();
+					serverSocket=null;
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+			
+		}
+		
+		
+		
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
 		
 	}
 
