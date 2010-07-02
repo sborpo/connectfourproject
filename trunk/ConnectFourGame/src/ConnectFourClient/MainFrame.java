@@ -73,6 +73,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		this.addWindowListener(this);
 		setVisible(true);
 		setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		new LoginWindow(this);
 	}
 	private void setColumnsNames() {

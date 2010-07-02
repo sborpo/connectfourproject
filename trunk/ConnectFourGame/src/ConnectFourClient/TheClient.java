@@ -554,8 +554,11 @@ public class TheClient {
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
-		//send the report to the server
-		makeReportToServer(gameReportH);
+		if (gameReportH!=null)
+		{
+			//send the report to the server
+			makeReportToServer(gameReportH);
+		}
 
 	}
 	
@@ -653,8 +656,11 @@ public class TheClient {
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
 		this.closeTransmitions();
+		if (gameReportH!=null)
+		{
 		//send the report to the server
-		makeReportToServer(gameReportH);
+			makeReportToServer(gameReportH);
+		}
 	}
 	
 	public void HandleEnjoyWatch(String [] params)
