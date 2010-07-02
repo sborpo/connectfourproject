@@ -253,7 +253,6 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	
 		ServerSocket serverSocket = null;
 		Socket opponentSocket = null;
-		BufferedReader stdin = null;
 		ObjectInputStream opponentIn = null;
 		ObjectOutputStream clientToOpponent = null;
 		try {
@@ -263,7 +262,6 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				writeToScreen("Waiting for opponent to connect ...");
 				opponentSocket = serverSocket.accept();
 				clientPlayer = red;
-				opponentPlayer=blue;
 				writeToScreen("Opponent Was Connected ,You Are The Red Player!  ");
 			
 			} else {
@@ -282,27 +280,9 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 				writeClients(blue.getName(),blue.getColor(),red.getName(),red.getColor());
 
 			}
-			//------This way we will know that the other side disconnected-----
-			opponentSocket.setKeepAlive(true);
-			//-----------
-			stdin = new BufferedReader(new InputStreamReader(System.in));
 			clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 			opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
-			if(clientPlayer.equals(blue)){
-				clientToOpponent.writeObject((clientPlayer.getName()));
-			}
-			else{
-				String name2 = null;
-				try {
-					name2 = (String)opponentIn.readObject();
-				} catch (ClassNotFoundException e) {
-					//cannot be
-				}
-				if( name2 != null){
-					addPlayer(name2);
-					writeClients(red.getName(),red.getColor(),blue.getName(),blue.getColor());
-				}
-			}
+			excahngeClientName(clientToOpponent,opponentIn);
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
@@ -314,11 +294,9 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 		state = GameState.PROCEED;
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		while (state.equals(GameState.PROCEED)) {
-//			TODO: gameBoard.PrintBoard();
 			int colnum = -1;
 			String inLine = null;
 			try {
-				//writeToScreen("The client is: "+ clientPlayer.getName()+"   "+"Plays: " + plays.getName());
 				if (plays.equals(clientPlayer)) {
 					writeToScreen("Please Click Your Move");
 					while(colnum == -1){
@@ -405,8 +383,6 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 			{
 				//TODO what to do after retires
 			}
-		
-			
 			//send the move to the viewers
 			//String colorStr=plays.getColor().equals(Color.BLUE) ? "Blue" : "Red";
 			String move= (state.equals(GameState.I_SURRENDED) || state.equals(GameState.OPPONENT_SURRENDED)) ? Surrended : String.valueOf(colnum);
@@ -480,6 +456,26 @@ public class GameGUI extends JDialog implements MouseListener, Runnable,Game {
 	}
 	
 	
+
+	private void excahngeClientName(ObjectOutputStream clientToOpponent, ObjectInputStream opponentIn) throws IOException {
+		if(clientPlayer.equals(blue)){
+			clientToOpponent.writeObject((clientPlayer.getName()));
+		}
+		else{
+			String name2 = null;
+			try {
+				name2 = (String)opponentIn.readObject();
+			} catch (ClassNotFoundException e) {
+				//cannot be
+			}
+			if( name2 != null){
+				addPlayer(name2);
+				opponentPlayer=blue;
+				writeClients(red.getName(),red.getColor(),blue.getName(),blue.getColor());
+			}
+		}
+		
+	}
 
 	private String decideWinner() {
 		String winner;
