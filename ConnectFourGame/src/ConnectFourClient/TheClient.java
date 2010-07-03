@@ -2,7 +2,7 @@ package ConnectFourClient;
 
 import gameManager.Game;
 import gameManager.GameGUI;
-import gameManager.GameImp;
+//import gameManager.GameImp;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -65,6 +65,7 @@ public class TheClient {
 	private String opponentName = "";
 	private int clientWatchPort = unDEFport;
 	private int clientTransmitWaiterPort = unDEFport;
+	private int opponentTransmitWaiterPort = unDEFport;
 	private String gameId = ClientServerProtocol.noGame;
 	private Game game = null;
 	
@@ -273,32 +274,32 @@ public class TheClient {
 	
 	private void parseArguments(String[] args) {
 		//From Prroperites
-//		Properties props = getProperties();
-//		
-//		//serverHost = (args[0]);
-//		serverHost = props.getProperty("SERVER_HOST");
-//		logger.print_info("Server: " + serverHost);
-//		//serverPort = Integer.parseInt(args[1]);
-//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-//		logger.print_info("Server TCP port: "+serverPort);
-//		//clientUdp = Integer.parseInt(args[2]);
-//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-//		logger.print_info("Client Udp Listen port: "+clientUdp);
-//		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-//		//clientGamePort = Integer.parseInt(args[4]);
-//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-//		logger.print_info("Client Game port: "+clientGamePort);
+		Properties props = getProperties();
+		
+		//serverHost = (args[0]);
+		serverHost = props.getProperty("SERVER_HOST");
+		logger.print_info("Server: " + serverHost);
+		//serverPort = Integer.parseInt(args[1]);
+		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+		logger.print_info("Server TCP port: "+serverPort);
+		//clientUdp = Integer.parseInt(args[2]);
+		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+		logger.print_info("Client Udp Listen port: "+clientUdp);
+		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+		//clientGamePort = Integer.parseInt(args[4]);
+		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+		logger.print_info("Client Game port: "+clientGamePort);
 		
 		
 		//From command line
 		
-		serverHost = (args[0]);
-		serverPort = Integer.parseInt(args[1]);
-		clientUdp = Integer.parseInt(args[2]);
-		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientGamePort = Integer.parseInt(args[4]);
+//		serverHost = (args[0]);
+//		serverPort = Integer.parseInt(args[1]);
+//		clientUdp = Integer.parseInt(args[2]);
+//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientGamePort = Integer.parseInt(args[4]);
 	}
 	
 	public Object sendMessageToServer(String message) throws IOException
@@ -358,7 +359,8 @@ public class TheClient {
 		//ServerListener echoServerListener = new ServerListener(this);
 		
 		SSLSocket serverConnection = null;
-		BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+		InputStreamReader inputStream = new InputStreamReader(System.in);
+		BufferedReader stdin = new BufferedReader(inputStream);
 		try {
 			ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 			
@@ -436,6 +438,7 @@ public class TheClient {
 			
 		}
 		catch (IOException ex) {
+			logger.print_error("Problem reading/sending data: " + ex.getMessage());
 			ex.printStackTrace();
 		}
 		finally{
@@ -515,8 +518,8 @@ public class TheClient {
 			password = preparePassword(params[2]);
 			params[2] = password;
 		}
-		else if(params[0].equals(ClientServerProtocol.GAMEREPORT)){
-			
+		else if(params[0].equals(ClientServerProtocol.DISCONNECT)){
+			echoServerListener.die();
 		}
 		
 		return params;
@@ -553,37 +556,67 @@ public class TheClient {
 		((GameGUI)game).setVisible(true);
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
-		this.closeTransmitions();
+		
 		if (gameReportH!=null)
 		{
+			//send the report to the viewers
+			makeReportToViewers(gameReportH);
 			//send the report to the server
 			makeReportToServer(gameReportH);
 		}
-
+		else{
+			System.out.println("EMPTY REEEEEEEEEEEEEport");
+		}
+		this.closeTransmitions();
 	}
 	
-	public void HandleGame(String [] params)
-	{
-		gameId = params[1];
-		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
-		game = new GameImp(clientName, null,gameId);
-		this.startTransmitionWaiter();
-		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, null,-1, true,this);
-		gameId = null;
-		this.closeTransmitions();
-		//send the report to the server
-		makeReportToServer(gameReportH);
-
+//	public void HandleGame(String [] params)
+//	{
+//		gameId = params[1];
+//		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
+//		game = new GameImp(clientName, null,gameId);
+//		this.startTransmitionWaiter();
+//		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, null,unDEFport,unDEFport, true,this);
+//		gameId = null;
+//		this.closeTransmitions();
+//		if (gameReportH!=null)
+//		{
+//			//send the report to the viewers
+//			makeReportToViewers(gameReportH);
+//			//send the report to the server
+//			makeReportToServer(gameReportH);
+//		}
+//
+//	}
+	
+	private void makeReportToViewers(UnhandeledReport gameReportH) {
+		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
+		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
+				gameReportH.getGameId(),
+				gameReportH.getClientName(),
+				gameReportH.getGameResult(),
+				gameReportH.getWinner(),
+				"dummy"});
+		String[] parsed = prot.parseCommand(gameReport);
+		if(parsed == null){
+			logger.print_error(prot.result + ". Bad game report: "+ gameReport);
+		}
+		getTransmitWaiter().sendMoveToViewers(gameReport);
 	}
 	
 	private void makeReportToServer(UnhandeledReport gameReportH) {
+		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.SERVER);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 				gameReportH.getGameId(),
 				gameReportH.getClientName(),
 				gameReportH.getGameResult(),
 				gameReportH.getWinner(),
 				this.password});
-		logger.print_info("Send report to server: " + gameReport);
+		String[] parsed = prot.parseCommand(gameReport);
+		if(parsed == null){
+			logger.print_error(prot.result + ". Bad game report: "+ gameReport);
+		}
+		
 		Object resp = null;
 		try {
 			resp = this.sendMessageToServer(gameReport);
@@ -623,44 +656,59 @@ public class TheClient {
 		
 	}
 
-	public void HandleGoGoGo(String [] params)
-	{
-		opponentGamePort = Integer.parseInt(params[1]);
-		opponentGameHost = params[2];
-		opponentName = params[3];
-		logger.print_info("Accepted game with: " + opponentName + 
-							" host: " + opponentGameHost + 
-							" port: " + opponentGamePort +
-							" game: " + gameId);
-		game = new GameImp(opponentName, clientName,gameId);
-		this.startTransmitionWaiter();
-		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort, false,this);
-		gameId = null;
-		this.closeTransmitions();
-		//send the report to the server
-		makeReportToServer(gameReportH);
-	}
+//	public void HandleGoGoGo(String [] params)
+//	{
+//		opponentGamePort = Integer.parseInt(params[1]);
+//		opponentGameHost = params[2];
+//		opponentName = params[3];
+//		opponentTransmitWaiterPort = Integer.parseInt(params[4]);
+//		logger.print_info("Accepted game with: " + opponentName + 
+//							" host: " + opponentGameHost + 
+//							" port: " + opponentGamePort +
+//							" game: " + gameId + 
+//							" opponent transmit port: " + opponentTransmitWaiterPort);
+//		game = new GameImp(opponentName, clientName,gameId);
+//		this.startTransmitionWaiter();
+//		UnhandeledReport gameReportH = game.startOnlineGame(clientGamePort, opponentGameHost,opponentGamePort,opponentTransmitWaiterPort, false,this);
+//		gameId = null;
+//		this.closeTransmitions();
+//		if(gameReportH != null){
+//			//send the report to the viewers
+//			makeReportToViewers(gameReportH);
+//			//send the report to the server
+//			makeReportToServer(gameReportH);
+//		}
+//		
+//	}
 	
-	public void HandleGoGoGoGUI(String [] params, MainFrame f)
+	public void HandleGoGoGoGUI(String [] params, MainFrame mainFrame)
 	{
+		opponentGamePort = Integer.parseInt(params[1]);
 		opponentGamePort = Integer.parseInt(params[1]);
 		opponentGameHost = params[2];
 		opponentName = params[3];
+		opponentTransmitWaiterPort = Integer.parseInt(params[4]);
 		logger.print_info("Accepted game with: " + opponentName + 
 							" host: " + opponentGameHost + 
 							" port: " + opponentGamePort +
-							" game: " + gameId);
+							" game: " + gameId + 
+							" opponent transmit port: " + opponentTransmitWaiterPort);
 		this.startTransmitionWaiter();
-		game= new  GameGUI(opponentName, clientName,gameId,f,clientGamePort,opponentGameHost,opponentGamePort, false,this);
+		game= new  GameGUI(opponentName, clientName,gameId,mainFrame,clientGamePort,opponentGameHost,opponentGamePort, false,this);
 		((GameGUI)game).setVisible(true);
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		gameId = null;
-		this.closeTransmitions();
 		if (gameReportH!=null)
 		{
-		//send the report to the server
+			//send the report to the viewers
+			makeReportToViewers(gameReportH);
+			//send the report to the server
 			makeReportToServer(gameReportH);
 		}
+		else{
+			System.out.println("GAME REPORT IS NULL");
+		}
+		this.closeTransmitions();
 	}
 	
 	public void HandleEnjoyWatch(String [] params)
@@ -678,10 +726,7 @@ public class TheClient {
 		return params;
 	}
 	
-	
-	
 	private boolean parseResponse(Object message){
-		
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
 		if (!message.getClass().equals("StringClass".getClass()))
 		{
@@ -692,49 +737,65 @@ public class TheClient {
 		
 		if(params == null){
 			responseRes = false;
-			return responseRes;
 		}
-		
-
-		String command = params[0];
-
-		if(command.equals(ClientServerProtocol.NICETM)){
-			handleNICETM(params);
-		}
-		else if(command.equals(ClientServerProtocol.GAME)){
-			HandleGame(params);
-		}
-		else if(command.equals(ClientServerProtocol.GOGOGO)){
-			HandleGoGoGo(params);
-		}
-		else if(command.equals(ClientServerProtocol.ENJOYWATCH)){
-			HandleEnjoyWatch(params);
-		}
-		else if(command.equals(ClientServerProtocol.NOCONN)){
-			responseRes = false;
-		}
-		else if(command.equals(ClientServerProtocol.DENIED)){
-			responseRes = false;
-		}
-		else if(command.equals(ClientServerProtocol.KNOWYA)){
-			responseRes = false;
-		}
-		else if(command.equals(ClientServerProtocol.WHAT)){
-			responseRes = false;
-		}
-		else if(command.equals(ClientServerProtocol.OK)){
-			responseRes = true;
-		}
-		
 		return responseRes;
 	}
+	
+//	private boolean parseResponse(Object message){
+//		
+//		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
+//		if (!message.getClass().equals("StringClass".getClass()))
+//		{
+//			return false;
+//		}
+//		String[] params = parser.parseCommand((String)message);
+//		boolean responseRes = true;
+//		
+//		if(params == null){
+//			responseRes = false;
+//			return responseRes;
+//		}
+//		
+//
+//		String command = params[0];
+//
+//		if(command.equals(ClientServerProtocol.NICETM)){
+//			handleNICETM(params);
+//		}
+//		else if(command.equals(ClientServerProtocol.GAME)){
+//			HandleGame(params);
+//		}
+//		else if(command.equals(ClientServerProtocol.GOGOGO)){
+//			HandleGoGoGo(params);
+//		}
+//		else if(command.equals(ClientServerProtocol.ENJOYWATCH)){
+//			HandleEnjoyWatch(params);
+//		}
+//		else if(command.equals(ClientServerProtocol.NOCONN)){
+//			responseRes = false;
+//		}
+//		else if(command.equals(ClientServerProtocol.DENIED)){
+//			responseRes = false;
+//		}
+//		else if(command.equals(ClientServerProtocol.KNOWYA)){
+//			responseRes = false;
+//		}
+//		else if(command.equals(ClientServerProtocol.WHAT)){
+//			responseRes = false;
+//		}
+//		else if(command.equals(ClientServerProtocol.OK)){
+//			responseRes = true;
+//		}
+//		
+//		return responseRes;
+//	}
 	
 	public static void main(String[] args) {
 		TheClient client;
 		try {
-			//new MainFrame();
-			client = new TheClient(args);
-			client.start();
+			new MainFrame(args);
+//			client = new TheClient(args);
+//			client.start();
 		} catch (IOException e) {
 			System.out.println(LogPrinter.error_msg("Client had failed!"));
 		}
@@ -749,12 +810,13 @@ public class TheClient {
 		Object resp = null;
 		try{
 			resp = this.sendMessageToServer(disconnectStr);
-			if(!this.parseResponse(resp)){
+			if(!parseResponse(resp)){
 				throw new IOException("Bad server response");
 			}
 		}
 		catch (IOException ex)
 		{
+			logger.print_error(ex.getMessage());
 			//never mind , it will remove us because of the udp listener
 		}
 		while (true)

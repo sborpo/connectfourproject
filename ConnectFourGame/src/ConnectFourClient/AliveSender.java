@@ -3,33 +3,39 @@ package ConnectFourClient;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 
 import common.Timer;
+import common.Timer.TimeOutEvent;
+import common.Timer.TimerListener;
 
 import theProtocol.ClientServerProtocol;
-import theProtocol.ClientServerProtocol.msgType;
 
 /**
  * Listens To UDP Alive Messages
  * 
  */
-public class AliveSender extends Thread {
+public class AliveSender extends Thread implements TimerListener{
 
 	// the client to which the listener is bind to
 	private TheClient client;
 	
 	private int delayTime = 100;
 	//this will wait some time
-	//private Timer delayTimer;
+	private Timer delayTimer;
+	
+	private Boolean isAlive = true;
 
 	public AliveSender(TheClient client) {
 		this.client = client;
-		//delayTimer = new Timer(delayTime);
+		delayTimer = new Timer(delayTime,this);
 	}
 
+	public synchronized void die(){
+		isAlive = false;
+		isAlive.notify();
+	}
+	
 	public void run() {
 		
 		try {
@@ -43,36 +49,43 @@ public class AliveSender extends Thread {
 		// with the server
 		client.logger.print_info("Client starting sending alive messages from: "
 				+client.getClientAlivePort() + " to: "+ client.serverUDPPort());
-	//	delayTimer.start();
-		while (true) {
-//			if(!delayTimer.isTimedOut()){
-//				continue;
-//			}
-//			delayTimer.reset();
+		delayTimer.start();
+		while (isAlive) {
 			try {
-				Thread.sleep(delayTime*1000);
-			} catch (InterruptedException e1) {
+				synchronized(isAlive){
+					System.out.println("WAITING.....");
+					isAlive.wait();
+					System.out.println("NOTIFIED....");
+				}
+			} catch (InterruptedException e) {
 				//asked to close this thread
 				return;
 			}
-			//send to server client Alive message!
-			String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
-																				client.getClientName(), 
-																				client.getPassword(),
-																				Integer.toString(client.getTransmitWaiterPort()),
-																				client.getGameId(),
-																				Integer.toString(client.getGamePort())});
-			client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
-			byte[] buffer = aliveMsg.getBytes();
-			try {
-				client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
-						client.getServerAddress(), client.serverUDPPort()));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			
 		}
 
+	}
+
+	@Override
+	synchronized public void timeOutReceived(TimeOutEvent event) {
+		//send to server client Alive message!
+		String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
+																			client.getClientName(), 
+																			client.getPassword(),
+																			Integer.toString(client.getTransmitWaiterPort()),
+																			client.getGameId(),
+																			Integer.toString(client.getGamePort())});
+		client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
+		byte[] buffer = aliveMsg.getBytes();
+		try {
+			client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
+					client.getServerAddress(), client.serverUDPPort()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		delayTimer.reset();
+		//isAlive.notify();
 	}
 
 }

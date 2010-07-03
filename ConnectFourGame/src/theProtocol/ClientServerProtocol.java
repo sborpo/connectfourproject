@@ -43,6 +43,7 @@ public class ClientServerProtocol {
 	public static final String GAMELIST="GAME_LIST";
 	public static final String GETPUBKEY= "GET_PUB_KEY";
 	public static final String IMALIVE ="I'M_ALIVE!";
+	public static final String SOCKETREFRESH = "SOCKET_REFRESH";
 	public static final String DISCONNECT = "DISCONNECT";
 	
 	private ArrayList<String> legalCommands;
@@ -90,6 +91,7 @@ public class ClientServerProtocol {
 			legalCommands.add(ENJOYWATCH);
 			legalCommands.add(USERNOTEXISTS);
 			legalCommands.add(USERALREADYEXISTS);
+			legalCommands.add(SOCKETREFRESH);
 			//legalCommands.add(DBERRORREPSAVED);
 		}
 	}
@@ -106,7 +108,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(DENIED, 0);
 		numOfParametersForCmd.put(NICETM, 1);
 		numOfParametersForCmd.put(GAME, 1);
-		numOfParametersForCmd.put(GOGOGO, 3);
+		numOfParametersForCmd.put(GOGOGO, 4);
 		numOfParametersForCmd.put(SERVPROB, 0);
 		numOfParametersForCmd.put(VIEWERTRANSMIT, 4);
 		numOfParametersForCmd.put(GAMEMOVE, 2);
@@ -119,6 +121,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GAMELIST, 0);
 		numOfParametersForCmd.put(BATCHGAMESREPORT, Integer.MAX_VALUE);
 		numOfParametersForCmd.put(GETPUBKEY, 0);
+		numOfParametersForCmd.put(SOCKETREFRESH, 0);
 		numOfParametersForCmd.put(DISCONNECT, 1);
 		//numOfParametersForCmd.put(DBERRORREPSAVED, 0);
 	}
