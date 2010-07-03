@@ -519,7 +519,7 @@ public class TheClient {
 			params[2] = password;
 		}
 		else if(params[0].equals(ClientServerProtocol.DISCONNECT)){
-			echoServerListener.die();
+			//echoServerListener.die();
 		}
 		
 		return params;
@@ -819,17 +819,17 @@ public class TheClient {
 			logger.print_error(ex.getMessage());
 			//never mind , it will remove us because of the udp listener
 		}
-		while (true)
-		{
-			try{
-				echoServerListener.interrupt();
-				break;
-			}
-			catch (SecurityException ex)
-			{
-				//currently sending the message
-			}
-		}
+//		while (true)
+//		{
+//			try{
+//				echoServerListener.interrupt();
+//				break;
+//			}
+//			catch (SecurityException ex)
+//			{
+//				//currently sending the message
+//			}
+//		}
 			
 	}
 	public boolean reportUnhandeledReports() throws FileChanged, IOException {

@@ -20,21 +20,20 @@ public class AliveSender extends Thread implements TimerListener{
 	// the client to which the listener is bind to
 	private TheClient client;
 	
-	private int delayTime = 100;
+	static final private int delayTime = 100;
 	//this will wait some time
-	private Timer delayTimer;
+	static private Timer delayTimer;
 	
-	private Boolean isAlive = true;
+	static private Boolean isAlive = true;
 
 	public AliveSender(TheClient client) {
 		this.client = client;
 		delayTimer = new Timer(delayTime,this);
 	}
 
-	public synchronized void die(){
-		isAlive = false;
-		isAlive.notify();
-	}
+//	public synchronized void die(){
+//		isAlive = false;
+//	}
 	
 	public void run() {
 		
@@ -50,19 +49,19 @@ public class AliveSender extends Thread implements TimerListener{
 		client.logger.print_info("Client starting sending alive messages from: "
 				+client.getClientAlivePort() + " to: "+ client.serverUDPPort());
 		delayTimer.start();
-		while (isAlive) {
-			try {
-				synchronized(isAlive){
-					System.out.println("WAITING.....");
-					isAlive.wait();
-					System.out.println("NOTIFIED....");
-				}
-			} catch (InterruptedException e) {
-				//asked to close this thread
-				return;
-			}
+//		while (isAlive) {
+//			try {
+//				synchronized(isAlive){
+//					System.out.println("WAITING.....");
+//					isAlive.wait();
+//					System.out.println("NOTIFIED....");
+//				}
+//			} catch (InterruptedException e) {
+//				//asked to close this thread
+//				return;
+//			}
 			
-		}
+		//}
 
 	}
 

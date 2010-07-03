@@ -388,14 +388,16 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	
 
-	private void excahngeClientName(ObjectOutputStream clientToOpponent, ObjectInputStream opponentIn) throws IOException {
+	private void excahngeData(ObjectOutputStream clientToOpponent, ObjectInputStream opponentIn) throws IOException {
 		if(clientPlayer.equals(blue)){
 			clientToOpponent.writeObject((clientPlayer.getName()));
+			clientToOpponent.writeObject(theClient.getTransmitWaiterPort());
 		}
 		else{
 			String name2 = null;
 			try {
 				name2 = (String)opponentIn.readObject();
+				opponentTransmitWaiterPort =  (Integer)opponentIn.readObject();
 			} catch (ClassNotFoundException e) {
 				//cannot be
 			}
@@ -759,7 +761,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 		opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
-		excahngeClientName(clientToOpponent,opponentIn);
+		excahngeData(clientToOpponent,opponentIn);
 	}
 	
 	@Override
