@@ -2,6 +2,9 @@ package gameManager;
 
 import java.io.Serializable;
 
+import common.Timer;
+import common.Timer.TimerListener;
+
 public class Player implements Serializable{
 
 	/**
@@ -15,10 +18,12 @@ public class Player implements Serializable{
 
 	private Color playerCol;
 	private String playerName;
+	private Timer timer;
 
 	public Player(Color col,String name){ 
 		playerName = name;
 		playerCol = col;
+		timer = null;
 	}
 
 	public Color getColor() {
@@ -28,4 +33,20 @@ public class Player implements Serializable{
 	public String getName(){
 		return playerName;
 	}
+	
+	public Timer setTimer(int moveTime,TimerListener lst){
+		if(timer == null){
+			timer = new Timer(moveTime,lst);
+		}
+		else{
+			timer.pause();
+			timer.reset();
+		}
+		return timer;
+	}
+	
+	public Timer getTimer(){
+		return timer;
+	}
+
 }

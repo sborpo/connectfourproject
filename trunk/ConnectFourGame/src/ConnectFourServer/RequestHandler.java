@@ -1,7 +1,8 @@
 package ConnectFourServer;
 
 import gameManager.Game;
-import gameManager.GameImp;
+import gameManager.GameGUI;
+//import gameManager.GameImp;
 import gameManager.Player;
 import gameManager.Player.Color;
 
@@ -366,6 +367,7 @@ public class RequestHandler implements Runnable {
 				InetAddress viewerAddr= viewer.getAddress();
 				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
 				SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
+				response = ClientServerProtocol.ENJOYWATCH;
 			}
 			else{
 				server.printer.print_error("No game found with id: " + gameId);
@@ -422,7 +424,8 @@ public class RequestHandler implements Runnable {
 						response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GOGOGO, 
 																					Integer.toString(enemy.getTCPPort()), 
 																					enemy.getAddress().getHostAddress(),
-																					enemy.getName()});
+																					enemy.getName(),
+																					Integer.toString(enemy.getTransmitPort())});
 						server.printer.print_info("Player has been added to the game: " + gameId + "\n");
 						theClient.setGameForClient(gameId);
 						try {
@@ -474,7 +477,7 @@ public class RequestHandler implements Runnable {
 			//create new game
 			theClient.setTCPPort(gamePort);
 			theClient.setTransmitPort(transmitionPort);
-			Game newGame = new GameImp(playerName, null, gameId);
+			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, transmitionPort, false, null);
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
 			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});
