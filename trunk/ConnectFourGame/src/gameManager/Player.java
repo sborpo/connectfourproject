@@ -48,5 +48,9 @@ public class Player implements Serializable{
 	public Timer getTimer(){
 		return timer;
 	}
+	
+	public void unsetTimer(){
+		timer = null;
+	}
 
 }

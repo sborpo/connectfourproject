@@ -122,7 +122,12 @@ public class Timer implements Runnable
 	
 	private synchronized void fireTimeOutEvent(){
 		TimeOutEvent event = new TimeOutEvent(this, timedOut);
-		listener.timeOutReceived(event);
+		if(listener!=null){
+			listener.timeOutReceived(event);
+		}
+		else{
+			this.stop();
+		}
 	}
 	
 	public Timer pause() {
