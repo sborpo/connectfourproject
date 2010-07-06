@@ -3,6 +3,7 @@ package ConnectFourClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -48,12 +49,12 @@ public class TransmitWaiter extends Thread {
 						break;
 					}
 					
-					in = new BufferedReader(new InputStreamReader(AESmanager.getDecryptedInStream(transmitCommandSocket.getInputStream())));
+					in = new BufferedReader(new InputStreamReader(transmitCommandSocket.getInputStream()));
 					String inputLine = null;
 					
 					if((inputLine = in.readLine()) != null) {
 						//print the received message from the server
-						client.logger.print_info("Server transmit command: " + inputLine);
+						client.logger.print_info("Server transmit command: '" + inputLine +"'");
 						
 						//check if the message received was ok
 						if (!treatMessage(inputLine)){
@@ -100,6 +101,16 @@ public class TransmitWaiter extends Thread {
 			TheClient.Viewer viewer = new TheClient.Viewer(client,address,watcherPort,watchName);
 			client.addToViewerList(viewer);
 			viewer.sendPreviousMoves();
+		}
+		else if(messageCommand[0].equals(ClientServerProtocol.SOCKETREFRESH)){
+			System.out.println("eNTERING THE REFRESH TRAREAT");
+			try {
+				PrintWriter clientToOpponent = new PrintWriter(transmitCommandSocket.getOutputStream(),true);
+				clientToOpponent.println(ClientServerProtocol.OK);
+			} catch (IOException e) {
+				client.logger.print_error("While sending ok to opponent: "+e.getMessage());
+			}
+			client.refreshGameConnection();
 		}
 		return result;
 	}

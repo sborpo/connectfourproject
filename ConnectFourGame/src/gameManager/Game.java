@@ -17,4 +17,5 @@ public interface Game {
 	 public Player getPlayer(Player.Color pColor);
 	 public String getId();
 	 public ArrayList<String> getGameHistory();
+	 public void resetConnection();
 }

@@ -477,7 +477,7 @@ public class RequestHandler implements Runnable {
 			//create new game
 			theClient.setTCPPort(gamePort);
 			theClient.setTransmitPort(transmitionPort);
-			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, transmitionPort, false, null);
+			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, TheClient.unDEFport, false, null,TheClient.unDEFport);
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
 			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});

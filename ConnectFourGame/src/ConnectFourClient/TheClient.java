@@ -552,10 +552,10 @@ public class TheClient {
 		logger.print_info("Received game: " + gameId + ", starting waiting on game port...");
 		this.startTransmitionWaiter();
 		
-		game  = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this);
+		game  = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this,unDEFport);
 		((GameGUI)game).setVisible(true);
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
-		gameId = null;
+		
 		
 		if (gameReportH!=null)
 		{
@@ -568,6 +568,7 @@ public class TheClient {
 			System.out.println("EMPTY REEEEEEEEEEEEEport");
 		}
 		this.closeTransmitions();
+		gameId = null;
 	}
 	
 //	public void HandleGame(String [] params)
@@ -588,6 +589,12 @@ public class TheClient {
 //		}
 //
 //	}
+	
+	public void refreshGameConnection(){
+		if(game != null){
+			game.resetConnection();
+		}
+	}
 	
 	private void makeReportToViewers(UnhandeledReport gameReportH) {
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
@@ -694,10 +701,9 @@ public class TheClient {
 							" game: " + gameId + 
 							" opponent transmit port: " + opponentTransmitWaiterPort);
 		this.startTransmitionWaiter();
-		game= new  GameGUI(opponentName, clientName,gameId,mainFrame,clientGamePort,opponentGameHost,opponentGamePort, false,this);
+		game= new  GameGUI(opponentName, clientName,gameId,mainFrame,clientGamePort,opponentGameHost,opponentGamePort, false,this,opponentTransmitWaiterPort);
 		((GameGUI)game).setVisible(true);
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
-		gameId = null;
 		if (gameReportH!=null)
 		{
 			//send the report to the viewers
@@ -709,6 +715,7 @@ public class TheClient {
 			System.out.println("GAME REPORT IS NULL");
 		}
 		this.closeTransmitions();
+		gameId = null;
 	}
 	
 	public void HandleEnjoyWatch(String [] params)

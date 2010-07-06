@@ -146,7 +146,7 @@ public class UdpListener implements Runnable,TimerListener {
 					Game theGame = server.games.getGame(gameId);
 					if(theGame == null){
 						server.printer.print_info("Creating new game: " + gameId);
-						theGame = new GameGUI(clientName, null, gameId, null, tcpPort, null, TheClient.unDEFport, false, null);
+						theGame = new GameGUI(clientName, null, gameId, null, tcpPort, null, TheClient.unDEFport, false, null,TheClient.unDEFport);
 						server.games.addGame(theGame);
 						theClient.setGameForClient(gameId);
 					}
