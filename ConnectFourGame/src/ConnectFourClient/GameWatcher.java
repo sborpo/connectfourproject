@@ -1,29 +1,50 @@
 package ConnectFourClient;
 
+import gameManager.Board;
+import gameManager.BoardGUI;
+import gameManager.GameGUI;
+import gameManager.Board.GameState;
+import gameManager.Player.Color;
+
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.SwingUtilities;
+
 import theProtocol.ClientServerProtocol;
 
-public class GameWatcher implements Runnable{
+public class GameWatcher extends GameGUI implements Runnable{
 
 	static public class GameEndedException extends Exception{}; 
-	
+	Board gameBoard;
 	TheClient client=null;
 	ServerSocket socket=null;
 	Socket watchSocket = null;
 	BufferedReader watcherIn = null;
+	Thread watcher= null;
 	
 	public GameWatcher(TheClient client)
-	{
+	{	
+		gameBoard = new BoardGUI(this);
 		this.client=client;
 		this.watcherIn = null;
+		Box [] arr= new Box[4];
+		arr[0]=createUserNamesBox();
+		arr[1]= createGridsBox();
+		arr[2]= createSurrenderBox();
+		arr[3]=createConsolseBox();
+		AdjustGUIView(arr);	
 	}
 	
 	@Override
@@ -48,7 +69,20 @@ public class GameWatcher implements Runnable{
 						client.logger.print_error(prot.result + ". Bad move report received!");
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEMOVE)){
-						//TODO: here we need to update the gameboard of watcher
+					
+						Color c =(parsed[3].equals("red"))? Color.RED : Color.BLUE;
+						try {
+							SwingUtilities.invokeAndWait(new BoardGUI.Painter(((BoardGUI)gameBoard).getColumnsFil(),Integer.parseInt(parsed[2]),c, slots));
+						} catch (NumberFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (InvocationTargetException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEREPORT)){
 						String winner = parseReport(parsed);
@@ -111,6 +145,24 @@ public class GameWatcher implements Runnable{
 			}
 		}
 		return winner;
+	}
+	
+	
+	@Override
+	public void windowClosing(WindowEvent e) {
+		
+	}
+
+	
+	@Override
+	public  void mouseClicked(MouseEvent e) {
+	}
+	
+	
+	@Override
+	public void windowOpened(WindowEvent e) {
+		watcher = new Thread(this);
+		watcher.start();
 	}
 
 }

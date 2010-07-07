@@ -13,7 +13,21 @@ public class Player implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	public static enum Color implements Serializable {
-		BLUE, RED
+		BLUE, RED;
+		
+		public String getColorStr()
+		{
+			if (this.equals(BLUE))
+			{
+				return "blue";
+			}
+			else
+			{
+				return "red";
+			}
+		}
+		
+		
 	};
 
 	private Color playerCol;
@@ -25,6 +39,8 @@ public class Player implements Serializable{
 		playerCol = col;
 		timer = null;
 	}
+	
+	
 
 	public Color getColor() {
 		return playerCol;

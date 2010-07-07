@@ -80,7 +80,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private Player red = null;
 	private Player blue = null;
 	private HashMap<String,Player> watchers = null;
-	private Board gameBoard = null;
+	protected Board gameBoard = null;
 	private Player plays = null;
 	private GameState state = null;
 	private ArrayList<String> gameHistory = null;
@@ -107,11 +107,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	//GUI COMPONENTS
 	private MainFrame mainFrame;
 	private TheClient theClient;
-	private JButton startGame;
     private JButton surrender;
 	private JPanel boardPane;
-	private Box upperBox;
-	private JButton[][] slots;
+	protected JButton [][] slots;
 	private JLabel consoleArea;
 	private JLabel connAs1;
 	private JLabel connAs2;
@@ -152,13 +150,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	}
 	
 
-
+	public GameGUI()
+	{
+		
+	}
 	public GameGUI(String name1,String name2,String gameId,MainFrame mainFrame,
 			int clientGamePort, String opponentHost, int opponentGamePort,
 			boolean startedGame, TheClient theClient,int opponentTransmitWaiterPort) {	
 		//this.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
-		this.addWindowListener(this);
-
 		this.mainFrame=mainFrame;
 		this.clientGamePort=clientGamePort;
 		this.opponentHost=opponentHost;
@@ -173,43 +172,78 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		else{
 			blue = null;
 		}
+		this.theClient=theClient;
 		this.gameId = gameId;
 		gameBoard = new BoardGUI(this);
 		gameHistory = new ArrayList<String>();
 		gameReport = null;
 		watchers = new HashMap<String,Player>();
-		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
-		 upperBox = Box.createVerticalBox();
-		boardPane= new JPanel();
-		adjustGrid();
-		upperBox.add(boardPane);
-		Box lowerBox = Box.createHorizontalBox();
-		startGame=new JButton("StartTheGame");
-		startGame.addMouseListener(this);
-		startGame.setHorizontalAlignment(SwingConstants.LEFT);
-		surrender= new JButton("Surrender");
-		surrender.setName(ClientServerProtocol.ISURRENDER);
-		surrender.addMouseListener(this);
-		surrender.setHorizontalAlignment(SwingConstants.RIGHT);
-		lowerBox.add(startGame);
-		lowerBox.add(surrender);
-		Box lowerBox3 = Box.createHorizontalBox();
+		Box [] arr= new Box[4];
+		arr[0]=createUserNamesBox();
+		arr[1]= createGridsBox();
+		arr[2]= createSurrenderBox();
+		arr[3]=createConsolseBox();
+		AdjustGUIView(arr);	
+	}
+	
+	
+	protected Box createUserNamesBox()
+	{
+		//upper box (connected players names)
 		Box TopMost = Box.createHorizontalBox();
 		 connAs1= new JLabel();
 		 connAs2= new JLabel();
 		TopMost.add(connAs1);
 		TopMost.add(connAs2);
-		lowerBox3.setSize(700, 200);
+		return TopMost;
+		
+	}
+	
+	protected Box createGridsBox()
+	{
+		Box gridBox = Box.createVerticalBox();
+		boardPane= new JPanel();
+		adjustGrid();
+		gridBox.add(boardPane);
+		return gridBox;
+		
+	}
+	
+	protected Box createSurrenderBox()
+	{
+		//surrender
+		Box surrenderBox = Box.createHorizontalBox();
+		surrender= new JButton("Surrender");
+		surrender.setName(ClientServerProtocol.ISURRENDER);
+		surrender.addMouseListener(this);
+		surrender.setHorizontalAlignment(SwingConstants.RIGHT);
+		surrenderBox.add(surrender);
+		return surrenderBox;
+	}
+	
+	protected Box createConsolseBox()
+	{
+
+		//the console box
+		Box consoleBox = Box.createHorizontalBox();
+		consoleBox.setSize(700, 200);
 		consoleArea = new JLabel("Console Printer");
-		lowerBox3.setAlignmentX(SwingConstants.LEFT);
+		consoleBox.setAlignmentX(SwingConstants.LEFT);
 		consoleArea.setAlignmentX(LEFT_ALIGNMENT);
-		lowerBox3.add(consoleArea);
-		this.theClient=theClient;
+		consoleBox.add(consoleArea);
+		return consoleBox;
+
+	}
+	
+	
+	protected void AdjustGUIView(Box [] boxesArr)
+	{
+		this.addWindowListener(this);
+		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
 		//gameBoard= new BoardGUI(this);
-		this.getContentPane().add(TopMost);
-		this.getContentPane().add(upperBox);
-		this.getContentPane().add(lowerBox);
-		this.getContentPane().add(lowerBox3);
+		for (Box box : boxesArr) {
+			this.getContentPane().add(box);
+		}
 		setSize(300,300);
 		setModal(true);	
 	}
@@ -563,14 +597,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(this.blocked){
 			return;
 		}
-		if (e.getComponent()==startGame)
-		{
-			startGame.removeMouseListener(this);
-			startGame.setEnabled(false);
-			gameThread= new Thread(this);
-			gameThread.start();
-		 return;
-		}
 		synchronized (pending) {
 			String buttonName=((JButton)e.getComponent()).getName();
 			//The client is surrender
@@ -664,6 +690,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		if (gameThread!=null)
 		{
+
 			if(state.equals(GameState.PROCEED)){
 				this.state = GameState.I_SURRENDED;
 			}
@@ -744,7 +771,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																		plays.getName(),
-																		move});
+																		move,plays.getColor().getColorStr()});
 		
 		String[] parsed = prot.parseCommand(moveMsg);
 		if(parsed == null){
@@ -927,7 +954,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 
 	@Override
 	public void windowOpened(WindowEvent e) {
-		// TODO Auto-generated method stub
+
+		gameThread= new Thread(this);
+		gameThread.start();
 		
 	}
 	
