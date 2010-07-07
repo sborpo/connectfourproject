@@ -590,11 +590,7 @@ public class TheClient {
 //
 //	}
 	
-	public void refreshGameConnection(){
-		if(game != null){
-			game.resetConnection();
-		}
-	}
+	
 	
 	private void makeReportToViewers(UnhandeledReport gameReportH) {
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
@@ -825,19 +821,7 @@ public class TheClient {
 		{
 			logger.print_error(ex.getMessage());
 			//never mind , it will remove us because of the udp listener
-		}
-//		while (true)
-//		{
-//			try{
-//				echoServerListener.interrupt();
-//				break;
-//			}
-//			catch (SecurityException ex)
-//			{
-//				//currently sending the message
-//			}
-//		}
-			
+		}			
 	}
 	public boolean reportUnhandeledReports() throws FileChanged, IOException {
 		UnhandledReports reports=null;
@@ -869,6 +853,17 @@ public class TheClient {
 		return true;
 		
 	}
+
+	public void opponentSurrender() {
+		if(game != null){
+			game.opponentSurrender();
+		}		
+	}
 	
+	public void refreshGameConnection(){
+		if(game != null){
+			game.resetConnection();
+		}
+	}
 	
 }

@@ -54,7 +54,7 @@ public class TransmitWaiter extends Thread {
 					
 					if((inputLine = in.readLine()) != null) {
 						//print the received message from the server
-						client.logger.print_info("Server transmit command: '" + inputLine +"'");
+						client.logger.print_info("Message received on transmit waiter: '" + inputLine +"'");
 						
 						//check if the message received was ok
 						if (!treatMessage(inputLine)){
@@ -103,7 +103,6 @@ public class TransmitWaiter extends Thread {
 			viewer.sendPreviousMoves();
 		}
 		else if(messageCommand[0].equals(ClientServerProtocol.SOCKETREFRESH)){
-			System.out.println("eNTERING THE REFRESH TRAREAT");
 			try {
 				PrintWriter clientToOpponent = new PrintWriter(transmitCommandSocket.getOutputStream(),true);
 				clientToOpponent.println(ClientServerProtocol.OK);
@@ -111,6 +110,15 @@ public class TransmitWaiter extends Thread {
 				client.logger.print_error("While sending ok to opponent: "+e.getMessage());
 			}
 			client.refreshGameConnection();
+		}
+		else if(messageCommand[0].equals(ClientServerProtocol.ISURRENDER)){
+			try {
+				PrintWriter clientToOpponent = new PrintWriter(transmitCommandSocket.getOutputStream(),true);
+				clientToOpponent.println(ClientServerProtocol.OK);
+			} catch (IOException e) {
+				client.logger.print_error("While sending ok to opponent: "+e.getMessage());
+			}
+			client.opponentSurrender();
 		}
 		return result;
 	}
