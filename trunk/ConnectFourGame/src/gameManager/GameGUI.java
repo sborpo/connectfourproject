@@ -452,8 +452,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				succeeded = false;
 				return succeeded;
 			}
+			if(opponentHost == null){
+				succeeded = false;
+				return succeeded;
+			}
 			InetAddress address = InetAddress.getByName(opponentHost);
-			System.out.println("TRANSMIT PORT: "+opponentTransmitWaiterPort);
 			Socket opponentTransmitSocket = new Socket(address, opponentTransmitWaiterPort);
 			PrintWriter clientToOpponent = new PrintWriter(opponentTransmitSocket.getOutputStream(),true);
 			clientToOpponent.println(message);
@@ -483,11 +486,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			if(succeeded){
 				break;
 			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				theClient.logger.print_error("Problem while sleeping: " + e.getMessage());
-			}
+			this.sleepAWhile(1000);
 			
 		}
 		if(succeeded){
@@ -673,11 +672,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		while(this.gameReport == null || this.gameReport.equals("")){
 			System.out.println("waittttt: " + gameReport);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e1) {
-				theClient.logger.print_error("Problem whle sleeping: " + e1.getMessage());
-			}
+			this.sleepAWhile(1000);
 		}
 		this.removeWindowListener(this);
 		System.out.println("closing ended");
@@ -717,11 +712,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				this.reconnect = false;
 			} catch (IOException e) {
 				theClient.logger.print_error("Problem while reseting the connection: " + e.getMessage());
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e1) {
-					theClient.logger.print_error("Problem going sleep: " + e1.getMessage());
-				}
+				this.sleepAWhile(1000);
 			}
 		}
 		this.blocked = false;
@@ -850,11 +841,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					
 					if(this.reconnect){
 						System.out.println("RECONNECTIng...");
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e1) {
-							theClient.logger.print_error("Problem while sleeping: " + e1.getMessage());
-						}
+						this.sleepAWhile(1000);
 						//this.reconnect = false;
 						reconnectOnRead = true;
 						continue;
@@ -878,6 +865,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		System.out.println("OPPP MOVE IS REEAD");
 		return move;
+	}
+	
+	private void sleepAWhile(int sleepTime){
+		try {
+			Thread.sleep(sleepTime);
+		} catch (InterruptedException e) {
+			theClient.logger.print_error("Problem while sleeping: " + e.getMessage());
+		}
 	}
 	
 	private void setupConnection() throws IOException{
