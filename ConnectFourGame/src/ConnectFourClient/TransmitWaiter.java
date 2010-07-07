@@ -15,6 +15,7 @@ import java.util.Collection;
 import common.AESmanager;
 
 import ConnectFourClient.TheClient.Viewer;
+import ConnectFourClient.TheClient.Viewer.SendingToWatcherProblem;
 
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
@@ -73,7 +74,11 @@ public class TransmitWaiter extends Thread {
 	{
 		Collection<Viewer> viewers=client.getViewerList().values();
 		for (Viewer viewer : viewers) {
-			viewer.sendMove(move);
+			try {
+				viewer.sendMove(move);
+			} catch (SendingToWatcherProblem e) {
+				client.removeViewerIfExists(viewer.getName());
+			}
 		}	
 	}
 

@@ -412,7 +412,7 @@ public class RequestHandler implements Runnable {
 				theClient.resetGame();
 			}
 			theClient.setTransmitPort(transmitionPort);
-			//check if the game exists 
+			//check if the game exists
 			Game theGame = server.games.getGame(gameId);
 			if(theGame != null){
 				//and has no second player

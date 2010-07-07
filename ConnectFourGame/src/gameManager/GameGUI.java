@@ -82,7 +82,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private HashMap<String,Player> watchers = null;
 	protected Board gameBoard = null;
 	private Player plays = null;
-	private GameState state = null;
+	protected GameState state = null;
 	private ArrayList<String> gameHistory = null;
 	private Pending pending = null;
 	private Player clientPlayer = null;
@@ -97,7 +97,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	//START ONLINE GAME PARAMETERS
 	private boolean startedGame = false;
-	private final int moveTime = 20;
+	protected final int moveTime = 70;
 	private int clientGamePort = TheClient.unDEFport;
 	private String opponentHost = null;
 	private int opponentPort = TheClient.unDEFport;
@@ -106,13 +106,13 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	//GUI COMPONENTS
 	private MainFrame mainFrame;
-	private TheClient theClient;
+	protected TheClient theClient;
     private JButton surrender;
 	private JPanel boardPane;
 	protected JButton [][] slots;
-	private JLabel consoleArea;
-	private JLabel connAs1;
-	private JLabel connAs2;
+	protected JLabel consoleArea;
+	protected JLabel connAs1;
+	protected JLabel connAs2;
 	private String clickedByPlayer;
 	private UnhandeledReport gameReport;
 	private Thread gameThread;
@@ -183,6 +183,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		arr[1]= createGridsBox();
 		arr[2]= createSurrenderBox();
 		arr[3]=createConsolseBox();
+		this.addWindowListener(this);
 		AdjustGUIView(arr);	
 	}
 	
@@ -238,7 +239,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	protected void AdjustGUIView(Box [] boxesArr)
 	{
-		this.addWindowListener(this);
+
 		this.setLayout(new BoxLayout(this.getContentPane(), BoxLayout.PAGE_AXIS));
 		//gameBoard= new BoardGUI(this);
 		for (Box box : boxesArr) {
@@ -615,9 +616,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				pending.notify();
 			}
 			else{
-				this.AsynchroniousISurrender();
-				state = GameState.I_SURRENDED;
-				this.closeAndNotify();
+				if (buttonName.equals(ClientServerProtocol.ISURRENDER))
+				{
+					this.AsynchroniousISurrender();
+					state = GameState.I_SURRENDED;
+					this.closeAndNotify();
+				}
 			}
 		}
 		

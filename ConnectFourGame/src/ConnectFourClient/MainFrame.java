@@ -155,7 +155,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private void clearTables()
 	{
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
-		DefaultTableModel watchModel= ((DefaultTableModel)openGames.getModel());
+		DefaultTableModel watchModel= ((DefaultTableModel)gamesForWatch.getModel());
 	
 		while (model.getRowCount()>0)
 		{model.removeRow(0);}
@@ -273,7 +273,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				JOptionPane.showMessageDialog(null,"There was a server internal error");
 				return;
 			}
-			client.HandleEnjoyWatch(client.parseServerResponse(response));
+			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 2));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

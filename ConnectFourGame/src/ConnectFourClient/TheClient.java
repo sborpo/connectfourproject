@@ -27,6 +27,8 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import ConnectFourClient.TheClient.Viewer.SendingToWatcherProblem;
+
 import common.LogPrinter;
 import common.PasswordHashManager;
 import common.RSAgenerator;
@@ -117,6 +119,7 @@ public class TheClient {
 	
 	public static class Viewer extends  OnlineClient
 	{
+		public static class SendingToWatcherProblem extends Exception{}
 		private TheClient transmitter;
 		private Socket viewerSocket;
 		private PrintWriter viewerWriter;
@@ -149,10 +152,15 @@ public class TheClient {
 			}
 		}
 		
-		public void sendMove(String move){			
+		public void sendMove(String move) throws SendingToWatcherProblem{			
 			transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
 			viewerWriter.println(move);
 			viewerWriter.println();
+			if (viewerWriter.checkError())
+			{
+				endTransmition();
+				throw new SendingToWatcherProblem();
+			}
 			transmitter.logger.print_info("Move sent");
 			firstMove = false;
 		}
@@ -300,6 +308,7 @@ public class TheClient {
 		clientUdp = Integer.parseInt(args[2]);
 		clientTransmitWaiterPort = Integer.parseInt(args[3]);
 		clientGamePort = Integer.parseInt(args[4]);
+		clientWatchPort= clientGamePort;
 	}
 	
 	public Object sendMessageToServer(String message) throws IOException
@@ -714,11 +723,11 @@ public class TheClient {
 		gameId = null;
 	}
 	
-	public void HandleEnjoyWatch(String [] params)
+	public void HandleEnjoyWatch(String [] params,String redPlayer,String bluePlayer)
 	{
-		watcher = new GameWatcher(this);
-		Thread t = new Thread(watcher);
-		t.start();
+		
+		watcher = new GameWatcher(this,redPlayer,bluePlayer);
+		watcher.setVisible(true);
 	}
 	
 	//the one that used
