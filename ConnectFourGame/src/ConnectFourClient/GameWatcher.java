@@ -197,6 +197,12 @@ public class GameWatcher extends GameGUI implements Runnable{
 	public void windowClosing(WindowEvent e) {
 		this.stopWatching();
 		client.stopWatching();
+		try {
+			watcher.join();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		
 	}
