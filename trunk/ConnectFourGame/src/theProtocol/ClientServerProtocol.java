@@ -45,6 +45,7 @@ public class ClientServerProtocol {
 	public static final String IMALIVE ="I'M_ALIVE!";
 	public static final String SOCKETREFRESH = "SOCKET_REFRESH";
 	public static final String DISCONNECT = "DISCONNECT";
+	public static final String ISURRENDER = "I_SURRENDER!";
 	
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
@@ -92,7 +93,7 @@ public class ClientServerProtocol {
 			legalCommands.add(USERNOTEXISTS);
 			legalCommands.add(USERALREADYEXISTS);
 			legalCommands.add(SOCKETREFRESH);
-			//legalCommands.add(DBERRORREPSAVED);
+			legalCommands.add(ISURRENDER);
 		}
 	}
 	
@@ -123,7 +124,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(GETPUBKEY, 0);
 		numOfParametersForCmd.put(SOCKETREFRESH, 0);
 		numOfParametersForCmd.put(DISCONNECT, 1);
-		//numOfParametersForCmd.put(DBERRORREPSAVED, 0);
+		numOfParametersForCmd.put(ISURRENDER, 0);
 	}
 	
 	public String[] parseCommand(String command){
