@@ -5,8 +5,6 @@ import gameManager.Board.IllegalMove;
 import gameManager.Player.Color;
 
 import java.awt.GridLayout;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -16,33 +14,24 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
-
-import com.sun.java.swing.SwingUtilities3;
 
 import common.Timer;
 import common.UnhandeledReport;
@@ -427,7 +416,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		System.out.println("DECIDING WINNER");
 		String winner = null;
 		winner=decideWinner();
-		Integer gameRes = (state.equals(GameState.TIE)) ? 0 : 1;
+		Boolean gameRes = (state.equals(GameState.TIE)) ? Game.gameRes.NO_WINNER : Game.gameRes.WINNER;
 		this.closeConnection();
 		this.stopTimers();
 		return new UnhandeledReport(this.getId(), theClient.getClientName()	, gameRes.toString(), winner);

@@ -39,6 +39,7 @@ import common.UnhandledReports.NoReports;
 
 import ConnectFourClient.TheClient;
 import ConnectFourServer.DataBaseManager.GameIdAlreadyExists;
+import ConnectFourServer.DataBaseManager.GameIdNotExists;
 import ConnectFourServer.DataBaseManager.UserAlreadyExists;
 
 import theProtocol.ClientServerProtocol;
@@ -237,7 +238,10 @@ public class RequestHandler implements Runnable {
 		ArrayList<String> correctGameIds= new ArrayList<String>();
 		for (UnhandeledReport unhandeledReport : reports) {
 			try {
-				DataBaseManager.makeReport(unhandeledReport.getGameId(), unhandeledReport.getClientName(), unhandeledReport.getWinner());
+				boolean res = DataBaseManager.makeReport(unhandeledReport.getGameId(), unhandeledReport.getClientName(), unhandeledReport.getWinner());
+				if(!res){
+					//TODO: add the report to the local reports file
+				}
 				correctGameIds.add(unhandeledReport.getGameId());
 			} catch (SQLException e) {
 				//There was a problem to add this game report so dont add it to the reported games
@@ -257,6 +261,8 @@ public class RequestHandler implements Runnable {
 					//Ignore
 				}
 				
+			} catch (GameIdNotExists e) {
+				server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
 			}
 		}
 		return correctGameIds;
@@ -281,19 +287,26 @@ public class RequestHandler implements Runnable {
 				if(DataBaseManager.isGameIdExists(gameId)){
 					if(isGameOnline(gameId)){
 						server.games.removeGame(gameId);
-						//TREAT STATISTICS FOR THIS GAME PLAYERS
+						//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
 					}
 					//check if the client is/was in this game
 					if(wasClientInTheGame(clientName,gameId)){
 						OnlineClient theClient = server.clients.getClient(clientName);
 						theClient.resetGame();
+						if(gameRes == Game.gameRes.NO_WINNER && winner.equals("null")){
+							server.printer.print_info("The game wasn't played, remove game from database...");
+							//TODO: remove the game from the database
+						}
 						//add the report
 						try {
 							server.printer.print_info("Adding the report to the database.");
-							DataBaseManager.makeReport(gameId, clientName, winner);
+							boolean res = DataBaseManager.makeReport(gameId, clientName, winner);
+							if(!res){
+								server.printer.print_error("Problem while adding report to the database");
+								//TODO: save the report to the file
+							}
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
-							//THINK GOOD WHAT TO DO
 							e.printStackTrace();
 							try {
 								UnhandledReports reports = new UnhandledReports(server.ReportFileName);
@@ -314,6 +327,8 @@ public class RequestHandler implements Runnable {
 							}
 							server.printer.print_error("The server couldn't save to DB and to report file:  "+gameId);
 							response = ClientServerProtocol.SERVPROB;
+						} catch (GameIdNotExists e) {
+							server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
 						}
 						//return ok message
 						response = ClientServerProtocol.OK;

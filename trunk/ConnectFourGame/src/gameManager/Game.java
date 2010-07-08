@@ -1,10 +1,16 @@
 package gameManager;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import ConnectFourClient.TheClient;
 import common.UnhandeledReport;
 
 public interface Game {
+	public static class gameRes { 
+			public static final boolean NO_WINNER = false;
+			public static final boolean WINNER = true;
+	};
+	
 	public boolean isGameFull();
 	public Player isPlayer(String playerName);
 	public Player addWatcher(String watchName, String playerName);

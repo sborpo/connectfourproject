@@ -20,7 +20,11 @@ public class DataBaseManager {
 		public String getMessage(){
 			return "The gameId is already exists in the database";
 		}
-
+	}
+	public static class GameIdNotExists extends Exception{
+		public String getMessage(){
+			return "The gameId is already exists in the database";
+		}
 	}
 	
 	private static String dbName ; 
@@ -110,9 +114,6 @@ public class DataBaseManager {
 		}
 		
 	}
-	
-	
-	
 	
 	private static Connection getConnection(String dbName)
 	{
@@ -294,25 +295,32 @@ public class DataBaseManager {
 	}
 	
 	
-	public static void makeReport(String gameId,String username,String report) throws SQLException
+	public static boolean makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
+		boolean result = false;
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
 			conn = getConnection(DataBaseManager.dbName);
-			conn.setAutoCommit(false);
-			String []query= {"UPDATE games SET user1rep=? WHERE gameid=? AND user1=?;","UPDATE games SET user2rep=? WHERE gameid=? AND user2=?;"};
-			synchronized (gameslock) {
-				for (int i=0; i<query.length; i++)
-				{
-					prepareStatement = conn.prepareStatement(query[i]);
-					prepareStatement.setString(1,report);
-					prepareStatement.setString(2,gameId);
-					prepareStatement.setString(3, username);
-					prepareStatement.executeUpdate();
+			if(checkGameIdExists(gameId, conn)){			
+				conn.setAutoCommit(false);
+				String []query= {"UPDATE games SET user1rep=? WHERE gameid=? AND user1=?;","UPDATE games SET user2rep=? WHERE gameid=? AND user2=?;"};
+				synchronized (gameslock) {
+					for (int i=0; i<query.length; i++)
+					{
+						prepareStatement = conn.prepareStatement(query[i]);
+						prepareStatement.setString(1,report);
+						prepareStatement.setString(2,gameId);
+						prepareStatement.setString(3, username);
+						prepareStatement.executeUpdate();
+					}
+					conn.commit();
+					conn.setAutoCommit(true);
 				}
-				conn.commit();
-				conn.setAutoCommit(true);
+				result = true;
+			}
+			else{
+				throw new GameIdNotExists();
 			}
 		}
 		catch (SQLException ex)
@@ -324,7 +332,7 @@ public class DataBaseManager {
 			if(prepareStatement!=null){prepareStatement.close();}
 			if (conn!=null){conn.close();}
 		}	
-		
+		return result;
 	}
 	
 	
