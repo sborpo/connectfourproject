@@ -308,7 +308,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		} catch (IOException e) {
 			// TODO Handle serverSocket initialization problem
 			e.printStackTrace();
-			return new UnhandeledReport(getId(), theClient.getClientName(), "0", "-1");
+			return new UnhandeledReport(getId(), theClient.getClientName(), 
+										Boolean.toString(Game.gameRes.NO_WINNER), "-1");
 		}
 
 		plays = red;
