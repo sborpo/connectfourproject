@@ -348,7 +348,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						inLine=clickedByPlayer;
 						clickedByPlayer = null;
 						System.out.println("Move ENTERED");
-						if (inLine.equals(ClientServerProtocol.ISURRENDER))
+						if (inLine != null && inLine.equals(ClientServerProtocol.ISURRENDER))
 						{
 							writeToScreen("opp HOST: " + this.opponentHost);
 							boolean res = AsynchroniousISurrender();
@@ -636,7 +636,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		boolean succeeded = false;
 		this.blocked = true;
 		theClient.logger.print_info("Handling I_surrender message...");
-		while(state.equals(GameState.PROCEED) && succeeded == false){
+		while(succeeded == false){
+			System.out.println("send I surr to opp");
 			succeeded = sendMessageGetResponse(ClientServerProtocol.ISURRENDER);
 		}
 		this.blocked = false;
@@ -702,10 +703,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		if (gameThread!=null)
 		{
-
-			if(state.equals(GameState.PROCEED)){
-				this.state = GameState.I_SURRENDED;
-			}
+			System.out.println("closing, and ...");
+			state = GameState.I_SURRENDED;
 			this.AsynchroniousISurrender();
 			this.closeAndNotify();
 		}
