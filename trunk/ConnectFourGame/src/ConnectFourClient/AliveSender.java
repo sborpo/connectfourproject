@@ -31,9 +31,6 @@ public class AliveSender extends Thread implements TimerListener{
 		delayTimer = new Timer(delayTime,this);
 	}
 
-//	public synchronized void die(){
-//		isAlive = false;
-//	}
 	
 	public void run() {
 		
@@ -49,20 +46,6 @@ public class AliveSender extends Thread implements TimerListener{
 		client.logger.print_info("Client starting sending alive messages from: "
 				+client.getClientAlivePort() + " to: "+ client.serverUDPPort());
 		delayTimer.start();
-//		while (isAlive) {
-//			try {
-//				synchronized(isAlive){
-//					System.out.println("WAITING.....");
-//					isAlive.wait();
-//					System.out.println("NOTIFIED....");
-//				}
-//			} catch (InterruptedException e) {
-//				//asked to close this thread
-//				return;
-//			}
-			
-		//}
-
 	}
 
 	@Override

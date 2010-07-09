@@ -1,11 +1,22 @@
 package ConnectFourServer;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import common.PasswordHashManager;
+import common.RSAgenerator;
+import common.PasswordHashManager.SystemUnavailableException;
 
 
 
@@ -132,17 +143,26 @@ public class DataBaseManager {
 		return null; 
 	}
 	
+	private static String hashPassword(String pass) throws SystemUnavailableException{
+		String hashed = null;
+		PasswordHashManager hashManager = PasswordHashManager.getInstance();
+		hashed = hashManager.encrypt(pass);
+		return hashed;
+	}
 	
-	public static boolean authenticateUser(String username,String password) throws SQLException
+	public static boolean authenticateUser(String username,String password) throws SQLException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, SystemUnavailableException
 	{
+		String decrypted = RSAgenerator.decrypt(password);
+		String hashedPswd = DataBaseManager.hashPassword(decrypted);
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
+			System.out.println("Trying to authenticate: "+username + " PASS: '" + hashedPswd + "'");
 			conn = getConnection(DataBaseManager.dbName);
 			String query= "SELECT * FROM users WHERE username=? AND password=?";
 			prepareStatement = conn.prepareStatement(query);
 			prepareStatement.setString(1,username);
-			prepareStatement.setString(2,password);
+			prepareStatement.setString(2,hashedPswd);
 			synchronized (userslock) {
 				return rowExists(prepareStatement);
 			}
@@ -201,8 +221,10 @@ public class DataBaseManager {
 			return rowExists(prepareStatement);
 	}
 		
-	public static void insertUser(String username,String password) throws SQLException, UserAlreadyExists
+	public static void insertUser(String username,String password) throws SQLException, UserAlreadyExists, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, SystemUnavailableException
 	{
+		String decrypted = RSAgenerator.decrypt(password);
+		String hashedPswd = DataBaseManager.hashPassword(decrypted);
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		PreparedStatement preparedStatementStas= null;
@@ -212,7 +234,7 @@ public class DataBaseManager {
 			String query= "INSERT INTO users VALUES(?,?);";
 			prepareStatement = conn.prepareStatement(query);
 			prepareStatement.setString(1,username);
-			prepareStatement.setString(2,password);
+			prepareStatement.setString(2,hashedPswd);
 			query= "INSERT INTO stats VALUES(?,?,?);";
 			preparedStatementStas=conn.prepareStatement(query);
 			preparedStatementStas.setString(1,username);
@@ -295,9 +317,8 @@ public class DataBaseManager {
 	}
 	
 	
-	public static boolean makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
+	public static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
-		boolean result = false;
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
@@ -317,7 +338,6 @@ public class DataBaseManager {
 					conn.commit();
 					conn.setAutoCommit(true);
 				}
-				result = true;
 			}
 			else{
 				throw new GameIdNotExists();
@@ -326,15 +346,37 @@ public class DataBaseManager {
 		catch (SQLException ex)
 		{
 			conn.rollback();
+			throw ex;
 		}
 		finally
 		{
 			if(prepareStatement!=null){prepareStatement.close();}
 			if (conn!=null){conn.close();}
 		}	
-		return result;
 	}
 	
-	
+	public static void  removeGame(String gameId) throws SQLException, GameIdNotExists
+	{
+		Connection conn=getConnection(DataBaseManager.dbName);
+		if(!checkGameIdExists(gameId, conn)){	
+			throw new GameIdNotExists();
+		}
+		Statement statment=null;
+		try{
+			String tableName = "`" + DataBaseManager.dbName + "`.`games`";
+			String users="DETELE FROM " + tableName +
+					 " WHERE gameid="+gameId+";";
+			 statment= conn.createStatement();
+			 //statment.setString(1,"`database`.`users`");
+			 statment.executeUpdate(users); 
+			 
+		}
+		finally
+		{
+			if(statment!=null){statment.close();}
+			if (conn!=null){conn.close();}
+		}
+		
+	}
 	
 }

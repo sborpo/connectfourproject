@@ -181,6 +181,7 @@ public class RequestHandler implements Runnable {
 	
 	private Object playerDisconnectTreat(String clientName) {
 		server.clients.removeClient(clientName);
+		server.getUdpListener().removeClient(clientName);
 		return ClientServerProtocol.OK;
 	}
 
@@ -233,40 +234,62 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
+//	private Object batchGamesReportTreat(String[] params) {
+//		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportString(params);
+//		ArrayList<String> correctGameIds= new ArrayList<String>();
+//		for (UnhandeledReport unhandeledReport : reports) {
+//			try {
+//				if(unhandeledReport.getWinner().equals(Game.gameWinner.GAME_NOT_PLAYED)){
+//					try{
+//						DataBaseManager.removeGame(unhandeledReport.getGameId());
+//					}
+//					catch(GameIdNotExists e){
+//						//DO NOTHING
+//					}
+//					continue;
+//				}
+//				DataBaseManager.makeReport(unhandeledReport.getGameId(), unhandeledReport.getClientName(), unhandeledReport.getWinner());
+//				correctGameIds.add(unhandeledReport.getGameId());
+//			} catch (SQLException e) {
+//				//There was a problem to add this game report so dont add it to the reported games
+//				//Try to move the game to the server's unhandeled reports file
+//				try {
+//					UnhandledReports localReports = new UnhandledReports(server.ReportFileName);
+//					try {
+//						localReports.addReport(unhandeledReport);
+//						//the server added it , so we can tell the client that it was reported
+//						correctGameIds.add(unhandeledReport.getGameId());
+//					} catch (IOException e1) {
+//						
+//					}
+//				} catch (NoReports e1) {
+//					//Ignore
+//				} catch (FileChanged e1) {
+//					//Ignore
+//				}
+//				
+//			} catch (GameIdNotExists e) {
+//				server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
+//			}
+//		}
+//		return correctGameIds;	
+//	}
+	
 	private Object batchGamesReportTreat(String[] params) {
-		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportString(params);
+		String[] reportsArr = new String[params.length - 2];
+		System.arraycopy(params, 1, reportsArr, 0, params.length - 2);
+		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportsArray(reportsArr);
 		ArrayList<String> correctGameIds= new ArrayList<String>();
 		for (UnhandeledReport unhandeledReport : reports) {
-			try {
-				boolean res = DataBaseManager.makeReport(unhandeledReport.getGameId(), unhandeledReport.getClientName(), unhandeledReport.getWinner());
-				if(!res){
-					//TODO: add the report to the local reports file
-				}
+			server.printer.print_info("Trying to add report: " + unhandeledReport);
+			String result =this.gamesReportTreat(unhandeledReport.getGameId(), unhandeledReport.getClientName(), 
+					Boolean.getBoolean(unhandeledReport.getGameResult()), unhandeledReport.getWinner(), params[params.length-1]);
+			System.out.println("RESUT: " +result);
+			if(result.equals(ClientServerProtocol.OK)){
 				correctGameIds.add(unhandeledReport.getGameId());
-			} catch (SQLException e) {
-				//There was a problem to add this game report so dont add it to the reported games
-				//Try to move the game to the server's unhandeled reports file
-				try {
-					UnhandledReports localReports = new UnhandledReports(server.ReportFileName);
-					try {
-						localReports.addReport(unhandeledReport);
-						//the server added it , so we can tell the client that it was reported
-						correctGameIds.add(unhandeledReport.getGameId());
-					} catch (IOException e1) {
-						
-					}
-				} catch (NoReports e1) {
-					//Ignore
-				} catch (FileChanged e1) {
-					//Ignore
-				}
-				
-			} catch (GameIdNotExists e) {
-				server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
 			}
 		}
-		return correctGameIds;
-		
+		return correctGameIds;	
 	}
 	
 	private Object pubKeyTreat(){
@@ -279,32 +302,32 @@ public class RequestHandler implements Runnable {
 		if(isClientOnline(clientName)){
 			try {
 				if(!server.authUser(clientName,password)){
+					server.printer.print_error("Cannot authenticate user: " + clientName + " PASS: '" + password + "'");
 					response = ClientServerProtocol.DENIED;
 					return response;
 				}
-				//check if the game exists
-				
+				//check if the game IS ONLINE
+				if(isGameOnline(gameId)){
+					server.games.removeGame(gameId);
+				}
+				//check if the game exists in the database
 				if(DataBaseManager.isGameIdExists(gameId)){
-					if(isGameOnline(gameId)){
-						server.games.removeGame(gameId);
-						//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
-					}
 					//check if the client is/was in this game
 					if(wasClientInTheGame(clientName,gameId)){
 						OnlineClient theClient = server.clients.getClient(clientName);
 						theClient.resetGame();
-						if(gameRes == Game.gameRes.NO_WINNER && winner.equals("null")){
+						if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
 							server.printer.print_info("The game wasn't played, remove game from database...");
-							//TODO: remove the game from the database
+							DataBaseManager.removeGame(gameId);
+							response = ClientServerProtocol.OK;
+							return response;
 						}
 						//add the report
 						try {
 							server.printer.print_info("Adding the report to the database.");
-							boolean res = DataBaseManager.makeReport(gameId, clientName, winner);
-							if(!res){
-								server.printer.print_error("Problem while adding report to the database");
-								//TODO: save the report to the file
-							}
+							//throw new SQLException("MY EXCEPTION");
+							DataBaseManager.makeReport(gameId, clientName, winner);
+							//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -315,7 +338,7 @@ public class RequestHandler implements Runnable {
 									server.printer.print_error("The report was added correctly");
 								} catch (IOException e1) {
 									
-									//the server couldn't save the report, so return to the user the responsibilityy
+									//the server couldn't save the report, so return to the user the responsibility
 									server.printer.print_error("The server couln't save to report file: "+gameId);
 									response = ClientServerProtocol.SERVPROB;
 									return response;
@@ -325,10 +348,13 @@ public class RequestHandler implements Runnable {
 							} catch (FileChanged e1) {
 								//Ignore
 							}
-							server.printer.print_error("The server couldn't save to DB and to report file:  "+gameId);
-							response = ClientServerProtocol.SERVPROB;
-						} catch (GameIdNotExists e) {
+							server.printer.print_error("The server couldn't save report to DB, but saved to local file: " + gameId);
+							response = ClientServerProtocol.OK;
+						} 
+						catch (GameIdNotExists e) {
 							server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
+							response = ClientServerProtocol.SERVPROB;
+							return response;
 						}
 						//return ok message
 						response = ClientServerProtocol.OK;
@@ -346,6 +372,8 @@ public class RequestHandler implements Runnable {
 				server.printer.print_error("Server database problem");
 				response = ClientServerProtocol.SERVPROB;
 				e.printStackTrace();
+			} catch (GameIdNotExists e) {
+				//DO NOTHING
 			}
 		}
 		else{
@@ -506,14 +534,12 @@ public class RequestHandler implements Runnable {
 	{
 		String response = ClientServerProtocol.SERVPROB;
 		try {
-			String decrypted = RSAgenerator.decrypt(password);
-			String hashedPswd = server.hashPassword(decrypted);
-			DataBaseManager.insertUser(username, hashedPswd);
+			DataBaseManager.insertUser(username, password);
 		} catch (UserAlreadyExists e) {
 			response=ClientServerProtocol.USERALREADYEXISTS;
 			return response;
 		} catch (Exception e) {
-			server.printer.print_error("Cannot decrypt password: " + e.getMessage());
+			server.printer.print_error("Cannot decrypt and save password: " + e.getMessage());
 			e.printStackTrace();
 		}
 		response= ClientServerProtocol.OK;

@@ -40,57 +40,44 @@ public class UdpListener implements Runnable,TimerListener {
 		theThread.start();
 	}
 	
+	public void removeClient(String clientName){
+		server.clients.resetAlive(clientName);
+		Timer timer = null;
+		if(clientTimers.containsKey(clientName)){
+			timer = clientTimers.get(clientName);
+			timer.stop();
+		}
+		clientTimers.remove(clientName);
+	}
+	
 	@Override
 	public void run() {
 		//now do it infinitely
 		server.printer.print_info("Starting listening to alive messages");
-//		Timer waitingTime = new Timer(timeOut);
-//		waitingTime.start();
 		while (true) {
-//			ArrayList<String> clientsList=null;
-			//get the clients
-			
-//			if(waitingTime.isTimedOut()){
-//				//if there are no clients
-//				if (clientsList.size()==0)
-//				{
-//					server.printLog("No clients yet, waiting...");
-//					waitingTime.reset();
-//					continue;
-//				}
-//			}
-//			else if (clientsList.size()==0){
-//				continue;
-//			}
-//			server.printLog("UNSET ALL USERS ALIVENESS");
-//			server.clients.resetIsAliveMap();
-//			resetAllTimers();
-
 			byte[] alv = new byte[100000];
 			DatagramPacket aliveMsg = new DatagramPacket(alv, alv.length);
 			
 			server.printer.print_info("UDP:Waiting for clients alive messages...");
-			//int clientNum = clientsList.size();
-			//while (clientNum > 0) {
+
 				try {
-					//socket.setSoTimeout(this.timeOut*1000);
 					socket.receive(aliveMsg);
 					int dataLen = aliveMsg.getLength();
 					byte[] alvFromatted = new byte[dataLen];
 					System.arraycopy(alv, 0, alvFromatted, 0, dataLen);
 					
-					String aliveResponse = new String(alvFromatted);
+					String aliveMessage = new String(alvFromatted);
 					
 					ClientServerProtocol prot= new ClientServerProtocol(msgType.SERVER);
-					String[] theResponse = prot.parseCommand(aliveResponse);
+					String[] aliveMessageArr = prot.parseCommand(aliveMessage);
 					
-					if(theResponse == null){
+					if(aliveMessageArr == null){
 						server.printer.print_error(prot.result + ". Bad alive message");
 						break;
 					}
 					
-					String clientMessage = theResponse[0];
-					String clientName = theResponse[1];
+					String clientMessage = aliveMessageArr[0];
+					String clientName = aliveMessageArr[1];
 					server.printer.print_info("\n----------------------------\nUDP recieved From Client: "+clientName
 									+ ", "+aliveMsg.getAddress().toString()
 									+ " The message (len: " + dataLen + ") is:\n----------------------------\n"
@@ -99,7 +86,7 @@ public class UdpListener implements Runnable,TimerListener {
 					//set the client alive
 					if(!server.clients.setAlive(clientName)){
 						server.printer.print_info("Client with name: "+ clientName + " doesn't exists, checking...");
-						addAliveClient(theResponse,aliveMsg);
+						addAliveClient(aliveMessageArr,aliveMsg);
 						continue;
 					}
 					
@@ -109,28 +96,13 @@ public class UdpListener implements Runnable,TimerListener {
 					System.out.println("Checking the players...");
 					checkTimers();
 					
-					//clientNum--;
 				} 
-//				catch (SocketTimeoutException e) {
-//					server.printer.print_info("Socket timeout...");
-//					clientsList = server.clients.getClients();
-//					if (clientsList.size()==0)
-//					{
-//						server.printer.print_info("No clients yet, waiting...");
-//						//waitingTime.reset();
-//						continue;
-//					}
-//					checkTimers();
-//					server.clients.removeIfNotAlive();
-//				}
+
 				catch (IOException e) {
 					server.printer.print_error(e.getMessage());
 					e.printStackTrace();
 				}
-			//}
-			//waitingTime.reset();
 		}
-
 	}
 	
 	private void addAliveClient(String[] message,DatagramPacket packet){

@@ -35,8 +35,11 @@ public class UnhandledReports {
 			AESmanager manager = new AESmanager();
 			stream = new ObjectInputStream(manager.getDecryptedInStream(f));
 			reports=(HashMap<String,UnhandeledReport>)stream.readObject();
+			stream.close();
 			if (reports.size()==0)
 			{
+				System.out.println("NO REPORTS IN THE FILE..");
+				this.removeReportsFile();
 				throw new NoReports();
 			}
 		} catch (FileNotFoundException e) {
@@ -49,15 +52,23 @@ public class UnhandledReports {
 		}
 	}
 	
-	public void removeReportsFile()
-	{
-		File f= new File(fileName);
-		if (!f.exists())
-		{
-			f.delete();
-		}
+	public int getReportNumber(){
+		return reports.size();
 	}
 	
+	public void removeReportsFile()
+	{
+		System.out.println("INSIDE");
+		File f= new File(fileName);
+		boolean isExists = f.exists();
+		System.out.println("FLAG: "+ isExists);
+		if (f.exists())
+		{
+			boolean res = f.delete();
+			System.out.println(res+" :removed..." + fileName);
+		}
+		reports = null;
+	}
 	
 	public String printReports()
 	{
@@ -69,6 +80,7 @@ public class UnhandledReports {
 			}
 			return sb.toString();
 	}
+	
 	public String createGamesReportString()
 	{
 	    Collection<UnhandeledReport> list = reports.values();
@@ -84,9 +96,10 @@ public class UnhandledReports {
 			params.add(gameReport.getGameResult());
 			params.add(gameReport.getWinner());
 		}
-		String [] arr = new String[4];
-	
-		String report = ClientServerProtocol.buildCommand(params.toArray(arr));
+		int dataLen = 4*reports.size() + 1;
+		String [] arr = new String[dataLen];
+		params.toArray(arr);
+		String report = ClientServerProtocol.buildCommand(arr);
 		return report;
 	}
 	
@@ -106,18 +119,20 @@ public class UnhandledReports {
 	}
 	
 	
-	public static ArrayList<UnhandeledReport> gameReportsFromReportString(String [] params )
+	public static ArrayList<UnhandeledReport> gameReportsFromReportsArray(String [] params )
 	{
 		ArrayList<UnhandeledReport> list = new ArrayList<UnhandeledReport>();
-		int numOfReports= (params.length-1)/4;
+		int numOfReports= (params.length)/4 ;
 		for (int i=0; i<numOfReports; i++)
 		{
 			String [] arr= new String[4];
 			for (int j=0; j<4; j++)
 			{
-				arr[j]= params[4*i+1+j];
+				arr[j]= params[4*i+j];
 			}
-			list.add(new UnhandeledReport(arr[0], arr[1], arr[2], arr[3]));
+			UnhandeledReport report = new UnhandeledReport(arr[0], arr[1], arr[2], arr[3]);
+			System.out.println("Adding Report: "+report);
+			list.add(report);
 			
 		}
 		return list;
