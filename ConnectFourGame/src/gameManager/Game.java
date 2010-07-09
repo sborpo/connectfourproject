@@ -7,8 +7,13 @@ import common.UnhandeledReport;
 
 public interface Game {
 	public static class gameRes { 
-			public static final boolean NO_WINNER = false;
-			public static final boolean WINNER = true;
+		public static final boolean NO_WINNER = false;
+		public static final boolean WINNER = true;
+	};
+	
+	public static class gameWinner{
+		public static final String NO_WINNER = "0";
+		public static final String GAME_NOT_PLAYED = "-1";
 	};
 	
 	public boolean isGameFull();

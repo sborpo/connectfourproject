@@ -100,31 +100,16 @@ public class MainServer {
 		this.printer.print_info("Done loading the database");
 	}
 	
-	public String hashPassword(String pass) throws SystemUnavailableException{
-		String hashed = null;
-		PasswordHashManager hashManager = PasswordHashManager.getInstance();
-		try {
-			hashed = hashManager.encrypt(pass);
-		} catch (SystemUnavailableException e) {
-			this.printer.print_error("Cannot hash the password: "+ e.getMessage());
-			throw e;
-			//hashed = null;
-		}
-		return hashed;
-	}
-	
 	public boolean authUser(String clientName, String password){
 		boolean result = false;
 		try{
-			String decrypted = RSAgenerator.decrypt(password);
-			String hashedPswd = hashPassword(decrypted);
-			if(DataBaseManager.authenticateUser(clientName, hashedPswd)){
+			if(DataBaseManager.authenticateUser(clientName, password)){
 				result = true;
 			}
 		} catch (SQLException e) {
 			printer.print_error("Database error: " + e.getMessage());
 		} catch (Exception e){
-			printer.print_error("Cannot decrypt password: " + e.getMessage());
+			printer.print_error("Cannot decrypt password for authentication : " + e.getMessage());
 		}
 		return result;
 	}
@@ -181,6 +166,10 @@ public class MainServer {
 
 	}
 
+	public UdpListener getUdpListener(){
+		return udpListener;
+	}
+	
 	/**
 	 * @param args
 	 */

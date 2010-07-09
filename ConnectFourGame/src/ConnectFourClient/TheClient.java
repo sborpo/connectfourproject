@@ -469,9 +469,9 @@ public class TheClient {
 			makeReportToServer(gameReportH);
 		}
 		else{
-			System.out.println("EMPTY REEEEEEEEEEEEEport");
+			System.out.println("GAME REPORT IS NULL");
 			//send the report to the server
-			makeReportToServer(this.getEmptyReport());
+			//makeReportToServer(this.getEmptyReport());
 		}
 		this.closeTransmitions();
 		gameId = null;
@@ -481,7 +481,7 @@ public class TheClient {
 	private UnhandeledReport getEmptyReport() {
 		UnhandeledReport gameReport = new UnhandeledReport(this.gameId,this.clientName,
 											Boolean.toString(Game.gameRes.NO_WINNER),
-											"null");
+											Game.gameWinner.GAME_NOT_PLAYED);
 		return gameReport;
 	}
 
@@ -526,20 +526,23 @@ public class TheClient {
 			}
 		
 		}catch (IOException e1) {
-			this.logger.print_error(e1.getMessage());
+			this.logger.print_error("Saving the report locally: " + e1.getMessage());
 			saveLocalReport(gameReportH);
 		}
 		
 	}
 
 	private void saveLocalReport(UnhandeledReport gameReportH) {
+		//if the report is empty
+		if(gameReportH.getWinner().equals(Game.gameWinner.GAME_NOT_PLAYED)){
+			return;
+		}
 		//server couldn't save the file in his file system/DB , we should save it in ours
 		UnhandledReports reports = null;
 		try {
 			reports = new UnhandledReports(clientName);
 		} catch (NoReports e) {
 			//igonore
-			e.printStackTrace();
 		} catch (FileChanged e) {
 			//igonore
 		}
@@ -577,6 +580,8 @@ public class TheClient {
 		}
 		else{
 			System.out.println("GAME REPORT IS NULL");
+			//send the report to the server
+			makeReportToServer(this.getEmptyReport());
 		}
 		this.closeTransmitions();
 		gameId = null;
@@ -654,13 +659,19 @@ public class TheClient {
 		}
 		String gameReports = reports.createGamesReportString();
 		if(gameReports != null){
-			ArrayList<String> response=(ArrayList<String>)sendMessageToServer(gameReports);
-			if (response==null)
-			{
-				throw new IOException("Bad server response");
+			gameReports = gameReports + ClientServerProtocol.paramSeparator + this.password;
+			ArrayList<String> response = (ArrayList<String>)sendMessageToServer(gameReports);
+			if(response != null){
+				for (String unhandeledReport : response) {
+					reports.removeReport(unhandeledReport);
+				}
+				if(reports.getReportNumber() == 0){
+					System.out.println("REMOVE REPORT FILE");
+					reports.removeReportsFile();
+				}
 			}
-			for (String unhandeledReport : response) {
-				reports.removeReport(unhandeledReport);
+			else{
+				this.logger.print_error("Received bad response from server, while reporting");
 			}
 		}
 		else{

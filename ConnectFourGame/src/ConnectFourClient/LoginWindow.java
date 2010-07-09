@@ -109,12 +109,10 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				father.client.handleNICETM(father.client.parseServerResponse(response));
 				
 				try{
-					
 					boolean res=father.client.reportUnhandeledReports();
 					if (res)
 					{
-						father.showMessageDialog("Sent to the server the unreported games.",MsgType.info);
-						return;
+						father.showMessageDialog("Successfully reported to the server the unreported games.",MsgType.info);
 					}
 				}
 				catch (FileChanged ex) {
@@ -125,6 +123,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 					father.showMessageDialog("Problem sending the report file",MsgType.error);
 					return;
 				}
+				
 				father.getOnlineGames();
 				this.setVisible(false);
 			} catch (IOException e1) {
