@@ -20,7 +20,7 @@ public class AliveSender extends Thread implements TimerListener{
 	// the client to which the listener is bind to
 	private TheClient client;
 	
-	static final private int delayTime = 100;
+	static final private int delayTime = 20;
 	//this will wait some time
 	static private Timer delayTimer;
 	
@@ -51,9 +51,11 @@ public class AliveSender extends Thread implements TimerListener{
 	@Override
 	synchronized public void timeOutReceived(TimeOutEvent event) {
 		//send to server client Alive message!
+		client.getServerPublicKey();
+		String preparedPass = client.preparePassword(client.getPassword());
 		String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
 																			client.getClientName(), 
-																			client.getPassword(),
+																			preparedPass,
 																			Integer.toString(client.getTransmitWaiterPort()),
 																			client.getGameId(),
 																			Integer.toString(client.getGamePort())});
@@ -63,10 +65,11 @@ public class AliveSender extends Thread implements TimerListener{
 			client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
 					client.getServerAddress(), client.serverUDPPort()));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			client.logger.print_error("Problems sening alive message to the server: " + e.getMessage());
 		}
-		delayTimer.reset();
+		finally{
+			delayTimer.reset();
+		}
 		//isAlive.notify();
 	}
 

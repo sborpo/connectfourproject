@@ -86,8 +86,7 @@ public class MainServer {
 		try {
 			serverUdp = new DatagramSocket(getServerUDPPort());
 		} catch (SocketException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			printer.print_error("Problem initializing UDP socket: "+ e.getMessage());
 		}
 
 	}
@@ -138,8 +137,7 @@ public class MainServer {
 			
 			serverSocket.setEnabledCipherSuites(enabledCipherSuites);
 		} catch (IOException e) {
-			// TODO Handle serverSocket initialization problem
-			e.printStackTrace();
+			printer.print_error("Problem initializing server socket: " + e.getMessage());
 			return;
 		}
 		
@@ -159,8 +157,7 @@ public class MainServer {
 				connectionsPool.execute(new RequestHandler((SSLSocket)serverSocket
 						.accept(), this));
 			} catch (IOException e) {
-				// TODO problem inserting client connection
-				e.printStackTrace();
+				printer.print_error("Probem while accepting socket connection: "+ e.getMessage());
 			}
 		}
 
@@ -182,7 +179,6 @@ public class MainServer {
 			server.start();
 		} catch (Exception e) {
 			System.out.println(LogPrinter.error_msg("Server failure: " + e.getMessage()));
-			e.printStackTrace();
 		} 
 	}
 

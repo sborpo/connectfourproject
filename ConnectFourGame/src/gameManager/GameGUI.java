@@ -86,7 +86,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	//START ONLINE GAME PARAMETERS
 	private boolean startedGame = false;
-	protected final int moveTime = 20;
+	protected final int moveTime = 60;
 	private int clientGamePort = TheClient.unDEFport;
 	private String opponentHost = null;
 	private int opponentPort = TheClient.unDEFport;

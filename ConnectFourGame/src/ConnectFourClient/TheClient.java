@@ -124,8 +124,8 @@ public class TheClient {
 				viewerSocket = new Socket(this.getAddress(),this.getTCPPort());
 				viewerWriter = new PrintWriter(viewerSocket.getOutputStream(),true);
 			} catch (IOException e) {
-				transmitter.logger.print_error("Cannont initialize connection with watcher");
-				e.printStackTrace();
+				transmitter.logger.print_error("Cannont initialize connection with watcher: " + e.getMessage());
+
 			}
 			firstMove = true;
 		}
@@ -139,7 +139,6 @@ public class TheClient {
 					viewerSocket.close();
 				} catch (IOException e) {
 					transmitter.logger.print_error("Problem closing watcher - " + this.getName() + " socket: " + e.getMessage());
-					e.printStackTrace();
 				}
 			}
 		}
@@ -239,74 +238,11 @@ public class TheClient {
 		try {
 			serverAddress = InetAddress.getByName(serverHost);
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.print_error("Cannot initialize connection with the server: " + e.getMessage());
 		}
 	}	
 	
-	private void getServerPublicKey(){
-		logger.print_info("Getting the public key of server...");
-		Key serverKey = null;
-		try {
-			serverKey = (Key)sendMessageToServer(ClientServerProtocol.GETPUBKEY);
-		} catch (IOException e) {
-			logger.print_error("Cannot get the public key from server");
-			e.printStackTrace();
-		}
-		RSAgenerator.setEncKey(serverKey);
-	}
-	
-	private Properties getProperties(){
-		Properties prop = new Properties();
-		try {
-			prop.load(new FileInputStream("client.configurations"));
-		} catch (FileNotFoundException e) {
-			//file will be found
-			logger.print_error("Properties file was not found: " + e.getMessage());
-			e.printStackTrace();
-		} catch (IOException e) {
-			//will be read
-			logger.print_error("Problem loading file: " + e.getMessage());
-			e.printStackTrace();
-		}	
-		return prop;
-	}
-	
-	private void parseArguments(String[] args) {
-		//From Prroperites
-		Properties props = getProperties();
-		
-		//serverHost = (args[0]);
-		serverHost = props.getProperty("SERVER_HOST");
-		logger.print_info("Server: " + serverHost);
-		//serverPort = Integer.parseInt(args[1]);
-		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-		logger.print_info("Server TCP port: "+serverPort);
-		//clientUdp = Integer.parseInt(args[2]);
-		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-		logger.print_info("Client Udp Listen port: "+clientUdp);
-		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-		//clientGamePort = Integer.parseInt(args[4]);
-		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-		logger.print_info("Client Game port: "+clientGamePort);
-		
-		
-		//From command line
-		
-//		serverHost = (args[0]);
-//		serverPort = Integer.parseInt(args[1]);
-//		clientUdp = Integer.parseInt(args[2]);
-//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientGamePort = Integer.parseInt(args[4]);
-		
-		
-		clientWatchPort= clientGamePort;
-	}
-	
-	public Object sendMessageToServer(String message) throws IOException
-	{
+	public Object innerSendMessageToServer(String message) throws IOException{
 		SSLSocket serverConnection = null;
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 		
@@ -356,7 +292,71 @@ public class TheClient {
 		}
 		return resp;
 
-}
+	}
+	
+	public void getServerPublicKey(){
+		logger.print_info("Getting the public key of server...");
+		Key serverKey = null;
+		try {
+			serverKey = (Key)innerSendMessageToServer(ClientServerProtocol.GETPUBKEY);
+		} catch (IOException e) {
+			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
+		}
+		RSAgenerator.setEncKey(serverKey);
+	}
+	
+	private Properties getProperties(){
+		Properties prop = new Properties();
+		try {
+			prop.load(new FileInputStream("client.configurations"));
+		} catch (FileNotFoundException e) {
+			//file will be found
+			logger.print_error("Properties file was not found: " + e.getMessage());
+		} catch (IOException e) {
+			//will be read
+			logger.print_error("Problem loading file: " + e.getMessage());
+		}	
+		return prop;
+	}
+	
+	private void parseArguments(String[] args) {
+		//From Prroperites
+		Properties props = getProperties();
+		
+		//serverHost = (args[0]);
+		serverHost = props.getProperty("SERVER_HOST");
+		logger.print_info("Server: " + serverHost);
+		//serverPort = Integer.parseInt(args[1]);
+		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+		logger.print_info("Server TCP port: "+serverPort);
+		//clientUdp = Integer.parseInt(args[2]);
+		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+		logger.print_info("Client Udp Listen port: "+clientUdp);
+		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+		//clientGamePort = Integer.parseInt(args[4]);
+		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+		logger.print_info("Client Game port: "+clientGamePort);
+		
+		
+		//From command line
+		
+//		serverHost = (args[0]);
+//		serverPort = Integer.parseInt(args[1]);
+//		clientUdp = Integer.parseInt(args[2]);
+//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientGamePort = Integer.parseInt(args[4]);
+		
+		
+		clientWatchPort= clientGamePort;
+	}
+	
+	public Object sendMessageToServer(String message) throws IOException
+	{
+		getServerPublicKey();
+		return innerSendMessageToServer(message);
+	}
 	
 	public void stopWatching(){
 		watcher = null;
@@ -366,8 +366,7 @@ public class TheClient {
 		try {
 			transmitWaiterSocket = new ServerSocket(clientTransmitWaiterPort);
 		} catch (IOException e) {
-			this.logger.print_error("Problem open transmit waiter socket");
-			e.printStackTrace();
+			this.logger.print_error("Problem open transmit waiter socket: " + e.getMessage());
 		}
 		transmitWaiter = new TransmitWaiter(transmitWaiterSocket,this);
 		transmitWaiter.start();
@@ -381,13 +380,12 @@ public class TheClient {
 		transmitWaiter = null;
 	}
 	
-	private String preparePassword(String password){
+	public String preparePassword(String password){
 		String preparedPass = this.hashPassword(password);
 		try {
 			preparedPass =  RSAgenerator.encrypt(preparedPass);
 		} catch (Exception e) {
 			logger.print_error("Cannot encrypt the password: " + e.getMessage());
-			e.printStackTrace();
 		}
 		return preparedPass;
 	}
@@ -402,8 +400,8 @@ public class TheClient {
 			getServerPublicKey();
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
-			password = preparePassword(params[3]);
-			params[3] = password;
+			password = params[3];
+			params[3] = preparePassword(params[3]);
 		}
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
@@ -420,8 +418,8 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.SIGNUP)){
 			getServerPublicKey();
 			clientName = params[1];
-			password = preparePassword(params[2]);
-			params[2] = password;
+			password = params[2];
+			params[2] = preparePassword(params[2]);
 		}
 		else if(params[0].equals(ClientServerProtocol.DISCONNECT)){
 			//echoServerListener.die();
@@ -437,7 +435,6 @@ public class TheClient {
 			hashed = hashManager.encrypt(pass);
 		} catch (SystemUnavailableException e) {
 			this.logger.print_error("Cannot hash the password: "+ e.getMessage());
-			e.printStackTrace();
 			hashed = null;
 		}
 		return hashed;
@@ -471,10 +468,10 @@ public class TheClient {
 		else{
 			System.out.println("GAME REPORT IS NULL");
 			//send the report to the server
-			//makeReportToServer(this.getEmptyReport());
+			makeReportToServer(this.getEmptyReport());
 		}
 		this.closeTransmitions();
-		gameId = null;
+		gameId = ClientServerProtocol.noGame;
 	}
 		
 	
@@ -502,12 +499,13 @@ public class TheClient {
 	
 	private void makeReportToServer(UnhandeledReport gameReportH) {
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.SERVER);
+		String preparedPass = preparePassword(password);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 				gameReportH.getGameId(),
 				gameReportH.getClientName(),
 				gameReportH.getGameResult(),
 				gameReportH.getWinner(),
-				this.password});
+				preparedPass});
 		String[] parsed = prot.parseCommand(gameReport);
 		if(parsed == null){
 			logger.print_error(prot.result + ". Bad game report: "+ gameReport);
@@ -549,8 +547,7 @@ public class TheClient {
 		try {
 			reports.addReport(gameReportH);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.print_error("Problem while adding report to local file: " + e.getMessage());
 		}
 		
 	}
@@ -584,7 +581,7 @@ public class TheClient {
 			makeReportToServer(this.getEmptyReport());
 		}
 		this.closeTransmitions();
-		gameId = null;
+		gameId = ClientServerProtocol.noGame;
 	}
 	
 	public void HandleEnjoyWatch(String [] params,String redPlayer,String bluePlayer)
@@ -659,7 +656,8 @@ public class TheClient {
 		}
 		String gameReports = reports.createGamesReportString();
 		if(gameReports != null){
-			gameReports = gameReports + ClientServerProtocol.paramSeparator + this.password;
+			String preparedPass = preparePassword(password);
+			gameReports = gameReports + ClientServerProtocol.paramSeparator + preparedPass;
 			ArrayList<String> response = (ArrayList<String>)sendMessageToServer(gameReports);
 			if(response != null){
 				for (String unhandeledReport : response) {

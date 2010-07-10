@@ -31,7 +31,7 @@ public class UdpListener implements Runnable,TimerListener {
 		this.server = server;
 		socket = server.getUdpSocket();
 		clientTimers = new HashMap<String,Timer>();
-		timeOut = 120;
+		timeOut = 60;
 		theThread = new Thread(this);
 	}
 
@@ -81,7 +81,7 @@ public class UdpListener implements Runnable,TimerListener {
 					server.printer.print_info("\n----------------------------\nUDP recieved From Client: "+clientName
 									+ ", "+aliveMsg.getAddress().toString()
 									+ " The message (len: " + dataLen + ") is:\n----------------------------\n"
-									+ clientMessage);
+									+ aliveMessage);
 					
 					//set the client alive
 					if(!server.clients.setAlive(clientName)){
@@ -114,7 +114,7 @@ public class UdpListener implements Runnable,TimerListener {
 			if(server.authUser(clientName, password)){
 				OnlineClient theClient = new OnlineClient(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
 				server.clients.addClientToUdpList(theClient);
-				if(!gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
+				if(gameId != null && !gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
 					Game theGame = server.games.getGame(gameId);
 					if(theGame == null){
 						server.printer.print_info("Creating new game: " + gameId);
