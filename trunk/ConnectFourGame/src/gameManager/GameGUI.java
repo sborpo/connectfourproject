@@ -4,6 +4,7 @@ import gameManager.Board.GameState;
 import gameManager.Board.IllegalMove;
 import gameManager.Player.Color;
 
+import java.awt.Button;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -29,6 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
@@ -102,6 +104,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	protected JLabel consoleArea;
 	protected JLabel connAs1;
 	protected JLabel connAs2;
+	protected Box timerBoxContainer;
+	//protected JTextField timerText;
 	private String clickedByPlayer;
 	private UnhandeledReport gameReport;
 	private Thread gameThread;
@@ -163,6 +167,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		this.theClient=theClient;
 		this.gameId = gameId;
+		timerBoxContainer = Box.createHorizontalBox();
 		gameBoard = new BoardGUI(this);
 		gameHistory = new ArrayList<String>();
 		gameReport = null;
@@ -199,6 +204,18 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 	
+	private void updatePlayerTimer(Timer timer){
+		Box timerBox = timer.createTimerBox();
+		Box consoleContainerBox = (Box)this.getContentPane().getComponent(3);
+		timerBoxContainer.removeAll();
+		timerBoxContainer.add(timerBox);
+		if(!consoleContainerBox.isAncestorOf(timerBoxContainer)){
+			//consoleContainerBox.remove(timerBoxContainer);
+			consoleContainerBox.add(timerBoxContainer);
+		}
+	}
+	
+	
 	protected Box createSurrenderBox()
 	{
 		//surrender
@@ -224,13 +241,15 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	{
 
 		//the console box
+		Box containerBox = Box.createHorizontalBox();
 		Box consoleBox = Box.createHorizontalBox();
-		consoleBox.setSize(700, 200);
+		//consoleBox.setSize(700, 200);
 		consoleArea = new JLabel("Console Printer");
 		consoleBox.setAlignmentX(SwingConstants.LEFT);
 		consoleArea.setAlignmentX(LEFT_ALIGNMENT);
 		consoleBox.add(consoleArea);
-		return consoleBox;
+		containerBox.add(consoleBox);
+		return containerBox;
 
 	}
 	
@@ -329,11 +348,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		setGameEnabled();
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		while (state.equals(GameState.PROCEED)) {
+			this.updatePlayerTimer(plays.getTimer());
 			int colnum = -1;
 			String inLine = null;
 			try {
 				if (plays.equals(clientPlayer)) {
-					writeToScreen("Please Click Your Move:");
+					writeToScreen("Please Click Your Move: ");
 					while(colnum == -1){
 						synchronized (pending) {
 							try {
@@ -379,7 +399,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					}
 					
 				} else {
-					writeToScreen("Waiting For Opponent Move!:\n");
+					writeToScreen("Waiting For Opponent Move: ");
 					try {
 						String move= this.getOpponentMove();
 						if(move == null){
@@ -571,7 +591,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	}
 
 	private void nextPlayer() {
-		System.out.println("Current player: "+plays.getName());
 		plays.getTimer().pause().reset();
 		if (plays.getColor().equals(Player.Color.RED)) {
 			plays = blue;
@@ -579,7 +598,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			plays = red;
 		}
 		plays.getTimer().resume();
-		System.out.println("Changed to player: "+plays.getName());
 	}
 	
 	synchronized public void addPlayer(String player2){
@@ -781,7 +799,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																		plays.getName(),
-																		move,plays.getColor().getColorStr()});
+																		move,plays.getColor().getColorStr(),
+																		Integer.toString(plays.getTimer().getElapsed())});
 		
 		String[] parsed = prot.parseCommand(moveMsg);
 		if(parsed == null){
@@ -845,7 +864,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 			reconnectOnRead= false;
 			try{
-				clientToOpponent.writeObject(move);
+				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
+																	plays.getName(),
+																	move,plays.getColor().getColorStr()});
+				System.out.println("Sending: " + moveMsg);
+				clientToOpponent.writeObject(moveMsg);
 			}
 			//HANDLE CONNECTIONS PROBLEMS
 			catch (IOException ex)
@@ -873,7 +896,16 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				}
 				reconnectOnRead=false;
 				try {
-					move = (String)opponentIn.readObject();
+					String moveMsg = (String)opponentIn.readObject();
+					ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
+					String[] moveArr = prot.parseCommand(moveMsg);
+					if(moveArr == null){
+						writeToScreen("Wrong move command!");
+					}
+					move = moveArr[2];
+//					int time = Integer.parseInt(moveArr[4]);
+//					plays.getTimer().updateTimer(time);
+//					int after = plays.getTimer().getElapsed();
 				} catch (IOException e) {
 					
 					if(this.reconnect){

@@ -50,6 +50,7 @@ public class AliveSender extends Thread implements TimerListener{
 
 	@Override
 	synchronized public void timeOutReceived(TimeOutEvent event) {
+		
 		//send to server client Alive message!
 		client.getServerPublicKey();
 		String preparedPass = client.preparePassword(client.getPassword());
@@ -68,7 +69,7 @@ public class AliveSender extends Thread implements TimerListener{
 			client.logger.print_error("Problems sening alive message to the server: " + e.getMessage());
 		}
 		finally{
-			delayTimer.reset();
+			delayTimer.restart();
 		}
 		//isAlive.notify();
 	}

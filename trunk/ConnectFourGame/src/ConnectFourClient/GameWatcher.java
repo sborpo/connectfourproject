@@ -2,6 +2,7 @@ package ConnectFourClient;
 
 import gameManager.Board;
 import gameManager.BoardGUI;
+import gameManager.Game;
 import gameManager.GameGUI;
 import gameManager.Board.GameState;
 import gameManager.Board.IllegalMove;
@@ -99,10 +100,11 @@ public class GameWatcher extends GameGUI implements Runnable{
 					else if(parsed[0].equals(ClientServerProtocol.GAMEMOVE)){
 					
 						Color c =(parsed[3].equals("red"))? Color.RED : Color.BLUE;
+						String playingName =(parsed[1].equals(this.bluePlayer))? this.redPlayer : this.bluePlayer;
 						try {
 							state = gameBoard.playColumn(Integer.parseInt(parsed[2]), c);
 							SwingUtilities.invokeAndWait(new BoardGUI.Painter(((BoardGUI)gameBoard).getColumnsFil(),Integer.parseInt(parsed[2]),c, slots));
-							writeToScreen("Waiting for "+c.getColorStr()+" turn...");
+							writeToScreen("Waiting for "+ playingName +" turn...");
 						} catch (NumberFormatException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -144,12 +146,11 @@ public class GameWatcher extends GameGUI implements Runnable{
 		catch (IOException e) {
 			client.logger.print_info(e.getMessage() + ". Stopping watching...");
 			//writeToScreen("The other player closed the connection!");
-			this.stopWatching();
-			client.stopWatching();
-			e.printStackTrace();
 		}
 		catch (GameEndedException myExc){
 			client.logger.print_info("The game is over!");
+		}
+		finally{
 			this.stopWatching();
 			client.stopWatching();
 		}
@@ -161,32 +162,27 @@ public class GameWatcher extends GameGUI implements Runnable{
 				watchSocket.close();
 				watchSocket = null;
 			}
-			client.logger.print_error("Closed watch socket");
 			if(watcherIn != null){
 				watcherIn.close();
 				watcherIn = null;
 			}
-			client.logger.print_error("Closed watchIn");
-
 			if(Isocket != null){
 				Isocket.close();
 				Isocket = null;
 			}
-			client.logger.print_error("Closed watchIn");
 		} catch (IOException e) {
-		//	client.logger.print_error("Cannot close input stream for watch");
-			e.printStackTrace();
+			client.logger.print_error("Cannot close input stream for watcher");
 		}
 	}
 	
 	private String parseReport(String[] message){
 		String winner = null;
 		if(message[0].equalsIgnoreCase(ClientServerProtocol.GAMEREPORT)){
-			if(Integer.parseInt(message[3]) == 1){
+			if(Boolean.parseBoolean(message[3]) == Game.gameRes.WINNER){
 				winner = message[4];
 			}
 			else{
-				winner = "NOBODY";
+				winner = Game.gameWinner.NO_WINNER;
 			}
 		}
 		return winner;
