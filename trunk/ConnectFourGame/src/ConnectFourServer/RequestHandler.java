@@ -234,46 +234,6 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
-//	private Object batchGamesReportTreat(String[] params) {
-//		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportString(params);
-//		ArrayList<String> correctGameIds= new ArrayList<String>();
-//		for (UnhandeledReport unhandeledReport : reports) {
-//			try {
-//				if(unhandeledReport.getWinner().equals(Game.gameWinner.GAME_NOT_PLAYED)){
-//					try{
-//						DataBaseManager.removeGame(unhandeledReport.getGameId());
-//					}
-//					catch(GameIdNotExists e){
-//						//DO NOTHING
-//					}
-//					continue;
-//				}
-//				DataBaseManager.makeReport(unhandeledReport.getGameId(), unhandeledReport.getClientName(), unhandeledReport.getWinner());
-//				correctGameIds.add(unhandeledReport.getGameId());
-//			} catch (SQLException e) {
-//				//There was a problem to add this game report so dont add it to the reported games
-//				//Try to move the game to the server's unhandeled reports file
-//				try {
-//					UnhandledReports localReports = new UnhandledReports(server.ReportFileName);
-//					try {
-//						localReports.addReport(unhandeledReport);
-//						//the server added it , so we can tell the client that it was reported
-//						correctGameIds.add(unhandeledReport.getGameId());
-//					} catch (IOException e1) {
-//						
-//					}
-//				} catch (NoReports e1) {
-//					//Ignore
-//				} catch (FileChanged e1) {
-//					//Ignore
-//				}
-//				
-//			} catch (GameIdNotExists e) {
-//				server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
-//			}
-//		}
-//		return correctGameIds;	
-//	}
 	
 	private Object batchGamesReportTreat(String[] params) {
 		String[] reportsArr = new String[params.length - 2];
@@ -309,6 +269,10 @@ public class RequestHandler implements Runnable {
 				//check if the game IS ONLINE
 				if(isGameOnline(gameId)){
 					server.games.removeGame(gameId);
+				}
+				if(gameId == null || gameId.equals(ClientServerProtocol.noGame) || winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
+					response = ClientServerProtocol.OK;
+					return response;
 				}
 				//check if the game exists in the database
 				if(DataBaseManager.isGameIdExists(gameId)){
