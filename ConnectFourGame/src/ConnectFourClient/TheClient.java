@@ -524,7 +524,7 @@ public class TheClient {
 			}
 		
 		}catch (IOException e1) {
-			this.logger.print_error("Saving the report locally: " + e1.getMessage());
+			this.logger.print_error(e1.getMessage() + "Saving the report locally..." );
 			saveLocalReport(gameReportH);
 		}
 		

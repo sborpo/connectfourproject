@@ -5,6 +5,12 @@ import java.util.EventObject;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.swing.Box;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 public class Timer implements Runnable
 {	
 	// Rate at which timer is checked in seconds 
@@ -29,6 +35,9 @@ public class Timer implements Runnable
 	
 	//The thread that should run the timer
 	private Thread timerThread;
+	
+	private Box timerBox;
+	private JLabel timerText;
 	
 	//inner class
 	public interface TimerListener 
@@ -66,6 +75,8 @@ public class Timer implements Runnable
 		m_elapsed = 0;
 		paused = false;
 		timerThread = new Thread(this);
+		timerText = null;
+		timerBox = null;
 	}
 
 	public Thread getTimerThread(){
@@ -83,6 +94,7 @@ public class Timer implements Runnable
 	{
 		m_elapsed = 0;
 		timedOut = false;
+		updateTimerText();
 		return this;
 	}
 
@@ -108,7 +120,7 @@ public class Timer implements Runnable
 			{
 				// Increment time remaining
 				m_elapsed += m_rate;
-
+				this.updateTimerText();
 				// Check to see if the time has been exceeded
 				if (m_elapsed > m_length)
 				{
@@ -120,6 +132,13 @@ public class Timer implements Runnable
 		}
 	}
 	
+	private void updateTimerText() {
+		if(timerText != null){
+			int currT = m_length-m_elapsed;
+			timerText.setText(currT + " sec");
+		}
+	}
+
 	private synchronized void fireTimeOutEvent(){
 		TimeOutEvent event = new TimeOutEvent(this, timedOut);
 		if(listener!=null){
@@ -150,11 +169,31 @@ public class Timer implements Runnable
 		return timedOut;
 	}
 	
+	public void restart(){
+		this.pause().reset().resume();
+		updateTimerText();
+	}
+	
+	public void updateTimer(int time){
+		m_elapsed = time;
+	}
+	
 	public void stop()
 	{
 		stopped = true;
 	}
 	
 	
-	
+	public Box createTimerBox(){
+		if(timerBox != null){
+			return timerBox;
+		}
+		timerBox = Box.createHorizontalBox();
+		timerText = new JLabel();
+		timerText.setHorizontalAlignment(SwingUtilities.RIGHT);
+		timerText.setText(m_length + "sec");
+		timerBox.add(timerText);
+		timerText.setEnabled(true);
+		return timerBox;
+	}
 }
