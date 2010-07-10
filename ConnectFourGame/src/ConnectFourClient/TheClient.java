@@ -143,7 +143,10 @@ public class TheClient {
 			}
 		}
 		
-		public void sendMove(String move) throws SendingToWatcherProblem{			
+		public void sendMove(String move) throws SendingToWatcherProblem{	
+			if(viewerWriter == null){
+				return;
+			}
 			transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
 			viewerWriter.println(move);
 			viewerWriter.println();
