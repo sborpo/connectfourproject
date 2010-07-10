@@ -67,48 +67,48 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	}
 
 	//LOGIC PARAMETERS
-	private String gameId = null;
-	private Player red = null;
-	private Player blue = null;
-	private HashMap<String,Player> watchers = null;
+	protected String gameId = null;
+	protected Player red = null;
+	protected Player blue = null;
+	protected HashMap<String,Player> watchers = null;
 	protected Board gameBoard = null;
-	private Player plays = null;
+	protected Player plays = null;
 	protected GameState state = null;
-	private ArrayList<String> gameHistory = null;
-	private Pending pending = null;
-	private Player clientPlayer = null;
-	private Player opponentPlayer = null;
-	private ServerSocket serverSocket = null;
-	private Socket opponentSocket = null;
-	private ObjectInputStream opponentIn = null;
-	private ObjectOutputStream clientToOpponent = null;
-	private Boolean reconnect = false;
-	private boolean blocked = false;
-	private boolean closing = false;
+	protected ArrayList<String> gameHistory = null;
+	protected Pending pending = null;
+	protected Player clientPlayer = null;
+	protected Player opponentPlayer = null;
+	protected ServerSocket serverSocket = null;
+	protected Socket opponentSocket = null;
+	protected ObjectInputStream opponentIn = null;
+	protected ObjectOutputStream clientToOpponent = null;
+	protected Boolean reconnect = false;
+	protected boolean blocked = false;
+	protected boolean closing = false;
 	
 	//START ONLINE GAME PARAMETERS
-	private boolean startedGame = false;
+	protected boolean startedGame = false;
 	protected final int moveTime = 60;
-	private int clientGamePort = TheClient.unDEFport;
-	private String opponentHost = null;
-	private int opponentPort = TheClient.unDEFport;
-	private int opponentTransmitWaiterPort = TheClient.unDEFport;
-	private int opponentGamePort = TheClient.unDEFport;	
+	protected int clientGamePort = TheClient.unDEFport;
+	protected String opponentHost = null;
+	protected int opponentPort = TheClient.unDEFport;
+	protected int opponentTransmitWaiterPort = TheClient.unDEFport;
+	protected int opponentGamePort = TheClient.unDEFport;	
 	
 	//GUI COMPONENTS
-	private MainFrame mainFrame;
+	protected MainFrame mainFrame;
 	protected TheClient theClient;
-    private JButton surrender;
-	private JPanel boardPane;
+    protected JButton surrender;
+	protected JPanel boardPane;
 	protected JButton [][] slots;
 	protected JLabel consoleArea;
 	protected JLabel connAs1;
 	protected JLabel connAs2;
 	protected Box timerBoxContainer;
 	//protected JTextField timerText;
-	private String clickedByPlayer;
-	private UnhandeledReport gameReport;
-	private Thread gameThread;
+	protected String clickedByPlayer;
+	protected UnhandeledReport gameReport;
+	protected Thread gameThread;
 	
 	public boolean isGameFull()
 	{
@@ -204,9 +204,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 	
-	private void updatePlayerTimer(Timer timer){
+	protected void updatePlayerTimer(Timer timer, int compNum){
 		Box timerBox = timer.createTimerBox();
-		Box consoleContainerBox = (Box)this.getContentPane().getComponent(3);
+		Box consoleContainerBox = (Box)this.getContentPane().getComponent(compNum);
 		timerBoxContainer.removeAll();
 		timerBoxContainer.add(timerBox);
 		if(!consoleContainerBox.isAncestorOf(timerBoxContainer)){
@@ -244,7 +244,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		Box containerBox = Box.createHorizontalBox();
 		Box consoleBox = Box.createHorizontalBox();
 		//consoleBox.setSize(700, 200);
-		consoleArea = new JLabel("Console Printer");
+		consoleArea = new JLabel("Console Printer ");
 		consoleBox.setAlignmentX(SwingConstants.LEFT);
 		consoleArea.setAlignmentX(LEFT_ALIGNMENT);
 		consoleBox.add(consoleArea);
@@ -348,7 +348,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		setGameEnabled();
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		while (state.equals(GameState.PROCEED)) {
-			this.updatePlayerTimer(plays.getTimer());
+			this.updatePlayerTimer(plays.getTimer(),3);
 			int colnum = -1;
 			String inLine = null;
 			try {
@@ -457,7 +457,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 
 	}
 	
-	private void initTimers(){
+	protected void initTimers(){
 		red.setTimer(moveTime,this).pause().start();
 		blue.setTimer(moveTime,this).pause().start();
 	}
@@ -590,7 +590,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
-	private void nextPlayer() {
+	protected void nextPlayer() {
 		plays.getTimer().pause().reset();
 		if (plays.getColor().equals(Player.Color.RED)) {
 			plays = blue;
@@ -799,8 +799,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																		plays.getName(),
-																		move,plays.getColor().getColorStr(),
-																		Integer.toString(plays.getTimer().getElapsed())});
+																		move,plays.getColor().getColorStr()});
 		
 		String[] parsed = prot.parseCommand(moveMsg);
 		if(parsed == null){
