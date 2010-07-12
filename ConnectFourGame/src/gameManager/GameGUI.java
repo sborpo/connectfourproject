@@ -337,8 +337,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		try{
 			this.setupConnection();
 		} catch (IOException e) {
-			// TODO Handle serverSocket initialization problem
-			//e.printStackTrace();
+			theClient.logger.print_error("Problem initializing the game connection: " + e.getMessage());
 			return null;
 		}
 		
@@ -576,11 +575,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				break;
 			case I_TIMED_OUT:
 				System.out.println("I timed OUT");
-				winner= clientPlayer.getName();
+				winner= opponentPlayer.getName();
 				break;
 			case OPP_TIMED_OUT:
 				System.out.println("OPP timed OUT");
-				winner= opponentPlayer.getName();
+				winner= clientPlayer.getName();
 				break;
 		}
 		
@@ -589,7 +588,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			winner= plays.getName();
 		}
 		
-		writeToScreen("The winner is: " + winner + "\n");
+		writeToScreen("The winner is: " + winner + "!");
 		return winner;
 		
 	}
@@ -936,7 +935,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					}
 					else{
 						//HANDLE CONNECTION PROBLEMS
-						theClient.logger.print_error("While reading from socket: " + e.getMessage());
+						theClient.logger.print_error("While reading from opponent socket: " + e.getMessage());
 						reconnectOnRead=true;
 						handleReconnectionProcess();
 					}
@@ -961,6 +960,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private void setupConnection() throws IOException{
 		if (startedGame == true) {
 			serverSocket = new ServerSocket(clientGamePort);
+			serverSocket.setSoTimeout(20000);
 			// can be a timeout how much to wait for an opponent
 			writeToScreen("Waiting for opponent to connect ...");
 			opponentSocket = serverSocket.accept();

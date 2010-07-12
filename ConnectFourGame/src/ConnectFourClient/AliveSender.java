@@ -37,6 +37,7 @@ public class AliveSender extends Thread implements TimerListener{
 	}
 
 	synchronized public boolean noServerConnection(){
+		client.logger.print_info("Server connection: " + !noServerConnection);
 		return noServerConnection;
 	}
 	
@@ -58,7 +59,6 @@ public class AliveSender extends Thread implements TimerListener{
 
 	@Override
 	synchronized public void timeOutReceived(TimeOutEvent event) {
-		noServerConnection = false;
 		//send to server client Alive message!
 		try {
 			client.getServerPublicKey();
@@ -73,9 +73,9 @@ public class AliveSender extends Thread implements TimerListener{
 		
 			byte[] buffer = aliveMsg.getBytes();
 			
-				client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
-				client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
-						client.getServerAddress(), client.serverUDPPort()));
+			client.logger.print_info("I say: " + aliveMsg + " to port: " + client.serverUDPPort());
+			client.aliveSocket.send(new DatagramPacket(buffer, buffer.length,
+					client.getServerAddress(), client.serverUDPPort()));
 		} catch (Exception e) {
 			client.logger.print_error("Problems sening alive message to the server: " + e.getMessage());
 			noServerConnection = true;
