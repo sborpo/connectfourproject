@@ -99,7 +99,8 @@ public class OnlineClients {
 				server.printer.print_info("Removing: "+ key +"...");
 				OnlineClient theClient = server.clients.getClient(key);
 				if(theClient == null){
-					server.printer.print_info("SOME PROBLEM WHILE REMOVING: " + key);
+					server.printer.print_info("Problem getting the client for removal: " + key);
+					return;
 				}
 				Game game = server.games.getGame(theClient.getGame());
 				if(game != null){
