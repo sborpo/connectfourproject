@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -16,12 +17,17 @@ import javax.crypto.NoSuchPaddingException;
 
 import common.PasswordHashManager;
 import common.RSAgenerator;
+import common.StatsReport;
+import common.UserStatistics;
 import common.PasswordHashManager.SystemUnavailableException;
 
 
 
 public class DataBaseManager {
 
+
+
+	
 	public static class UserAlreadyExists extends Exception{		
 		public String getMessage(){
 			return "User is already exists in the database";
@@ -316,7 +322,40 @@ public class DataBaseManager {
 		
 	}
 	
-	
+	public static StatsReport getTopTenUsers(String username) throws SQLException
+	{
+		Connection conn=null;
+		ResultSet set=null;
+		PreparedStatement prepareStatement = null;
+		StatsReport report= new StatsReport();
+		ArrayList<UserStatistics> users = new ArrayList<UserStatistics>();
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT username,wins,loses ,(wins-loses) AS score FROM stats ORDER BY score";
+			prepareStatement = conn.prepareStatement(query);
+			set=prepareStatement.executeQuery();
+			int i=0;
+			while (set.next())
+			{
+				if (i<10)
+				{
+					users.add(new UserStatistics(set.getString("username"),set.getInt("wins"), set.getInt("loses")));
+				}
+				if (set.getString("username").equals(username))
+				{
+					report.setCurrentUser(new UserStatistics(set.getString("username"),set.getInt("wins"), set.getInt("loses")));
+				}
+			}
+			report.setTopTen(users);
+			return report;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+	}
 	public static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
 		Connection conn=null;
@@ -354,6 +393,8 @@ public class DataBaseManager {
 			if (conn!=null){conn.close();}
 		}	
 	}
+	
+	
 	
 	public static void  removeGame(String gameId) throws SQLException, GameIdNotExists
 	{

@@ -31,6 +31,7 @@ import javax.net.ssl.SSLSocket;
 import common.OnlineClient;
 import common.PasswordHashManager;
 import common.RSAgenerator;
+import common.StatsReport;
 import common.UnhandeledReport;
 import common.UnhandledReports;
 import common.PasswordHashManager.SystemUnavailableException;
@@ -165,6 +166,9 @@ public class RequestHandler implements Runnable {
 			else if(command.equals(ClientServerProtocol.GAMELIST)){
 				respondMsg = getOnlineGamesTreat();
 			}
+			else if(command.equals(ClientServerProtocol.STATS_REQUEST)){
+				respondMsg = getStatisticsTreat(params[1]);
+			}
 			else if(command.equals(ClientServerProtocol.WATCH)){
 				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3]);
 			}
@@ -179,6 +183,16 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
+	private Object getStatisticsTreat(String username) {
+		StatsReport users=null;	
+		try {
+			 users=DataBaseManager.getTopTenUsers(username);
+		} catch (SQLException e) {
+			return null;
+		}
+		return users;
+	}
+
 	private Object playerDisconnectTreat(String clientName) {
 		server.clients.removeClient(clientName);
 		server.getUdpListener().removeClient(clientName);
