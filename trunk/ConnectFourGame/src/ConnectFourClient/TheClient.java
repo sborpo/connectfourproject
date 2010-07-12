@@ -297,7 +297,7 @@ public class TheClient {
 
 	}
 	
-	public void getServerPublicKey(){
+	public Key getServerPublicKey(){
 		logger.print_info("Getting the public key of server...");
 		Key serverKey = null;
 		try {
@@ -305,7 +305,13 @@ public class TheClient {
 		} catch (IOException e) {
 			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
 		}
-		RSAgenerator.setEncKey(serverKey);
+		if(serverKey != null){
+			RSAgenerator.setEncKey(serverKey);
+			return serverKey;
+		}
+		else{
+			return null;
+		}
 	}
 	
 	private Properties getProperties(){
@@ -357,7 +363,10 @@ public class TheClient {
 	
 	public Object sendMessageToServer(String message) throws IOException
 	{
-		getServerPublicKey();
+		Key srvPK= getServerPublicKey();
+		if(srvPK == null){
+			throw new IOException("Problems while getting server PK");
+		}
 		return innerSendMessageToServer(message);
 	}
 	
