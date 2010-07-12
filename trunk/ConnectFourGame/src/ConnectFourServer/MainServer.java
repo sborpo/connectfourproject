@@ -148,14 +148,10 @@ public class MainServer {
 		
 		while (true) {
 
-			// Here the server accepts new connections,
-			// TODO: we need to build another state when the server checks his
-			// open Games data structure
-			// and acts according to the algorithms of the game (checking that
-			// the client is still connection and etc..)
 			try {
-				connectionsPool.execute(new RequestHandler((SSLSocket)serverSocket
-						.accept(), this));
+				SSLSocket sock= (SSLSocket)serverSocket.accept();
+				sock.setSoTimeout(20000);
+				connectionsPool.execute(new RequestHandler(sock, this));
 			} catch (IOException e) {
 				printer.print_error("Probem while accepting socket connection: "+ e.getMessage());
 			}

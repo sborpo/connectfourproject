@@ -64,6 +64,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		connAs2.setForeground(java.awt.Color.BLUE);
 		timerBoxContainer = Box.createHorizontalBox();
 		watching = false;
+		setLocationRelativeTo(null);
 	}
 	
 	private Box createStopWatchButton(){
