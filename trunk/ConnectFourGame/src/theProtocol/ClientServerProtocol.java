@@ -46,6 +46,7 @@ public class ClientServerProtocol {
 	public static final String SOCKETREFRESH = "SOCKET_REFRESH";
 	public static final String DISCONNECT = "DISCONNECT";
 	public static final String ISURRENDER = "I_SURRENDER!";
+	public static final String STATS_REQUEST = "STATS_REQUEST";
 	
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
@@ -74,6 +75,8 @@ public class ClientServerProtocol {
 			legalCommands.add(BATCHGAMESREPORT);
 			legalCommands.add(GETPUBKEY);
 			legalCommands.add(DISCONNECT);
+			legalCommands.add(STATS_REQUEST);
+			
 		}
 		//Commands CLIENT can receive
 		else{
@@ -125,6 +128,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(SOCKETREFRESH, 0);
 		numOfParametersForCmd.put(DISCONNECT, 1);
 		numOfParametersForCmd.put(ISURRENDER, 0);
+		numOfParametersForCmd.put(STATS_REQUEST, 1);
 	}
 	
 	public String[] parseCommand(String command){

@@ -30,6 +30,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+import common.StatsReport;
+
 import theProtocol.ClientServerProtocol;
 import ConnectFourClient.TheClient.ServerWriteOrReadException;
 import ConnectFourServer.GameForClient;
@@ -68,7 +70,8 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		menuBar.add(menu1);
 		menu1Item1= new JMenuItem("Refresh Game List");
 		menu1Item1.addActionListener(this);
-		menu1Item2= new JMenuItem("firstItem");
+		menu1Item2= new JMenuItem("Game Statistics");
+		menu1Item2.addActionListener(this);
 		menu1.add(menu1Item1);
 		menu1.add(menu1Item2);
 		setJMenuBar(menuBar);
@@ -363,8 +366,36 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			getOnlineGames();
 			return;
 		}
+		if (e.getSource()==menu1Item2)
+		{
+			openStatsWindow();
+			return;
+		}
 		
 	}
+	
+	private void openStatsWindow() {
+
+		StatsReport response= new StatsReport();
+		try {
+			response = (StatsReport)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.STATS_REQUEST,
+																												client.getClientName()}));
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+			return;
+		} catch (ServerWriteOrReadException e) {
+			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");
+			clearTables();
+			return;
+		}
+		if (response==null)
+		{
+			JOptionPane.showMessageDialog(null,"There are no statistics available");
+			return;
+		}
+		new StatsWindow(response);
+	}
+	
 	
 	public void showMessageDialog(String msg,String type){
 		if(type.equals(MsgType.info)){
