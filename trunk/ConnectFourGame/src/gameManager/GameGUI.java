@@ -553,9 +553,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			this.sleepAWhile(1000);
 		}
 		if(succeeded){
+			this.blocked = false;
 			this.resetConnection();
 		}
-		this.blocked = false;
+		
 	}
 
 	private String decideWinner() {
@@ -830,11 +831,25 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private void timeOutHandler(){
 		this.stopTimers();
 		if(plays.equals(clientPlayer)){
-			System.out.println("MY TIMEOUT");
-			state = GameState.I_TIMED_OUT;
+			theClient.logger.print_info("My timer is timed out!");
+			//no server connection - my timeout - I lose
+			if(theClient.getAliveSender().noServerConnection()){
+				state = GameState.I_TIMED_OUT;
+			}
+			//there is server connection but cannot send move - opp lose
+			else if(this.blocked){
+				state = GameState.OPP_TIMED_OUT;
+			}
+			//else- there are all connection - I lose
+			else{
+				state = GameState.I_TIMED_OUT;
+			}
 		}
 		else{
-			System.out.println("opp TIMEOUT");
+			theClient.logger.print_info("Opponents timer is timed out!");
+			if(theClient.getAliveSender().noServerConnection()){
+				state = GameState.I_TIMED_OUT;
+			}
 			state = GameState.OPP_TIMED_OUT;
 		}
 		
@@ -859,7 +874,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		// write your move
 		boolean reconnectOnRead= true;
-		while (reconnectOnRead)
+		while (reconnectOnRead && state.equals(GameState.PROCEED))
 		{	
 			if(!state.equals(GameState.PROCEED)){
 				break;
@@ -891,11 +906,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		String move = null;
 		if(opponentIn != null){
 			boolean reconnectOnRead= true;
-			while (reconnectOnRead)
+			while (reconnectOnRead && state.equals(GameState.PROCEED))
 			{	
-				if(!state.equals(GameState.PROCEED)){
-					break;
-				}
 				reconnectOnRead=false;
 				try {
 					String moveMsg = (String)opponentIn.readObject();

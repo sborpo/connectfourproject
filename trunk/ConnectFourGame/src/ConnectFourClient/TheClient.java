@@ -110,7 +110,9 @@ public class TheClient {
 		return game.getGameHistory();
 	}
 	
-
+	public AliveSender getAliveSender(){
+		return echoServerListener;
+	}
 	
 	public static class Viewer extends  OnlineClient
 	{
@@ -150,11 +152,12 @@ public class TheClient {
 			if(viewerWriter == null){
 				return;
 			}
-			transmitter.logger.print_info("Sending to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
+			transmitter.logger.print_info("Sending to: " + this.getName() + ", on: " + this.getTCPPort() + " move: " + move);
 			viewerWriter.println(move);
 			viewerWriter.println();
 			if (viewerWriter.checkError())
 			{
+				transmitter.logger.print_error("Problem sending move to watcher: " + this.getName() + ", no more moves will be sent to this player");
 				endTransmition();
 				throw new SendingToWatcherProblem();
 			}
@@ -311,17 +314,17 @@ public class TheClient {
 
 	}
 	
-	public Key getServerPublicKey(){
+	public Key getServerPublicKey() throws IOException, ServerWriteOrReadException{
 		logger.print_info("Getting the public key of server...");
 		Key serverKey = null;
-		try {
+//		try {
 			serverKey = (Key)innerSendMessageToServer(ClientServerProtocol.GETPUBKEY);
 			
-		} catch (IOException e) {
-			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
-		} catch (ServerWriteOrReadException e) {
-			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
-		}
+//		} catch (IOException e) {
+//			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
+//		} catch (ServerWriteOrReadException e) {
+//			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
+//		}
 		if(serverKey != null){
 			RSAgenerator.setEncKey(serverKey);
 			return serverKey;
@@ -347,32 +350,32 @@ public class TheClient {
 	
 	private void parseArguments(String[] args) {
 		//From Prroperites
-//		Properties props = getProperties();
-//		
-//		//serverHost = (args[0]);
-//		serverHost = props.getProperty("SERVER_HOST");
-//		logger.print_info("Server: " + serverHost);
-//		//serverPort = Integer.parseInt(args[1]);
-//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-//		logger.print_info("Server TCP port: "+serverPort);
-//		//clientUdp = Integer.parseInt(args[2]);
-//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-//		logger.print_info("Client Udp Listen port: "+clientUdp);
-//		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-//		//clientGamePort = Integer.parseInt(args[4]);
-//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-//		logger.print_info("Client Game port: "+clientGamePort);
+		Properties props = getProperties();
+		
+		//serverHost = (args[0]);
+		serverHost = props.getProperty("SERVER_HOST");
+		logger.print_info("Server: " + serverHost);
+		//serverPort = Integer.parseInt(args[1]);
+		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+		logger.print_info("Server TCP port: "+serverPort);
+		//clientUdp = Integer.parseInt(args[2]);
+		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+		logger.print_info("Client Udp Listen port: "+clientUdp);
+		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+		//clientGamePort = Integer.parseInt(args[4]);
+		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+		logger.print_info("Client Game port: "+clientGamePort);
 		
 		
 		//From command line
 		
-		serverHost = (args[0]);
-		serverPort = Integer.parseInt(args[1]);
-		clientUdp = Integer.parseInt(args[2]);
-		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientGamePort = Integer.parseInt(args[4]);
+//		serverHost = (args[0]);
+//		serverPort = Integer.parseInt(args[1]);
+//		clientUdp = Integer.parseInt(args[2]);
+//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientGamePort = Integer.parseInt(args[4]);
 		
 		
 		clientWatchPort= clientGamePort;
@@ -426,7 +429,6 @@ public class TheClient {
 			return null;
 		}
 		else if(params[0].equals(ClientServerProtocol.MEETME)){
-			getServerPublicKey();
 			clientUdp = Integer.parseInt(params[1]);
 			clientName = params[2];
 			password = params[3];
@@ -445,7 +447,6 @@ public class TheClient {
 			clientWatchPort = Integer.parseInt(params[1]);
 		}
 		else if(params[0].equals(ClientServerProtocol.SIGNUP)){
-			getServerPublicKey();
 			clientName = params[1];
 			password = params[2];
 			params[2] = preparePassword(params[2]);
