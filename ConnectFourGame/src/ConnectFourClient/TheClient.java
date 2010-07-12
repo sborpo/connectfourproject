@@ -8,10 +8,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ import java.util.Properties;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.swing.SwingUtilities;
 
 import common.LogPrinter;
 import common.PasswordHashManager;
@@ -44,7 +47,7 @@ public class TheClient {
 	final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
 	
 	static public int unDEFport = -1; 
-	
+	public static class ServerWriteOrReadException extends Exception{}
 	public LogPrinter logger = null;
 	private int serverUdpPort = unDEFport;
 	private int serverPort = unDEFport;
@@ -245,7 +248,7 @@ public class TheClient {
 		}
 	}	
 	
-	public Object innerSendMessageToServer(String message) throws IOException{
+	public Object innerSendMessageToServer(String message) throws IOException, ServerWriteOrReadException{
 		SSLSocket serverConnection = null;
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 		
@@ -259,6 +262,8 @@ public class TheClient {
 		try{
 			serverConnection = (SSLSocket)sslsocketfactory.createSocket(serverAddress, serverPort);
 			serverConnection.setEnabledCipherSuites(enabledCipherSuites);
+			//set a 20 sec timeout to server answer
+			serverConnection.setSoTimeout(20000);
 		}
 		catch (IOException ex){
 			logger.print_error("Connection problems with server: "+ ex.getMessage());
@@ -272,6 +277,12 @@ public class TheClient {
 		logger.print_info("Sending your message: "+ str+" to the server...");
 		out.println(str);
 		out.println();
+		//checking that there were no errors on sending
+		if (out.checkError())
+		{
+			//there was an error
+			throw new ServerWriteOrReadException();
+		}
 		ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
 		logger.print_info("READING socket...");
 		Object resp=null;
@@ -281,6 +292,9 @@ public class TheClient {
 				logger.print_info("Server Response is:" + resp);
 				
 			}
+		}catch (SocketTimeoutException e)
+		{
+			throw new ServerWriteOrReadException();
 		} catch (ClassNotFoundException e) {
 			//class will always be found
 		}
@@ -302,7 +316,10 @@ public class TheClient {
 		Key serverKey = null;
 		try {
 			serverKey = (Key)innerSendMessageToServer(ClientServerProtocol.GETPUBKEY);
+			
 		} catch (IOException e) {
+			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
+		} catch (ServerWriteOrReadException e) {
 			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
 		}
 		if(serverKey != null){
@@ -330,38 +347,38 @@ public class TheClient {
 	
 	private void parseArguments(String[] args) {
 		//From Prroperites
-		Properties props = getProperties();
-		
-		//serverHost = (args[0]);
-		serverHost = props.getProperty("SERVER_HOST");
-		logger.print_info("Server: " + serverHost);
-		//serverPort = Integer.parseInt(args[1]);
-		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-		logger.print_info("Server TCP port: "+serverPort);
-		//clientUdp = Integer.parseInt(args[2]);
-		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-		logger.print_info("Client Udp Listen port: "+clientUdp);
-		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-		//clientGamePort = Integer.parseInt(args[4]);
-		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-		logger.print_info("Client Game port: "+clientGamePort);
+//		Properties props = getProperties();
+//		
+//		//serverHost = (args[0]);
+//		serverHost = props.getProperty("SERVER_HOST");
+//		logger.print_info("Server: " + serverHost);
+//		//serverPort = Integer.parseInt(args[1]);
+//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+//		logger.print_info("Server TCP port: "+serverPort);
+//		//clientUdp = Integer.parseInt(args[2]);
+//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+//		logger.print_info("Client Udp Listen port: "+clientUdp);
+//		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+//		//clientGamePort = Integer.parseInt(args[4]);
+//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+//		logger.print_info("Client Game port: "+clientGamePort);
 		
 		
 		//From command line
 		
-//		serverHost = (args[0]);
-//		serverPort = Integer.parseInt(args[1]);
-//		clientUdp = Integer.parseInt(args[2]);
-//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientGamePort = Integer.parseInt(args[4]);
+		serverHost = (args[0]);
+		serverPort = Integer.parseInt(args[1]);
+		clientUdp = Integer.parseInt(args[2]);
+		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientGamePort = Integer.parseInt(args[4]);
 		
 		
 		clientWatchPort= clientGamePort;
 	}
 	
-	public Object sendMessageToServer(String message) throws IOException
+	public Object sendMessageToServer(String message) throws IOException, ServerWriteOrReadException
 	{
 		Key srvPK= getServerPublicKey();
 		if(srvPK == null){
@@ -467,7 +484,12 @@ public class TheClient {
 		this.startTransmitionWaiter();
 		
 		game  = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this,unDEFport);
+
 		((GameGUI)game).setVisible(true);
+		System.out.println("check");
+		System.out.println("check");
+		System.out.println("check");
+		System.out.println("check");
 		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		
 		if (gameReportH != null)
@@ -537,6 +559,9 @@ public class TheClient {
 		
 		}catch (IOException e1) {
 			this.logger.print_error(e1.getMessage() + "Saving the report locally..." );
+			saveLocalReport(gameReportH);
+		} catch (ServerWriteOrReadException e) {
+			this.logger.print_error(e.getMessage() + "Saving the report locally..." );
 			saveLocalReport(gameReportH);
 		}
 		
@@ -651,9 +676,12 @@ public class TheClient {
 		{
 			logger.print_error(ex.getMessage());
 			//never mind , it will remove us because of the udp listener
+		} catch (ServerWriteOrReadException e) {
+			logger.print_error(e.getMessage());
+			//never mind , it will remove us because of the udp listener
 		}			
 	}
-	public boolean reportUnhandeledReports() throws FileChanged, IOException {
+	public boolean reportUnhandeledReports() throws FileChanged, IOException, ServerWriteOrReadException {
 		UnhandledReports reports=null;
 		try {
 			reports = new UnhandledReports(clientName);

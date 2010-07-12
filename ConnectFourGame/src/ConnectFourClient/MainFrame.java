@@ -1,6 +1,10 @@
 package ConnectFourClient;
 
+import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Dialog.ModalExclusionType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,6 +31,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import theProtocol.ClientServerProtocol;
+import ConnectFourClient.TheClient.ServerWriteOrReadException;
 import ConnectFourServer.GameForClient;
 
 
@@ -50,16 +55,17 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	public TheClient client;
 	JButton addGame;
 	
+	
+
+	
 	public MainFrame(String [] args) throws IOException
 	{
 		super("The Main Client Window");
 		setColumnsNames();
 		menuBar = new JMenuBar();
 		//Build the first menu.
-		menu1 = new JMenu("FirstMenu");
-		menu2= new JMenu("Second Menu");
+		menu1 = new JMenu("Options");
 		menuBar.add(menu1);
-		menuBar.add(menu2);
 		menu1Item1= new JMenuItem("Refresh Game List");
 		menu1Item1.addActionListener(this);
 		menu1Item2= new JMenuItem("firstItem");
@@ -71,8 +77,8 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		setSize(500, 500);
 		client=new TheClient(args);
 		this.addWindowListener(this);
+		setLocationRelativeTo(null);
 		setVisible(true);
-		setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		new LoginWindow(this);
 	}
@@ -135,11 +141,15 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	@SuppressWarnings("unchecked")
 	public void getOnlineGames()
 	{
-		ArrayList<GameForClient> response;
+		ArrayList<GameForClient> response= new ArrayList<GameForClient>();
 		try {
 			response = (ArrayList<GameForClient>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+			return;
+		} catch (ServerWriteOrReadException e) {
+			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");
+			clearTables();
 			return;
 		}
 		if (response==null)
@@ -151,7 +161,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		setUpOnlineGames(response);
 		
 	}
-	
+
 	private void clearTables()
 	{
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
@@ -203,6 +213,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private void joinGameClicked()
 	{
 		int rowIndex=openGames.getSelectedRow();
+		if (((String)openGames.getValueAt(rowIndex, 2)).equals(client.getClientName()))
+		{
+			JOptionPane.showMessageDialog(null,"Unfortunately you cannot play agains yourself!");
+			return;
+		}
 		try {
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.PLAY,
 																								  String.valueOf(client.getGamePort()),
@@ -219,15 +234,25 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				JOptionPane.showMessageDialog(null,"There was a server internal error");
 				return;
 			}
+			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.DENIED))
+			{
+				JOptionPane.showMessageDialog(null,"This game doesn't exists or someone else\n is connected , Updating game list...");
+				getOnlineGames();
+				return;
+			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
 			{
 				JOptionPane.showMessageDialog(null,"You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!");
 				client.HandleGoGoGoGUI(client.parseServerResponse(response),this);
+				getOnlineGames();
 				return;
 			}
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+		} catch (ServerWriteOrReadException e) {
+			JOptionPane.showMessageDialog(null,"There was a communication problem with the server, please retry...");
+			return;
 		}
 	}
 	
@@ -252,6 +277,9 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+		} catch (ServerWriteOrReadException e) {
+			JOptionPane.showMessageDialog(null,"There was a communication problem with the server, please retry...");
+			return;
 		}
 	}
 	
@@ -273,10 +301,21 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				JOptionPane.showMessageDialog(null,"There was a server internal error");
 				return;
 			}
+			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.DENIED))
+			{
+				JOptionPane.showMessageDialog(null,"This game doesn't exists anymore , Updating game list...");
+				getOnlineGames();
+				return;
+			}
 			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 2));
+			//after watching is completed , now refresh the gamelist
+			getOnlineGames();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
+		} catch (ServerWriteOrReadException e) {
+			JOptionPane.showMessageDialog(null,"There was a communication problem with the server, please retry...");
+			return;
 		}
 	}
 	@Override

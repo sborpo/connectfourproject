@@ -24,6 +24,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import ConnectFourClient.MainFrame.MsgType;
+import ConnectFourClient.TheClient.ServerWriteOrReadException;
 
 import common.UnhandledReports.FileChanged;
 
@@ -40,6 +41,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 	private MainFrame father;
 	public LoginWindow(MainFrame MainWindow)
 	{
+
 		super(MainWindow, "Authentication Window", true);
 		father= MainWindow;
 		mainPane = new JPanel();
@@ -69,6 +71,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		});
 			
 		setSize(300, 150);
+		setLocationRelativeTo(null);
 		setVisible(true);
 	}
 	
@@ -125,10 +128,14 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				}
 				
 				father.getOnlineGames();
+				father.setTitle("Connected As: "+username.getText());
 				this.setVisible(false);
 			} catch (IOException e1) {
 				// TODO Handle connection problem
 				e1.printStackTrace();
+				father.showMessageDialog("A problem with server connection",MsgType.error);
+				return;
+			} catch (ServerWriteOrReadException ex) {
 				father.showMessageDialog("A problem with server connection",MsgType.error);
 				return;
 			} 

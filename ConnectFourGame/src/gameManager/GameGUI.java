@@ -151,6 +151,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			int clientGamePort, String opponentHost, int opponentGamePort,
 			boolean startedGame, TheClient theClient,int opponentTransmitWaiterPort) {	
 		//this.setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
+		super(mainFrame, true);
 		this.mainFrame=mainFrame;
 		this.clientGamePort=clientGamePort;
 		this.opponentHost=opponentHost;
@@ -179,6 +180,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		arr[3]=createConsolseBox();
 		this.addWindowListener(this);
 		AdjustGUIView(arr);	
+		this.setModal(true);
+		setLocationRelativeTo(null);
 	}
 	
 	

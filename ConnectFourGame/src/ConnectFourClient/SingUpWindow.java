@@ -1,7 +1,11 @@
 package ConnectFourClient;
 
 import java.awt.BorderLayout;
+import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -21,6 +25,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import ConnectFourClient.MainFrame.MsgType;
+import ConnectFourClient.TheClient.ServerWriteOrReadException;
 
 import theProtocol.ClientServerProtocol;
 
@@ -38,6 +43,12 @@ public class SingUpWindow extends JDialog implements MouseListener{
 	private JLabel confirmPasswordLabel;
 	private JTextArea log;
 	private MainFrame main;
+	
+	
+	
+
+	
+	
 	public SingUpWindow(JDialog father,MainFrame main)
 	{
 		super(father, "Sign Up Window", true);
@@ -62,6 +73,7 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		getContentPane().add(mainPane,BorderLayout.PAGE_START);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		pack();
+		setLocationRelativeTo(null);
 		setVisible(true);
 	}
 	
@@ -138,6 +150,9 @@ public class SingUpWindow extends JDialog implements MouseListener{
 	
 		} catch (IOException e1) {
 			//TODO: handle with server problems , retry reconnect
+			main.showMessageDialog("A problem with server connection",MsgType.error);
+			return;
+		} catch (ServerWriteOrReadException ex) {
 			main.showMessageDialog("A problem with server connection",MsgType.error);
 			return;
 		}
