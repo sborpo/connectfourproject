@@ -971,7 +971,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private void setupConnection() throws IOException{
 		if (startedGame == true) {
 			serverSocket = new ServerSocket(clientGamePort);
-			serverSocket.setSoTimeout(20000);
 			// can be a timeout how much to wait for an opponent
 			writeToScreen("Waiting for opponent to connect ...");
 			opponentSocket = serverSocket.accept();
