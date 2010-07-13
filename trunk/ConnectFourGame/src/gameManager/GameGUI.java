@@ -559,7 +559,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
-	private String decideWinner() {
+	synchronized private String decideWinner() {
 		String winner = null;
 		switch(state){
 			case TIE: 
@@ -861,7 +861,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				theClient.logger.print_info("I had no server connection");
 				state = GameState.I_TIMED_OUT;
 			}
-			state = GameState.OPP_TIMED_OUT;
+			else{
+				state = GameState.OPP_TIMED_OUT;
+			}
 		}
 		
 		synchronized (pending) {
