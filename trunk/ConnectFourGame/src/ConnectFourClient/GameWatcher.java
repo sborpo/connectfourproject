@@ -41,6 +41,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 	private String redPlayer;
 	private String bluePlayer;
 	private boolean watching;
+	private JButton stopWatch;
 	
 	public GameWatcher(TheClient client,String redPlayer,String bluePlayer)
 	{	
@@ -69,7 +70,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 	
 	private Box createStopWatchButton(){
 		Box stopWatchBox = Box.createHorizontalBox();
-		JButton stopWatch= new JButton(GameWatcher.STOP_WATCH);
+		stopWatch= new JButton(GameWatcher.STOP_WATCH);
 		stopWatch.setName(GameWatcher.STOP_WATCH);
 		stopWatch.setHorizontalAlignment(SwingConstants.RIGHT);
 		stopWatchBox.add(stopWatch);
@@ -145,8 +146,12 @@ public class GameWatcher extends GameGUI implements Runnable{
 					else if(parsed[0].equals(ClientServerProtocol.GAMEREPORT)){
 						String winner = parseReport(parsed);
 						if(winner != null){
-							client.logger.print_info(winner + " is the winner!");
-							writeToScreen(winner + " is the winner!");
+							if(winner.equals(Game.gameWinner.NO_WINNER)){
+								writeToScreen("There is no winner!");
+							}
+							else{
+								writeToScreen(winner + " is the winner!");
+							}
 							throw new GameEndedException();
 						}
 						else{
@@ -175,9 +180,14 @@ public class GameWatcher extends GameGUI implements Runnable{
 			client.logger.print_info("The game is over!");
 		}
 		finally{
+			this.stopTimers();
 			this.stopWatching();
-			this.setVisible(false);
 		}
+	}
+	
+	private void watchOver(){
+		stopWatch.removeMouseListener(this);
+		this.setVisible(false);
 	}
 	
 	private void stopWatching(){
@@ -242,6 +252,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		if (buttonName.equals(GameWatcher.STOP_WATCH))
 		{
 			this.stopWatching();
+			this.watchOver();
 		}		
 	}
 	

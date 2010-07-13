@@ -3,6 +3,7 @@ package ConnectFourClient;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 
 import ConnectFourClient.TheClient.ServerWriteOrReadException;
@@ -79,6 +80,16 @@ public class AliveSender extends Thread implements TimerListener{
 		} catch (Exception e) {
 			client.logger.print_error("Problems sening alive message to the server: " + e.getMessage());
 			noServerConnection = true;
+			try{
+				InetAddress googleAddr = InetAddress.getByName("www.google.com");
+				boolean isReachable = googleAddr.isReachable(5000);
+				if(isReachable){
+					noServerConnection = false;
+				}
+			}
+			catch(IOException e1){
+				//DO NOTHING
+			}
 		}
 		finally{
 			delayTimer.restart();

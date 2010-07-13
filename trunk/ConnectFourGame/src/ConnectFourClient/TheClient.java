@@ -487,37 +487,20 @@ public class TheClient {
 		game  = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this,unDEFport);
 
 		((GameGUI)game).setVisible(true);
-		System.out.println("check");
-		System.out.println("check");
-		System.out.println("check");
-		System.out.println("check");
-		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
-		
-		if (gameReportH != null)
-		{
-			//send the report to the viewers
-			makeReportToViewers(gameReportH);
-			//send the report to the server
-			makeReportToServer(gameReportH);
-		}
-		else{
-			System.out.println("GAME REPORT IS NULL");
-			//send the report to the server
-			makeReportToServer(this.getEmptyReport());
-		}
+		//UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		this.closeTransmitions();
 		gameId = ClientServerProtocol.noGame;
 	}
 		
 	
-	private UnhandeledReport getEmptyReport() {
+	public UnhandeledReport getEmptyReport() {
 		UnhandeledReport gameReport = new UnhandeledReport(this.gameId,this.clientName,
 											Boolean.toString(Game.gameRes.NO_WINNER),
 											Game.gameWinner.GAME_NOT_PLAYED);
 		return gameReport;
 	}
 
-	private void makeReportToViewers(UnhandeledReport gameReportH) {
+	public void makeReportToViewers(UnhandeledReport gameReportH) {
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 				gameReportH.getGameId(),
@@ -532,7 +515,7 @@ public class TheClient {
 		getTransmitWaiter().sendMoveToViewers(gameReport);
 	}
 	
-	private void makeReportToServer(UnhandeledReport gameReportH) {
+	public void makeReportToServer(UnhandeledReport gameReportH) {
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.SERVER);
 		String preparedPass = preparePassword(password);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
@@ -605,19 +588,7 @@ public class TheClient {
 		this.startTransmitionWaiter();
 		game= new  GameGUI(opponentName, clientName,gameId,mainFrame,clientGamePort,opponentGameHost,opponentGamePort, false,this,opponentTransmitWaiterPort);
 		((GameGUI)game).setVisible(true);
-		UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
-		if (gameReportH!=null)
-		{
-			//send the report to the viewers
-			makeReportToViewers(gameReportH);
-			//send the report to the server
-			makeReportToServer(gameReportH);
-		}
-		else{
-			System.out.println("GAME REPORT IS NULL");
-			//send the report to the server
-			makeReportToServer(this.getEmptyReport());
-		}
+		//UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();	
 		this.closeTransmitions();
 		gameId = ClientServerProtocol.noGame;
 	}
