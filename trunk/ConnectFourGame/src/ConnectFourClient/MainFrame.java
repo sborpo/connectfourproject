@@ -148,7 +148,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		try {
 			response = (ArrayList<GameForClient>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
 		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");
 			return;
 		} catch (ServerWriteOrReadException e) {
 			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");

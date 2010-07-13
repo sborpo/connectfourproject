@@ -338,7 +338,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		try{
 			this.setupConnection();
 		} catch (IOException e) {
-			theClient.logger.print_error("Problem initializing the game connection: " + e.getMessage());
+			writeToScreen("Problem initializing the game connection: " + e.getMessage());
 			return null;
 		}
 		
@@ -858,6 +858,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		else{
 			theClient.logger.print_info("Opponents timer is timed out!");
 			if(theClient.getAliveSender().noServerConnection()){
+				theClient.logger.print_info("I had no server connection");
 				state = GameState.I_TIMED_OUT;
 			}
 			state = GameState.OPP_TIMED_OUT;

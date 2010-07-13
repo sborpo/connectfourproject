@@ -38,7 +38,7 @@ public class AliveSender extends Thread implements TimerListener{
 	}
 
 	synchronized public boolean noServerConnection(){
-		client.logger.print_info("Server connection: " + !noServerConnection);
+		client.logger.print_info("Server no connection: " + noServerConnection);
 		return noServerConnection;
 	}
 	
@@ -83,6 +83,7 @@ public class AliveSender extends Thread implements TimerListener{
 			try{
 				InetAddress googleAddr = InetAddress.getByName("www.google.com");
 				boolean isReachable = googleAddr.isReachable(5000);
+				client.logger.print_info("google is reachable: "+isReachable);
 				if(isReachable){
 					noServerConnection = false;
 				}
