@@ -238,6 +238,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	protected void setGameDisabled(){
 		surrender.removeMouseListener(this);
+		surrender.setEnabled(false);
 	}
 	
 	protected Box createConsolseBox()
@@ -464,7 +465,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		blue.setTimer(moveTime,this).pause().start();
 	}
 	
-	private void stopTimers(){
+	protected void stopTimers(){
 		Timer timer = null;
 		timer = red.getTimer();
 		if(timer != null){
@@ -625,11 +626,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			return;
 		}
 		synchronized (pending) {
-			String buttonName=((JButton)e.getComponent()).getName();
+			JButton theButton = ((JButton)e.getComponent());
+			String buttonName=theButton.getName();
 			//The client is surrender
 			if (buttonName.equals(ClientServerProtocol.ISURRENDER))
 			{
 				this.clickedByPlayer=buttonName;
+//				theButton.removeMouseListener(this);
+//				theButton.setEnabled(false);
 			}
 			
 			if (pending.isPending())
@@ -693,7 +697,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	public void run() {
 		System.out.println("STARTING GAME");
 		gameReport=startOnlineGame(clientGamePort,(String)opponentHost,opponentGamePort,opponentTransmitWaiterPort,startedGame,theClient);
-		this.setVisible(false);
+		//this.setVisible(false);
+		if(gameReport == null){
+			gameReport = theClient.getEmptyReport();
+		}
+		theClient.makeReportToViewers(gameReport);
+		//send the report to the server
+		theClient.makeReportToServer(gameReport);
+		
 		System.out.println("GUI IS FINISHED: "+gameReport );
 	}
 
