@@ -23,7 +23,8 @@ public interface Game {
 				int opponentTransmitWaiterPort,
 				boolean startsGame, TheClient theClient);
 	//public void startGame();
- 	public void addPlayer(String player2);
+ 	public void addPlayer(String player);
+ 	public void removeSecondPlayer();
  	public Player getPlayer(Player.Color pColor);
  	public String getId();
  	public ArrayList<String> getGameHistory();
