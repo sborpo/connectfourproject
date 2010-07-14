@@ -321,9 +321,8 @@ public class RequestHandler implements Runnable {
 								UnhandledReports reports = new UnhandledReports(server.ReportFileName);
 								try {
 									reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
-									server.printer.print_error("The report was added correctly");
+									server.printer.print_info("The report for game: " + gameId + " was added locally correctly");
 								} catch (IOException e1) {
-									
 									//the server couldn't save the report, so return to the user the responsibility
 									server.printer.print_error("The server couln't save to report file: "+gameId);
 									response = ClientServerProtocol.SERVPROB;
@@ -334,7 +333,7 @@ public class RequestHandler implements Runnable {
 							} catch (FileChanged e1) {
 								//Ignore
 							}
-							server.printer.print_error("The server couldn't save report to DB, but saved to local file: " + gameId);
+							server.printer.print_error("The server couldn't save report to DB, but saved to local file");
 							response = ClientServerProtocol.OK;
 						} 
 						catch (GameIdNotExists e) {

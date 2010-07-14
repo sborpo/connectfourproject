@@ -105,7 +105,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				}
 				if (father.client.parseServerResponse(response)[0].equals(ClientServerProtocol.USERNOTEXISTS))
 				{
-					father.showMessageDialog("The username that you have typed doesn't exists \n Please Sign Up",MsgType.error);
+					father.showMessageDialog("The username not exists or wrong password \n Please, try again or Sign Up",MsgType.error);
 					return;
 				}
 				//else log the user into the main window
