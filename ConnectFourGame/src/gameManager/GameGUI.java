@@ -45,6 +45,7 @@ import theProtocol.ClientServerProtocol.msgType;
 
 import ConnectFourClient.MainFrame;
 import ConnectFourClient.TheClient;
+import ConnectFourClient.MainFrame.MsgType;
 
 public class GameGUI extends JDialog implements MouseListener,TimerListener,Runnable,Game,WindowListener{
 	
@@ -85,6 +86,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	protected Boolean reconnect = false;
 	protected boolean blocked = false;
 	protected boolean closing = false;
+	protected String errorMessage = null;
+	protected String infoMessage = null;
 	
 	//START ONLINE GAME PARAMETERS
 	protected boolean startedGame = false;
@@ -321,6 +324,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	public void popupDialog(String message,String type){
+		theClient.logger.print_error(message);
+		mainFrame.showMessageDialog(message, type);
+	}
+	
 	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort,
 											int opponentTransmitWaiterPort,boolean startsGame, TheClient theClient) {
 		startedGame = startsGame;
@@ -338,7 +346,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		try{
 			this.setupConnection();
 		} catch (IOException e) {
-			writeToScreen("Problem initializing the game connection: " + e.getMessage());
+			if(!closing){
+				errorMessage = "Problem initializing the game connection: " + e.getMessage();
+				//popupDialog("Problem initializing the game connection: " + e.getMessage());
+			}
 			return null;
 		}
 		
@@ -376,7 +387,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 							writeToScreen("opp HOST: " + this.opponentHost);
 							boolean res = AsynchroniousISurrender();
 							if(!res){
-								writeToScreen("Problem sending surrender message to opponent");
+								//errorMessage = "Problem sending surrender message to opponent";
+								popupDialog("Problem sending surrender message to opponent",MsgType.error);
 							}
 							state=GameState.I_SURRENDED;
 							break;
@@ -664,6 +676,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		while(succeeded == false){
 			System.out.println("send I surr to opp");
 			succeeded = sendMessageGetResponse(ClientServerProtocol.ISURRENDER);
+			if(!succeeded){
+				this.sleepAWhile(1000);
+			}
 		}
 		this.blocked = false;
 		return succeeded;
@@ -704,7 +719,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		theClient.makeReportToViewers(gameReport);
 		//send the report to the server
 		theClient.makeReportToServer(gameReport);
-		
+		if(errorMessage != null){
+			popupDialog(errorMessage,MsgType.error);
+		}
+		else if(infoMessage != null){
+			popupDialog(infoMessage,MsgType.info);
+		}
 		System.out.println("GUI IS FINISHED: "+gameReport );
 	}
 
@@ -760,7 +780,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	public void opponentSurrender(){
 		state = GameState.OPPONENT_SURRENDED;
-		writeToScreen("Opponent has surrended!");
+		//popupDialog("Opponent has surrended!");
+		infoMessage = "Opponent has surrended!";
 		this.closeAndNotify();
 	}
 
@@ -927,7 +948,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 					String[] moveArr = prot.parseCommand(moveMsg);
 					if(moveArr == null){
-						writeToScreen("Wrong move command!");
+						popupDialog("Wrong move command, trying to get move again",MsgType.error);
+						reconnectOnRead= true;
+						continue;
 					}
 					move = moveArr[2];
 //					int time = Integer.parseInt(moveArr[4]);
@@ -1029,6 +1052,13 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		gameThread= new Thread(this);
 		gameThread.start();
 		
+	}
+
+	@Override
+	public void removeSecondPlayer() {
+		if(blue != null){
+			blue = null;
+		}
 	}
 	
 }

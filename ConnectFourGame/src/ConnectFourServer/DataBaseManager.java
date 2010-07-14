@@ -405,8 +405,8 @@ public class DataBaseManager {
 		Statement statment=null;
 		try{
 			String tableName = "`" + DataBaseManager.dbName + "`.`games`";
-			String users="DETELE FROM " + tableName +
-					 " WHERE gameid="+gameId+";";
+			String users="DELETE FROM " + tableName +
+					     " WHERE gameid='"+gameId+"';";
 			 statment= conn.createStatement();
 			 //statment.setString(1,"`database`.`users`");
 			 statment.executeUpdate(users); 

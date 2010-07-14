@@ -27,6 +27,8 @@ import javax.swing.JButton;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import ConnectFourClient.MainFrame.MsgType;
+
 import theProtocol.ClientServerProtocol;
 
 public class GameWatcher extends GameGUI implements Runnable{
@@ -77,19 +79,6 @@ public class GameWatcher extends GameGUI implements Runnable{
 		stopWatch.setEnabled(true);
 		stopWatch.addMouseListener(this);
 		return stopWatchBox;
-	}
-	
-	public void writeToScreen(String message)
-	{
-		try {
-				SwingUtilities.invokeAndWait(new BoardGUI.MessagePrinter(consoleArea,message));
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	@Override
@@ -170,7 +159,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		catch (SocketTimeoutException e)
 		{
 			client.logger.print_info(e.getMessage() + ". Stopping watching...");
-			writeToScreen("Connection Timeout , something went wrong , please reconnect!");
+			popupDialog("Connection Timeout , something went wrong , please reconnect!",MsgType.error);
 		}
 		catch (IOException e) {
 			client.logger.print_info(e.getMessage() + ". Stopping watching...");

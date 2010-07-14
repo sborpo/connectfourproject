@@ -501,6 +501,7 @@ public class TheClient {
 	}
 
 	public void makeReportToViewers(UnhandeledReport gameReportH) {
+		this.logger.print_info("Trying to send report to viewers...");
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,
 				gameReportH.getGameId(),
@@ -516,6 +517,7 @@ public class TheClient {
 	}
 	
 	public void makeReportToServer(UnhandeledReport gameReportH) {
+		this.logger.print_info("Trying to send report to server...");
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.SERVER);
 		String preparedPass = preparePassword(password);
 		String gameReport = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEREPORT,

@@ -280,14 +280,10 @@ public class RequestHandler implements Runnable {
 					response = ClientServerProtocol.DENIED;
 					return response;
 				}
-				//check if the game IS ONLINE
-				if(isGameOnline(gameId)){
-					server.games.removeGame(gameId);
-				}
-				if(gameId == null || gameId.equals(ClientServerProtocol.noGame) || winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
-					response = ClientServerProtocol.OK;
-					return response;
-				}
+//				if(gameId == null || gameId.equals(ClientServerProtocol.noGame)){
+//					response = ClientServerProtocol.OK;
+//					return response;
+//				}
 				//check if the game exists in the database
 				if(DataBaseManager.isGameIdExists(gameId)){
 					//check if the client is/was in this game
@@ -295,16 +291,28 @@ public class RequestHandler implements Runnable {
 						OnlineClient theClient = server.clients.getClient(clientName);
 						theClient.resetGame();
 						if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
-							server.printer.print_info("The game wasn't played, remove game from database...");
+							Game theGame = server.games.getGame(gameId);
+							if(theGame != null && theGame.getPlayer(Player.Color.RED).equals(clientName)){
+								server.printer.print_info("The game wasn't played, remove game from database...");
+								server.games.removeGame(gameId);
+							}
+							//blue player
+							else{
+								theGame.removeSecondPlayer();
+							}
 							DataBaseManager.removeGame(gameId);
 							response = ClientServerProtocol.OK;
 							return response;
 						}
 						//add the report
 						try {
-							server.printer.print_info("Adding the report to the database.");
+							server.printer.print_info("Adding the report to the database: winner = " + winner);
 							//throw new SQLException("MY EXCEPTION");
 							DataBaseManager.makeReport(gameId, clientName, winner);
+							//check if the game IS ONLINE
+							if(isGameOnline(gameId)){
+								server.games.removeGame(gameId);
+							}
 							//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
 						} catch (SQLException e) {
 							// TODO Auto-generated catch block
@@ -343,8 +351,14 @@ public class RequestHandler implements Runnable {
 					}
 				}
 				else{
-					server.printer.print_error("The game is not exists: "+gameId);
-					response = ClientServerProtocol.DENIED;
+					if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
+						response = ClientServerProtocol.OK;
+					}
+					else
+					{
+						server.printer.print_error("The game is not exists: "+gameId);
+						response = ClientServerProtocol.DENIED;
+					}
 				}
 			} catch (SQLException e) {
 				server.printer.print_error("Server database problem");
@@ -498,7 +512,7 @@ public class RequestHandler implements Runnable {
 			//create new game
 			theClient.setTCPPort(gamePort);
 			theClient.setTransmitPort(transmitionPort);
-			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, TheClient.unDEFport, false, null,TheClient.unDEFport);
+			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, TheClient.unDEFport, true, null,TheClient.unDEFport);
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
 			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});

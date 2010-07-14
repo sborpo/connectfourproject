@@ -131,8 +131,6 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				father.setTitle("Connected As: "+username.getText());
 				this.setVisible(false);
 			} catch (IOException e1) {
-				// TODO Handle connection problem
-				e1.printStackTrace();
 				father.showMessageDialog("A problem with server connection",MsgType.error);
 				return;
 			} catch (ServerWriteOrReadException ex) {
