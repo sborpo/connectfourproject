@@ -3,8 +3,10 @@ package ConnectFourClient;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.URL;
 
 import ConnectFourClient.TheClient.ServerWriteOrReadException;
 
@@ -81,12 +83,13 @@ public class AliveSender extends Thread implements TimerListener{
 			client.logger.print_error("Problems sening alive message to the server: " + e.getMessage());
 			noServerConnection = true;
 			try{
-				InetAddress googleAddr = InetAddress.getByName("www.google.com");
-				boolean isReachable = googleAddr.isReachable(5000);
-				client.logger.print_info("google is reachable: "+isReachable);
-				if(isReachable){
+				HttpURLConnection c = (HttpURLConnection)(new  URL("http://www.google.com")).openConnection();
+				int resCode = c.getResponseCode(); 
+				if(resCode == 200){
 					noServerConnection = false;
 				}
+				client.logger.print_info("google is reachable: "+!noServerConnection);
+				
 			}
 			catch(IOException e1){
 				//DO NOTHING
