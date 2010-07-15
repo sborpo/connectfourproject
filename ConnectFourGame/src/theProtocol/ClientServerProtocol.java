@@ -15,6 +15,8 @@ public class ClientServerProtocol {
 		public static final String WRONG_NUM_OF_PARAMETERS = "WRONG_NUMBER_OF_PARAMETERS";
 	}
 	
+	public static final int timeout = 5000;
+	
 	static public String noGame = "noGame";
 	static public String paramSeparator = ":PARAM:";
 	
@@ -47,6 +49,7 @@ public class ClientServerProtocol {
 	public static final String DISCONNECT = "DISCONNECT";
 	public static final String ISURRENDER = "I_SURRENDER!";
 	public static final String STATS_REQUEST = "STATS_REQUEST";
+	public static final String MOVE_TIME = "MOVE_TIME";
 	
 	private ArrayList<String> legalCommands;
 	private HashMap<String,Integer> numOfParametersForCmd;
@@ -97,6 +100,7 @@ public class ClientServerProtocol {
 			legalCommands.add(USERALREADYEXISTS);
 			legalCommands.add(SOCKETREFRESH);
 			legalCommands.add(ISURRENDER);
+			legalCommands.add(MOVE_TIME);
 		}
 	}
 	
@@ -129,6 +133,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(DISCONNECT, 1);
 		numOfParametersForCmd.put(ISURRENDER, 0);
 		numOfParametersForCmd.put(STATS_REQUEST, 1);
+		numOfParametersForCmd.put(MOVE_TIME, 1);
 	}
 	
 	public String[] parseCommand(String command){

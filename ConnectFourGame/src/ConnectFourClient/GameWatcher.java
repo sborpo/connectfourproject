@@ -27,6 +27,8 @@ import javax.swing.JButton;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import common.Timer.TimeOutEvent;
+
 import ConnectFourClient.MainFrame.MsgType;
 
 import theProtocol.ClientServerProtocol;
@@ -35,7 +37,6 @@ public class GameWatcher extends GameGUI implements Runnable{
 
 	static public class GameEndedException extends Exception{}
 	private static final String STOP_WATCH = "Stop watching!"; 
-	private TheClient client=null;
 	private ServerSocket Isocket=null;
 	private Socket watchSocket = null;
 	private BufferedReader watcherIn = null;
@@ -44,6 +45,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 	private String bluePlayer;
 	private boolean watching;
 	private JButton stopWatch;
+	private boolean timeUpdated;
 	
 	public GameWatcher(TheClient client,String redPlayer,String bluePlayer)
 	{	
@@ -52,7 +54,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		red = new Player(Player.Color.RED,redPlayer);
 		blue = new Player(Player.Color.BLUE,bluePlayer);
 		gameBoard = new BoardGUI(this);
-		this.client=client;
+		theClient=client;
 		this.watcherIn = null;
 		Box [] arr= new Box[4];
 		arr[0]=createUserNamesBox();
@@ -67,6 +69,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		connAs2.setForeground(java.awt.Color.BLUE);
 		timerBoxContainer = Box.createHorizontalBox();
 		watching = false;
+		timeUpdated = false;
 		setLocationRelativeTo(null);
 	}
 	
@@ -83,11 +86,11 @@ public class GameWatcher extends GameGUI implements Runnable{
 	
 	@Override
 	public void run() {
-		client.logger.print_info("Game Watcher Is Running! ");
+		theClient.logger.print_info("Game Watcher Is Running! ");
 		try{
 			watching = true;
 			ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
-			Isocket = new ServerSocket(client.getWatchPort());
+			Isocket = new ServerSocket(theClient.getWatchPort());
 			watchSocket = Isocket.accept();
 			watcherIn =  new BufferedReader(new InputStreamReader(watchSocket.getInputStream()));
 			//set the timeout to read
@@ -95,7 +98,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 			String inputLine = null;
 			super.initTimers();
 			plays = red;
-			client.logger.print_info("Waiting for a transmit message...");
+			writeToScreen("Waiting for a transmit message...",MsgType.info);
 			while(watching){
 				this.updatePlayerTimer(plays.getTimer(),2);
 				while((inputLine = watcherIn.readLine()) != null) {
@@ -106,10 +109,10 @@ public class GameWatcher extends GameGUI implements Runnable{
 					{
 						throw new IOException();
 					}
-					client.logger.print_info("Transmition received: " + inputLine);
+					theClient.logger.print_info("Transmition received: " + inputLine);
 					String[] parsed = prot.parseCommand(inputLine);
 					if(parsed == null){
-						client.logger.print_error(prot.result + ". Bad move report received!");
+						theClient.logger.print_error(prot.result + ". Bad move report received!");
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEMOVE)){
 						Color c =(parsed[3].equals(red.getColor().getColorStr()))? Color.RED : Color.BLUE;
@@ -117,7 +120,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 						try {
 							state = gameBoard.playColumn(Integer.parseInt(parsed[2]), c);
 							SwingUtilities.invokeAndWait(new BoardGUI.Painter(((BoardGUI)gameBoard).getColumnsFil(),Integer.parseInt(parsed[2]),c, slots));
-							writeToScreen("Waiting for "+ playingName +" turn...");
+							writeToScreen("Waiting for "+ playingName +" turn...",MsgType.info);
 						} catch (NumberFormatException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -136,37 +139,47 @@ public class GameWatcher extends GameGUI implements Runnable{
 						String winner = parseReport(parsed);
 						if(winner != null){
 							if(winner.equals(Game.gameWinner.NO_WINNER)){
-								writeToScreen("There is no winner!");
+								writeToScreen("There is no winner!",MsgType.info);
 							}
 							else{
-								writeToScreen(winner + " is the winner!");
+								writeToScreen(winner + " is the winner!",MsgType.info);
 							}
 							throw new GameEndedException();
 						}
 						else{
-							client.logger.print_error("Don't understand who is the winner");
+							theClient.logger.print_error("Don't understand who is the winner");
 							throw new GameEndedException();
 						}
 					}
+					else if(parsed[0].equals(ClientServerProtocol.MOVE_TIME)){
+						plays.getTimer().updateTimer(Integer.parseInt(parsed[1]));
+						this.updatePlayerTimer(plays.getTimer(),2);
+						timeUpdated = true;
+						continue;
+					}
 					else{
-						client.logger.print_error("I don't understand what transmitter send");
+						theClient.logger.print_error("I don't understand what transmitter send");
 						throw new GameEndedException();
 					}
+				}
+				if(timeUpdated){
+					timeUpdated = false;
+					continue;
 				}
 				super.nextPlayer();
 			}
 		}
 		catch (SocketTimeoutException e)
 		{
-			client.logger.print_info(e.getMessage() + ". Stopping watching...");
+			theClient.logger.print_info(e.getMessage() + ". Stopping watching...");
 			popupDialog("Connection Timeout , something went wrong , please reconnect!",MsgType.error);
 		}
 		catch (IOException e) {
-			client.logger.print_info(e.getMessage() + ". Stopping watching...");
+			theClient.logger.print_info(e.getMessage() + ". Stopping watching...");
 			//writeToScreen("The other player closed the connection!");
 		}
 		catch (GameEndedException myExc){
-			client.logger.print_info("The game is over!");
+			theClient.logger.print_info("The game is over!");
 		}
 		finally{
 			this.stopTimers();
@@ -195,9 +208,9 @@ public class GameWatcher extends GameGUI implements Runnable{
 				Isocket = null;
 			}
 		} catch (IOException e) {
-			client.logger.print_error("Cannot close input stream for watcher");
+			theClient.logger.print_error("Cannot close input stream for watcher");
 		}
-		client.stopWatching();
+		theClient.stopWatching();
 	}
 	
 	private String parseReport(String[] message){
@@ -243,6 +256,11 @@ public class GameWatcher extends GameGUI implements Runnable{
 			this.stopWatching();
 			this.watchOver();
 		}		
+	}
+	
+	@Override
+	public void timeOutReceived(TimeOutEvent event) {
+		//DO NOTHING
 	}
 	
 }
