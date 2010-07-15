@@ -176,8 +176,14 @@ public class TheClient {
 				transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
 				strBuilder.append(move + "\n");
 			}
-			String moveTimer = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.MOVE_TIME,
-					Integer.toString(transmitter.game.getCurrMoveTime())});
+			String moveTimer = null;
+			if(transmitter.game.getCurrMoveTime() != null){
+				moveTimer = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.MOVE_TIME,
+						Integer.toString(transmitter.game.getCurrMoveTime())});
+			}
+			else{
+				moveTimer = ClientServerProtocol.DENIED;
+			}
 			transmitter.logger.print_info("Sending the timer to : "+ this.getName() + " " + moveTimer);
 			strBuilder.append(moveTimer);
 			viewerWriter.println(strBuilder.toString());
@@ -258,13 +264,14 @@ public class TheClient {
 	}	
 	
 	public Object innerSendMessageToServer(String message) throws IOException, ServerWriteOrReadException{
+		Object resp=null;
 		SSLSocket serverConnection = null;
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 		
 		String[] commandPar = parseCommand(message,parser);
 		if(commandPar == null){
 			this.logger.print_error("Wrong message to server: " + parser.result);
-			return null;
+			return resp;
 		}
 		
 		// send the command to the server
@@ -294,7 +301,7 @@ public class TheClient {
 		}
 		ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
 		logger.print_info("READING socket...");
-		Object resp=null;
+		
 		// get server's response
 		try {
 			if((resp = response.readObject()) != null) {
@@ -601,10 +608,10 @@ public class TheClient {
 		gameId = ClientServerProtocol.noGame;
 	}
 	
-	public void HandleEnjoyWatch(String [] params,String redPlayer,String bluePlayer)
+	public void HandleEnjoyWatch(String [] params,String redPlayer,String bluePlayer, MainFrame mainFrame)
 	{
 		
-		watcher = new GameWatcher(this,redPlayer,bluePlayer);
+		watcher = new GameWatcher(this,redPlayer,bluePlayer,mainFrame);
 		watcher.setVisible(true);
 	}
 	

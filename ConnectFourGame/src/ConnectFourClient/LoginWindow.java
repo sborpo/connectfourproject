@@ -100,7 +100,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				if (father.client.parseServerResponse(response)==null)
 				{
 					//TODO problem with syntax , server doesn't understand
-					father.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
+					father.showMessageDialog("Internal Error: The Server bad response",MsgType.error);
 					return;
 				}
 				if (father.client.parseServerResponse(response)[0].equals(ClientServerProtocol.USERNOTEXISTS))

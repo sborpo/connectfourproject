@@ -35,7 +35,7 @@ import theProtocol.ClientServerProtocol;
 
 public class GameWatcher extends GameGUI implements Runnable{
 
-	static public class GameEndedException extends Exception{}
+	static public class GameEndedException extends Exception{};
 	private static final String STOP_WATCH = "Stop watching!"; 
 	private ServerSocket Isocket=null;
 	private Socket watchSocket = null;
@@ -47,8 +47,9 @@ public class GameWatcher extends GameGUI implements Runnable{
 	private JButton stopWatch;
 	private boolean timeUpdated;
 	
-	public GameWatcher(TheClient client,String redPlayer,String bluePlayer)
+	public GameWatcher(TheClient client,String redPlayer,String bluePlayer,MainFrame mainFrame)
 	{	
+		this.mainFrame = mainFrame;
 		this.redPlayer=redPlayer;
 		this.bluePlayer=bluePlayer;
 		red = new Player(Player.Color.RED,redPlayer);
@@ -156,6 +157,10 @@ public class GameWatcher extends GameGUI implements Runnable{
 						this.updatePlayerTimer(plays.getTimer(),2);
 						timeUpdated = true;
 						continue;
+					}
+					else if(parsed[0].equals(ClientServerProtocol.DENIED)){
+						popupDialog("Cannot watch this game, sorry", MsgType.error);
+						throw new GameEndedException();
 					}
 					else{
 						theClient.logger.print_error("I don't understand what transmitter send");
