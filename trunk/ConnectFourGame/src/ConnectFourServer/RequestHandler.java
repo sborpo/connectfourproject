@@ -430,6 +430,7 @@ public class RequestHandler implements Runnable {
 	private void SendToClient(InetAddress clientAddr, int clientPort,
 			InetAddress viewerAddr, int watcherPort, String watcherName ) throws IOException {
 		try {
+			server.printer.print_info("Trying to send transmit command to: " + clientAddr.getHostAddress() + " on port: " + clientPort);
 			Socket clientTsmtSocket = new Socket(clientAddr,clientPort);
 			PrintWriter out = new PrintWriter(clientTsmtSocket.getOutputStream(),true);
 			String message = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.VIEWERTRANSMIT,
@@ -441,6 +442,7 @@ public class RequestHandler implements Runnable {
 			out.println(message);		
 		} catch (IOException e) {
 			server.printer.print_error("Problem sending transmit command: " + e.getMessage());
+			e.printStackTrace();
 			throw e;
 		}
 		

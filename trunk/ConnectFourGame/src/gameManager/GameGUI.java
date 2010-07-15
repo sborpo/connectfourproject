@@ -398,11 +398,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						if (inLine != null && inLine.equals(ClientServerProtocol.ISURRENDER))
 						{
 							writeToScreen("opp HOST: " + this.opponentHost,MsgType.info);
-							boolean res = AsynchroniousISurrender();
-							if(!res){
-								//errorMessage = "Problem sending surrender message to opponent";
-								popupDialog("Problem sending surrender message to opponent",MsgType.error);
-							}
 							state=GameState.I_SURRENDED;
 							break;
 						}
@@ -431,7 +426,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					try {
 						String move= this.getOpponentMove();
 						if(move == null){
-							writeToScreen("Bad move or timeout",MsgType.error);
+							writeToScreen("No opponent move",MsgType.error);
 							break;
 						}
 						if (move.equals(ClientServerProtocol.ISURRENDER))
@@ -446,6 +441,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						//cannot happen
 					} 	
 				}
+				
 				//the clients not surrended
 				if (state.equals(GameState.PROCEED))
 				{
@@ -473,7 +469,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				nextPlayer();
 			}
 		}
-
+		
+		if(state.equals(GameState.I_SURRENDED)){
+			boolean res = AsynchroniousISurrender();
+			if(!res){
+				//errorMessage = "Problem sending surrender message to opponent";
+				errorMessage = "Problem sending surrender message to opponent";
+			}
+		}
 		System.out.println("DECIDING WINNER");
 		String winner = null;
 		winner=decideWinner();
@@ -543,20 +546,17 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				theClient.logger.print_error("Opponent host is null");
 				return succeeded;
 			}
-			System.out.println("PREPAIRING");
 			InetAddress address = InetAddress.getByName(opponentHost);
 			Socket opponentTransmitSocket = new Socket(address, opponentTransmitWaiterPort);
 			PrintWriter clientToOpponent = new PrintWriter(opponentTransmitSocket.getOutputStream(),true);
-			System.out.println("SENDING :" + message);
 			clientToOpponent.println(message);
 			BufferedReader oppIn = new BufferedReader(new InputStreamReader((opponentTransmitSocket.getInputStream())));
 			String response = (String)oppIn.readLine();
 			if(response.equals(ClientServerProtocol.OK)){
 				succeeded = true;
-				System.out.println("got OK RESPONSE");
 			}
 			else{
-				System.out.println("BAD RESPONSE:" + response);
+				theClient.logger.print_error("BAD RESPONSE:" + response);
 			}
 		} catch (UnknownHostException e) {
 			theClient.logger.print_error("Problem getting opponent address: " + e.getMessage());
@@ -673,9 +673,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			else{
 				if (buttonName.equals(ClientServerProtocol.ISURRENDER))
 				{
-					this.AsynchroniousISurrender();
 					state = GameState.I_SURRENDED;
-					this.closeAndNotify();
+					//this.closeAndNotify();
+					this.closeConnection();
 				}
 			}
 		}
@@ -685,8 +685,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private boolean AsynchroniousISurrender() {
 		boolean succeeded = false;
 		this.blocked = true;
-		theClient.logger.print_info("Handling I_surrender message...");
-		while(succeeded == false){
+		theClient.logger.print_info("Handling I_surrender message..." + plays.getTimer());
+		while(succeeded == false && !plays.getTimer().isTimedOut()){
 			System.out.println("send I surr to opp");
 			succeeded = sendMessageGetResponse(ClientServerProtocol.ISURRENDER);
 			if(!succeeded){

@@ -90,7 +90,7 @@ public class Timer implements Runnable
 		return this;
 	}
 	/** Resets the timer back to zero */
-	public synchronized Timer reset()
+	public Timer reset()
 	{
 		m_elapsed = 0;
 		timedOut = false;
@@ -124,6 +124,7 @@ public class Timer implements Runnable
 				// Check to see if the time has been exceeded
 				if (m_elapsed >= m_length)
 				{
+					m_elapsed -= m_rate;
 					timedOut = true;
 					fireTimeOutEvent();
 				}
@@ -156,7 +157,6 @@ public class Timer implements Runnable
 
 	public Timer resume(){
 		paused = false;
-		System.out.println("Resumed..");
 		return this;
 	}
 	
@@ -171,12 +171,10 @@ public class Timer implements Runnable
 	
 	public void restart(){
 		this.pause().reset().resume();
-		System.out.println("RESTARTING");
 		updateTimerText();
 	}
 	
 	public void updateTimer(int time){
-		System.out.println("Before : " + m_elapsed + " udated to: " + time);
 		this.pause();
 		m_elapsed = time;
 		this.updateTimerText();

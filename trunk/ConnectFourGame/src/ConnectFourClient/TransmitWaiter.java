@@ -62,7 +62,7 @@ public class TransmitWaiter extends Thread {
 							client.logger.print_error("Bad transmit command");
 						}
 				}
-			}	
+			}
 		} 
 		catch (Exception e) {
 			client.logger.print_error("In transmit receiving");

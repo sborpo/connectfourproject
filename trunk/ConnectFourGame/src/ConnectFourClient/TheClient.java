@@ -410,6 +410,7 @@ public class TheClient {
 	private void startTransmitionWaiter(){
 		try {
 			transmitWaiterSocket = new ServerSocket(clientTransmitWaiterPort);
+			System.out.println("Transmitter server socket was opened");
 		} catch (IOException e) {
 			this.logger.print_error("Problem open transmit waiter socket: " + e.getMessage());
 		}
