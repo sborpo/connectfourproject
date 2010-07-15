@@ -145,7 +145,15 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return player;
 	}
 	
-
+	synchronized public Integer getCurrMoveTime(){
+		if(plays != null){
+			return plays.getTimer().getElapsed();
+		}
+		else{
+			return null;
+		}
+	}
+	
 	public GameGUI()
 	{
 		
@@ -308,10 +316,15 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
-	public void writeToScreen(String message)
+	public void writeToScreen(String message,String msgType)
 	{
 		try {
-			theClient.logger.print_info(message);
+			if(msgType.equals(MsgType.error)){
+				theClient.logger.print_error(message);
+			}
+			else{
+				theClient.logger.print_info(message);
+			}
 			if(!closing){
 				SwingUtilities.invokeAndWait(new BoardGUI.MessagePrinter(consoleArea,message));
 			}
@@ -367,7 +380,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			String inLine = null;
 			try {
 				if (plays.equals(clientPlayer)) {
-					writeToScreen("Please Click Your Move: ");
+					writeToScreen("Please Click Your Move: ",MsgType.info);
 					while(colnum == -1){
 						synchronized (pending) {
 							try {
@@ -384,7 +397,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						System.out.println("Move ENTERED");
 						if (inLine != null && inLine.equals(ClientServerProtocol.ISURRENDER))
 						{
-							writeToScreen("opp HOST: " + this.opponentHost);
+							writeToScreen("opp HOST: " + this.opponentHost,MsgType.info);
 							boolean res = AsynchroniousISurrender();
 							if(!res){
 								//errorMessage = "Problem sending surrender message to opponent";
@@ -402,7 +415,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 							break;
 						}
 						if(inLine.equals("")){
-							writeToScreen("Empty move, try again...");
+							writeToScreen("Empty move, try again...",MsgType.error);
 						}
 						else{
 							colnum	=	Integer.parseInt(inLine);
@@ -414,11 +427,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					}
 					
 				} else {
-					writeToScreen("Waiting For Opponent Move: ");
+					writeToScreen("Waiting For Opponent Move: ",MsgType.info);
 					try {
 						String move= this.getOpponentMove();
 						if(move == null){
-							theClient.logger.print_error("Bad move or timeout");
+							writeToScreen("Bad move or timeout",MsgType.error);
 							break;
 						}
 						if (move.equals(ClientServerProtocol.ISURRENDER))
@@ -448,7 +461,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					}
 				}
 			} catch (IllegalMove e) {
-				writeToScreen("Illegal Move!!! Please Retry!\n\n");
+				writeToScreen("Illegal Move!!! Please Retry!",MsgType.error);
 				continue;
 			} 
 
@@ -521,7 +534,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			ClientServerProtocol prot= new ClientServerProtocol(msgType.CLIENT);
 			String [] messageCommand=prot.parseCommand(message);
 			if(messageCommand == null){
-				theClient.logger.print_error("Bad message to the opponent: " + prot.result);
+				writeToScreen("Bad message to the opponent: " + prot.result,MsgType.error);
 				succeeded = false;
 				return succeeded;
 			}
@@ -601,7 +614,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			winner= plays.getName();
 		}
 		
-		writeToScreen("The winner is: " + winner + "!");
+		writeToScreen("The winner is: " + winner + "!",MsgType.info);
 		return winner;
 		
 	}
@@ -780,15 +793,16 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	public void opponentSurrender(){
 		state = GameState.OPPONENT_SURRENDED;
-		//popupDialog("Opponent has surrended!");
-		infoMessage = "Opponent has surrended!";
+		
+		//infoMessage = "Opponent has surrended!";
 		this.closeAndNotify();
+		popupDialog("Opponent has surrended!",MsgType.info);
 	}
 
 	synchronized public void resetConnection(){
 		this.reconnect = true;
 		this.blocked = true;
-		writeToScreen("Handling reconnection, wait...");
+		writeToScreen("Handling reconnection, wait...",MsgType.info);
 		while(this.reconnect){
 			if(!state.equals(GameState.PROCEED)){
 				this.reconnect = false;
@@ -806,7 +820,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 		}
 		this.blocked = false;
-		writeToScreen("Recconection is Done!");
+		writeToScreen("Recconection is Done!",MsgType.info);
 	}
 	
 	private void closeConnection(){
@@ -998,12 +1012,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if (startedGame == true) {
 			serverSocket = new ServerSocket(clientGamePort);
 			// can be a timeout how much to wait for an opponent
-			writeToScreen("Waiting for opponent to connect ...");
+			writeToScreen("Waiting for opponent to connect ...",MsgType.info);
 			opponentSocket = serverSocket.accept();
 			opponentHost = opponentSocket.getInetAddress().getHostName();
 			opponentPlayer = blue;
 			clientPlayer = red;
-			writeToScreen("Opponent Was Connected ,You Are The Red Player!");
+			writeToScreen("Opponent Was Connected ,You Are The Red Player!",MsgType.info);
 		
 		} else {
 			InetAddress address = null;
@@ -1017,7 +1031,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			opponentSocket = new Socket(address, opponentPort);
 			clientPlayer = blue;
 			opponentPlayer=red;
-			writeToScreen("You Are The Blue Player!");
+			writeToScreen("You Are The Blue Player!",MsgType.info);
 			writeClients(blue.getName(),blue.getColor(),red.getName(),red.getColor());
 
 		}

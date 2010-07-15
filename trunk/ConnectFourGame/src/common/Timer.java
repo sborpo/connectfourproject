@@ -122,7 +122,7 @@ public class Timer implements Runnable
 				m_elapsed += m_rate;
 				this.updateTimerText();
 				// Check to see if the time has been exceeded
-				if (m_elapsed > m_length)
+				if (m_elapsed >= m_length)
 				{
 					timedOut = true;
 					fireTimeOutEvent();
@@ -171,11 +171,16 @@ public class Timer implements Runnable
 	
 	public void restart(){
 		this.pause().reset().resume();
+		System.out.println("RESTARTING");
 		updateTimerText();
 	}
 	
 	public void updateTimer(int time){
+		System.out.println("Before : " + m_elapsed + " udated to: " + time);
+		this.pause();
 		m_elapsed = time;
+		this.updateTimerText();
+		this.resume();
 	}
 	
 	public void stop()

@@ -176,7 +176,13 @@ public class TheClient {
 				transmitter.logger.print_info("Sending history move to: " + this.getName() + "on: " + this.getTCPPort() + " move: " + move);
 				strBuilder.append(move + "\n");
 			}
+			String moveTimer = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.MOVE_TIME,
+					Integer.toString(transmitter.game.getCurrMoveTime())});
+			transmitter.logger.print_info("Sending the timer to : "+ this.getName() + " " + moveTimer);
+			strBuilder.append(moveTimer);
 			viewerWriter.println(strBuilder.toString());
+			viewerWriter.println();
+			System.out.println("Hystory has been sent!");
 		}
 	}
 	
@@ -184,7 +190,7 @@ public class TheClient {
 		return viewersList;
 	}
 	
-	public void removeViewerIfExists(String viewerName){
+	synchronized public void removeViewerIfExists(String viewerName){
 		if (viewersList.containsKey(viewerName))
 		{
 			this.logger.print_info("Removing the watcher: " + viewerName);
@@ -266,7 +272,7 @@ public class TheClient {
 			serverConnection = (SSLSocket)sslsocketfactory.createSocket(serverAddress, serverPort);
 			serverConnection.setEnabledCipherSuites(enabledCipherSuites);
 			//set a 20 sec timeout to server answer
-			serverConnection.setSoTimeout(20000);
+			serverConnection.setSoTimeout(ClientServerProtocol.timeout);
 		}
 		catch (IOException ex){
 			logger.print_error("Connection problems with server: "+ ex.getMessage());
