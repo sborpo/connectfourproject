@@ -208,7 +208,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			new MainFrame(args);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Error: " + e.getMessage());
 		}
 	
 	}
@@ -245,7 +245,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
 			{
-				this.showMessageDialog("You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!", MsgType.error);
+				this.showMessageDialog("You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!", MsgType.info);
 				client.HandleGoGoGoGUI(client.parseServerResponse(response),this);
 				getOnlineGames();
 				return;
@@ -277,8 +277,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			}
 			client.HandleGameGUI(client.parseServerResponse(response),this);
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 		} catch (ServerWriteOrReadException e) {
 			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
