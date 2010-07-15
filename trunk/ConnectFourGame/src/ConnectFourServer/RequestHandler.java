@@ -275,35 +275,40 @@ public class RequestHandler implements Runnable {
 		//check if the client is online
 		if(isClientOnline(clientName)){
 			try {
+				//try to authenticate user
 				if(!server.authUser(clientName,password)){
 					server.printer.print_error("Cannot authenticate user: " + clientName + " PASS: '" + password + "'");
 					response = ClientServerProtocol.DENIED;
 					return response;
 				}
-//				if(gameId == null || gameId.equals(ClientServerProtocol.noGame)){
-//					response = ClientServerProtocol.OK;
-//					return response;
-//				}
+				//get the game from the online games
+				Game theGame = server.games.getGame(gameId);
+				//remove it from online games
+				if(theGame != null){
+					server.printer.print_info("Remove the game from online list...");
+					server.games.removeGame(gameId);
+				}
 				//check if the game exists in the database
-				if(DataBaseManager.isGameIdExists(gameId)){
+				if(gameId != null && DataBaseManager.isGameIdExists(gameId)){
 					//check if the client is/was in this game
 					if(wasClientInTheGame(clientName,gameId)){
 						OnlineClient theClient = server.clients.getClient(clientName);
+						//reset game for client
 						theClient.resetGame();
+						//if the game was not played
 						if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
-							Game theGame = server.games.getGame(gameId);
-							if(theGame != null && theGame.getPlayer(Player.Color.RED).equals(clientName)){
-								server.printer.print_info("The game wasn't played, remove game from database...");
-								server.games.removeGame(gameId);
-							}
-							//blue player
-							else{
+							//and the reporting player is second player
+							if(theGame.getPlayer(Player.Color.BLUE).getName().equals(clientName)){
+								//return the game into the online games list
+								server.printer.print_info("The game wasn't played, return game to online games...");
 								theGame.removeSecondPlayer();
+								server.games.addGame(theGame);
 							}
 							DataBaseManager.removeGame(gameId);
 							response = ClientServerProtocol.OK;
 							return response;
 						}
+						//else - the game was played
 						//add the report
 						try {
 							server.printer.print_info("Adding the report to the database: winner = " + winner);
@@ -349,13 +354,16 @@ public class RequestHandler implements Runnable {
 						response = ClientServerProtocol.DENIED;
 					}
 				}
+				//the game not in database
 				else{
+					//if the game wasn't played- does not matter
 					if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
 						response = ClientServerProtocol.OK;
 					}
+					//else - error
 					else
 					{
-						server.printer.print_error("The game is not exists: "+gameId);
+						server.printer.print_error("The game is not exists in database: "+gameId);
 						response = ClientServerProtocol.DENIED;
 					}
 				}
@@ -400,7 +408,12 @@ public class RequestHandler implements Runnable {
 				
 				InetAddress viewerAddr= viewer.getAddress();
 				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
-				SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
+				try {
+					SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
+				} catch (IOException e) {
+					response = ClientServerProtocol.DENIED;
+					return response;
+				}
 				response = ClientServerProtocol.ENJOYWATCH;
 			}
 			else{
@@ -415,7 +428,7 @@ public class RequestHandler implements Runnable {
 	}
 
 	private void SendToClient(InetAddress clientAddr, int clientPort,
-			InetAddress viewerAddr, int watcherPort, String watcherName ) {
+			InetAddress viewerAddr, int watcherPort, String watcherName ) throws IOException {
 		try {
 			Socket clientTsmtSocket = new Socket(clientAddr,clientPort);
 			PrintWriter out = new PrintWriter(clientTsmtSocket.getOutputStream(),true);
@@ -427,8 +440,8 @@ public class RequestHandler implements Runnable {
 			server.printer.print_info("Transmit message: " + message +"\n");
 			out.println(message);		
 		} catch (IOException e) {
-			server.printer.print_error("While sending transmit command: " + e.getMessage());
-			e.printStackTrace();
+			server.printer.print_error("Problem sending transmit command: " + e.getMessage());
+			throw e;
 		}
 		
 		

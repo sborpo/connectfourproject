@@ -148,17 +148,17 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		try {
 			response = (ArrayList<GameForClient>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
 		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");
+			this.showMessageDialog("There was a probem connecting the server",MsgType.error);
 			return;
 		} catch (ServerWriteOrReadException e) {
-			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");
+			this.showMessageDialog("There was a probem connecting the server",MsgType.error);
 			clearTables();
 			return;
 		}
 		if (response==null)
 		{
 			//TODO problem with syntax , server doesn't understand
-			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+			this.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
 			return;
 		}
 		setUpOnlineGames(response);
@@ -229,32 +229,31 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 																								  client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
-				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+				this.showMessageDialog("There was an error in server's response!", MsgType.error);
 				return;
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
 			{
-				JOptionPane.showMessageDialog(null,"There was a server internal error");
+				this.showMessageDialog("There was a server internal error", MsgType.error);
 				return;
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.DENIED))
 			{
-				JOptionPane.showMessageDialog(null,"This game doesn't exists or someone else\n is connected , Updating game list...");
+				this.showMessageDialog("This game doesn't exists or someone else\n is connected ,\n Updating game list...", MsgType.error);
 				getOnlineGames();
 				return;
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.GOGOGO))
 			{
-				JOptionPane.showMessageDialog(null,"You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!");
+				this.showMessageDialog("You have joined a game aggaints : "+openGames.getValueAt(rowIndex, 0)+" ,Good Luck!", MsgType.error);
 				client.HandleGoGoGoGUI(client.parseServerResponse(response),this);
 				getOnlineGames();
 				return;
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 		} catch (ServerWriteOrReadException e) {
-			JOptionPane.showMessageDialog(null,"There was a communication problem with the server, please retry...");
+			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
 		}
 	}
@@ -268,12 +267,12 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 																												client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
-				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+				this.showMessageDialog("There was an error in server's response!", MsgType.error);
 				return;
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
 			{
-				JOptionPane.showMessageDialog(null,"There was a server internal error");
+				this.showMessageDialog("There was a server internal error", MsgType.error);
 				return;
 			}
 			client.HandleGameGUI(client.parseServerResponse(response),this);
@@ -281,7 +280,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (ServerWriteOrReadException e) {
-			JOptionPane.showMessageDialog(null,"There was a communication problem with the server, please retry...");
+			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
 		}
 	}
@@ -296,28 +295,27 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 																												client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
-				JOptionPane.showMessageDialog(null,"There was an error in server's response!");
+				this.showMessageDialog("There was an error in server's response!", MsgType.error);
 				return;
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.SERVPROB))
 			{
-				JOptionPane.showMessageDialog(null,"There was a server internal error");
+				this.showMessageDialog("There was a server internal error", MsgType.error);
 				return;
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.DENIED))
 			{
-				JOptionPane.showMessageDialog(null,"This game doesn't exists anymore , Updating game list...");
+				this.showMessageDialog("This game cannot be watched now, try again or another game...", MsgType.error);
 				getOnlineGames();
 				return;
 			}
-			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 2));
+			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 2),this);
 			//after watching is completed , now refresh the gamelist
 			getOnlineGames();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 		} catch (ServerWriteOrReadException e) {
-			JOptionPane.showMessageDialog(null,"There was a communication problem with the server, please retry...");
+			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
 		}
 	}
@@ -381,16 +379,16 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			response = (StatsReport)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.STATS_REQUEST,
 																												client.getClientName()}));
 		} catch (IOException e) {
-			JOptionPane.showMessageDialog(null,"Internal Error: The Server Didn't understand the sent message");
+			this.showMessageDialog("Error while sending message to server", MsgType.error);
 			return;
 		} catch (ServerWriteOrReadException e) {
-			JOptionPane.showMessageDialog(null,"There was a probem connecting the server");
+			this.showMessageDialog("There was a probem connecting the server", MsgType.error);
 			clearTables();
 			return;
 		}
 		if (response==null)
 		{
-			JOptionPane.showMessageDialog(null,"There are no statistics available");
+			this.showMessageDialog("There are no statistics available", MsgType.error);
 			return;
 		}
 		new StatsWindow(response);
