@@ -5,13 +5,18 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.SocketException;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.RSAPublicKeySpec;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
@@ -25,7 +30,7 @@ public class MainServer {
 	
 	final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
 	
-	public String ReportFileName="server";
+	public static String ReportFileName="server";
 
 	// the connection pool of the server. each incoming
 	// connection is handled by this thread pool
@@ -99,16 +104,37 @@ public class MainServer {
 		this.printer.print_info("Done loading the database");
 	}
 	
-	public boolean authUser(String clientName, String password){
+	public boolean authUserWitExp(String clientName,String password) throws Exception
+	{
 		boolean result = false;
 		try{
 			if(DataBaseManager.authenticateUser(clientName, password)){
-				result = true;
+				return true;
 			}
 		} catch (SQLException e) {
 			printer.print_error("Database error: " + e.getMessage());
-		} catch (Exception e){
-			printer.print_error("Cannot decrypt password for authentication : " + e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			throw e;
+		}
+	
+		return false;
+	}
+	
+	public boolean authUser(String clientName, String password){
+		
+		boolean result=false;
+		try{
+			result=authUserWitExp(clientName, password);
+			return result;
+		}
+		catch(SQLException e)
+		{
+			
+		}
+		catch(Exception e)
+		{
+			
 		}
 		return result;
 	}
