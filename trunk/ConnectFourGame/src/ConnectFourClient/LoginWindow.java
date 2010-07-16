@@ -39,6 +39,12 @@ public class LoginWindow extends JDialog implements MouseListener  {
 	private JLabel passwordLabel;
 	private JLabel singUp;
 	private MainFrame father;
+	private boolean signed;
+	
+	public boolean getSigned()
+	{
+		return signed;
+	}
 	public LoginWindow(MainFrame MainWindow)
 	{
 
@@ -66,10 +72,11 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		addWindowListener(new WindowAdapter() {
 			 public void windowClosed(WindowEvent e)
 			  {
-			   father.setVisible(false);
+			 //  father.setVisible(false);
 			  }
 		});
 			
+		signed=false;
 		setSize(300, 150);
 		setLocationRelativeTo(null);
 		setVisible(true);
@@ -129,6 +136,7 @@ public class LoginWindow extends JDialog implements MouseListener  {
 				
 				father.getOnlineGames();
 				father.setTitle("Connected As: "+username.getText());
+				signed=true;
 				this.setVisible(false);
 			} catch (IOException e1) {
 				father.showMessageDialog("A problem with server connection",MsgType.error);
