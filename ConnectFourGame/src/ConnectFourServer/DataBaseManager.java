@@ -240,6 +240,10 @@ public class DataBaseManager {
 	}
 	
 	public static boolean isGameIdExists(String gameId) throws SQLException{
+		if (gameId==null)
+		{
+			return false;
+		}
 		Connection conn= getConnection(DataBaseManager.dbName);
 		return checkGameIdExists(gameId,conn);
 	}
