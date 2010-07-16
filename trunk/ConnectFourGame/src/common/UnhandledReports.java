@@ -52,6 +52,10 @@ public class UnhandledReports {
 		}
 	}
 	
+	public HashMap<String, UnhandeledReport> getUnhandeledReports()
+	{
+		return reports;
+	}
 	public int getReportNumber(){
 		return reports.size();
 	}

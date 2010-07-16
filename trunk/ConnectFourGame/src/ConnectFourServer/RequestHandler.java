@@ -217,7 +217,7 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
-	private boolean wasClientInTheGame(String clientName,String gameId){
+	private boolean wasClientInTheGame(String clientName,String gameId) throws SQLException{
 		boolean res= false;
 		OnlineClient theClient = server.clients.getClient(clientName);
 		Game theGame = server.games.getGame(gameId);
@@ -243,6 +243,7 @@ public class RequestHandler implements Runnable {
 		} catch (SQLException e) {
 			server.printer.print_error("Server database problems");
 			e.printStackTrace();
+			throw e;
 		}
 		
 		return res;
@@ -270,115 +271,125 @@ public class RequestHandler implements Runnable {
 		return RSAgenerator.getPubKey();
 	}
 	
-	private String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
+	private synchronized String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
 		String response = ClientServerProtocol.KNOWYA ;
 		//check if the client is online
-		if(isClientOnline(clientName)){
-			try {
-				//try to authenticate user
-				if(!server.authUser(clientName,password)){
-					server.printer.print_error("Cannot authenticate user: " + clientName + " PASS: '" + password + "'");
-					response = ClientServerProtocol.DENIED;
-					return response;
-				}
-				//get the game from the online games
-				Game theGame = server.games.getGame(gameId);
-				//remove it from online games
-				if(theGame != null){
+		if(!isClientOnline(clientName)){
+			server.printer.print_error("The client is not online: "+clientName);
+			return ClientServerProtocol.DENIED;
+		}
+		try {
+			//get the game from the online games
+			Game theGame = server.games.getGame(gameId);
+			//remove it from online games
+			if(theGame != null){
 					server.printer.print_info("Remove the game from online list...");
 					server.games.removeGame(gameId);
+			}
+			//try to authenticate user
+			try{
+				if(!server.authUserWitExp(clientName,password)){
+						server.printer.print_error("Cannot authenticate user: " + clientName + " PASS: '" + password + "'");
+						if(theGame != null){
+							server.games.addGame(theGame);
+						}
+						response = ClientServerProtocol.DENIED;
+						return response;
 				}
-				//check if the game exists in the database
-				if(gameId != null && DataBaseManager.isGameIdExists(gameId)){
-					//check if the client is/was in this game
-					if(wasClientInTheGame(clientName,gameId)){
-						OnlineClient theClient = server.clients.getClient(clientName);
-						//reset game for client
-						theClient.resetGame();
-						//if the game was not played
+			}catch(Exception e)
+			{
+				throw new SQLException();
+			}
+	
+			//check if the game exists in the database
+			boolean isExists;
+			try{
+				isExists=DataBaseManager.isGameIdExists(gameId);
+			}
+			catch(SQLException ex)
+			{
+				System.out.println("chec if game exists error");
+				throw ex;
+			}
+			if(!(gameId != null && isExists ))
+			//the game not in database
+			{
+						//if the game wasn't played- does not matter
 						if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
-							//and the reporting player is second player
-							if(theGame.getPlayer(Player.Color.BLUE).getName().equals(clientName)){
-								//return the game into the online games list
-								server.printer.print_info("The game wasn't played, return game to online games...");
-								theGame.removeSecondPlayer();
-								server.games.addGame(theGame);
-							}
-							DataBaseManager.removeGame(gameId);
 							response = ClientServerProtocol.OK;
-							return response;
 						}
-						//else - the game was played
-						//add the report
-						try {
-							server.printer.print_info("Adding the report to the database: winner = " + winner);
-							//throw new SQLException("MY EXCEPTION");
-							DataBaseManager.makeReport(gameId, clientName, winner);
-							//check if the game IS ONLINE
-							if(isGameOnline(gameId)){
-								server.games.removeGame(gameId);
-							}
-							//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
-						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-							try {
-								UnhandledReports reports = new UnhandledReports(server.ReportFileName);
-								try {
-									reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
-									server.printer.print_info("The report for game: " + gameId + " was added locally correctly");
-								} catch (IOException e1) {
-									//the server couldn't save the report, so return to the user the responsibility
-									server.printer.print_error("The server couln't save to report file: "+gameId);
-									response = ClientServerProtocol.SERVPROB;
-									return response;
-								}
-							} catch (NoReports e1) {
-								//Ignore
-							} catch (FileChanged e1) {
-								//Ignore
-							}
-							server.printer.print_error("The server couldn't save report to DB, but saved to local file");
-							response = ClientServerProtocol.OK;
-						} 
-						catch (GameIdNotExists e) {
-							server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
-							response = ClientServerProtocol.SERVPROB;
-							return response;
+						//else - error
+						else
+						{
+							server.printer.print_error("The game is not exists in database: "+gameId);
+							response = ClientServerProtocol.DENIED;
 						}
-						//return ok message
-						response = ClientServerProtocol.OK;
-					}
-					else{
-						server.printer.print_error("The client: " + clientName + " is not in the game: "+gameId);
-						response = ClientServerProtocol.DENIED;
-					}
-				}
-				//the game not in database
-				else{
-					//if the game wasn't played- does not matter
+						return response;
+			}
+			//check if the client is/was in this game
+			if(wasClientInTheGame(clientName,gameId)){
+					OnlineClient theClient = server.clients.getClient(clientName);
+					//reset game for client
+					theClient.resetGame();
+					//if the game was not played
 					if(winner.equals(Game.gameWinner.GAME_NOT_PLAYED)){
-						response = ClientServerProtocol.OK;
+					            //and the reporting player is second player
+								if(theGame.getPlayer(Player.Color.BLUE).getName().equals(clientName)){
+									//return the game into the online games list
+									server.printer.print_info("The game wasn't played, return game to online games...");
+									theGame.removeSecondPlayer();
+									server.games.addGame(theGame);
+								}
+								DataBaseManager.removeGame(gameId);
+								response = ClientServerProtocol.OK;
+								return response;
 					}
-					//else - error
-					else
-					{
-						server.printer.print_error("The game is not exists in database: "+gameId);
-						response = ClientServerProtocol.DENIED;
+					//else - the game was played
+					//add the report
+					try {
+						//check if the game IS ONLINE
+						if(isGameOnline(gameId)){
+								server.games.removeGame(gameId);
+						}
+						server.printer.print_info("Adding the report to the database: winner = " + winner);
+						//throw new SQLException("MY EXCEPTION");
+						DataBaseManager.makeReport(gameId, clientName, winner);
+						//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
+					}  catch (GameIdNotExists e) {
+								server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
+								response = ClientServerProtocol.SERVPROB;
+								return response;
 					}
+							//return ok message
+					response = ClientServerProtocol.OK;
+					return response;
 				}
+				server.printer.print_error("The client: " + clientName + " is not in the game: "+gameId);
+				response = ClientServerProtocol.DENIED;
 			} catch (SQLException e) {
-				server.printer.print_error("Server database problem");
-				response = ClientServerProtocol.SERVPROB;
-				e.printStackTrace();
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						try {
+							UnhandledReports reports = new UnhandledReports(server.ReportFileName);
+							try {
+								reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
+								server.printer.print_info("The report for game: " + gameId + " was added locally correctly");
+							} catch (IOException e1) {
+								//the server couldn't save the report, so return to the user the responsibility
+								server.printer.print_error("The server couln't save to report file: "+gameId);
+								response = ClientServerProtocol.SERVPROB;
+								return response;
+							}
+						} catch (NoReports e1) {
+							//Ignore
+						} catch (FileChanged e1) {
+							//Ignore
+						}
+						server.printer.print_error("The server couldn't save report to DB, but saved to local file");
+						return ClientServerProtocol.OK;
 			} catch (GameIdNotExists e) {
 				//DO NOTHING
 			}
-		}
-		else{
-			server.printer.print_error("The client is not online: "+clientName);
-			response = ClientServerProtocol.DENIED;
-		}
 		return response;
 	}
 

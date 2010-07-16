@@ -18,6 +18,10 @@ import javax.crypto.NoSuchPaddingException;
 import common.PasswordHashManager;
 import common.RSAgenerator;
 import common.StatsReport;
+import common.UnhandeledReport;
+import common.UnhandledReports;
+import common.UnhandledReports.FileChanged;
+import common.UnhandledReports.NoReports;
 import common.UserStatistics;
 import common.PasswordHashManager.SystemUnavailableException;
 
@@ -62,6 +66,37 @@ public class DataBaseManager {
 		gameslock=new Integer(0);
 	}
 	
+	public static void treatUnhandeledReports()
+	{
+		try {
+			UnhandledReports reports = new UnhandledReports(MainServer.ReportFileName);
+			if (reports.getReportNumber()==0)
+			{
+				return;
+			}
+			for (UnhandeledReport report : reports.getUnhandeledReports().values()) {
+				try {
+					makeReport(report.getGameId(), report.getClientName(), report.getWinner());
+					reports.removeReport(report.getGameId());
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (GameIdNotExists e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (NoReports e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileChanged e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public static void initDBname(String dbName){
 		DataBaseManager.dbName = dbName;
 	}
@@ -210,6 +245,7 @@ public class DataBaseManager {
 	}
 	
 	public static boolean isClientPlayedGame(String clientName, String gameId) throws SQLException{
+
 		Connection conn= getConnection(DataBaseManager.dbName);
 		String query= "SELECT * FROM games WHERE gameid=? AND (user1 =? OR user2 =?)";
 		PreparedStatement prepareStatement = conn.prepareStatement(query);
@@ -324,6 +360,7 @@ public class DataBaseManager {
 	
 	public static StatsReport getTopTenUsers(String username) throws SQLException
 	{
+		treatUnhandeledReports();
 		Connection conn=null;
 		ResultSet set=null;
 		PreparedStatement prepareStatement = null;
@@ -358,6 +395,7 @@ public class DataBaseManager {
 	}
 	public static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
+		
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
@@ -398,6 +436,7 @@ public class DataBaseManager {
 	
 	public static void  removeGame(String gameId) throws SQLException, GameIdNotExists
 	{
+	
 		Connection conn=getConnection(DataBaseManager.dbName);
 		if(!checkGameIdExists(gameId, conn)){	
 			throw new GameIdNotExists();
