@@ -83,7 +83,17 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		setLocationRelativeTo(null);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		new LoginWindow(this);
+		
+	}
+	
+	public void openSignIn()
+	{
+		LoginWindow signIn=new LoginWindow(this);
+		if (!signIn.getSigned())
+		{
+			this.setVisible(false);
+			this.dispose();
+		}
 	}
 	private void setColumnsNames() {
 		openGamesColumnsNames= new String[3];
@@ -183,6 +193,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		for (GameForClient game : games) {
 				if (game.isOpen())
 				{
+					if (game.getPlayerOneName().equals(this.client.getClientName()))
+					{
+						continue;
+					}
 					Object [] arr= new Object[3];
 					arr[0]=game.getPlayerOneName().toString();
 					arr[1]="";
@@ -191,6 +205,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				}
 				else
 				{
+					if ((game.getPlayerOneName().equals(this.client.getClientName())) || (game.getPlayerTwoName().equals(this.client.getClientName())))
+					{
+						continue;
+					}
 					Object [] arr= new Object[5];
 					arr[0]=game.getPlayerOneName().toString();
 					arr[1]="";
@@ -205,7 +223,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	
 	public static void main(String[] args) {
 		try {
-			new MainFrame(args);
+			new MainFrame(args).openSignIn();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			System.out.println("Error: " + e.getMessage());
