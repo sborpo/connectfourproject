@@ -44,9 +44,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	}
 	
 	private JMenuBar menuBar;
-	private JMenu menu1, menu2;
+	private JMenu menu1;
 	private JMenuItem menu1Item1;
 	private JMenuItem menu1Item2;
+	private JMenuItem menu1Item3;
 	private String[] openGamesColumnsNames;
 	private String[] gamesForWatchColumnsNames;
 	private JPanel gamesPanel;
@@ -55,7 +56,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private JButton joinGame;
 	private JButton watchGame;
 	public TheClient client;
-	JButton addGame;
+	//private JButton addGame;
 	
 	
 
@@ -72,8 +73,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		menu1Item1.addActionListener(this);
 		menu1Item2= new JMenuItem("Game Statistics");
 		menu1Item2.addActionListener(this);
+		menu1Item3= new JMenuItem("Create New Game");
+		menu1Item3.addActionListener(this);
 		menu1.add(menu1Item1);
 		menu1.add(menu1Item2);
+		menu1.add(menu1Item3);
 		setJMenuBar(menuBar);
 		setGamesPanel();
 		this.add(gamesPanel);
@@ -96,20 +100,17 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		}
 	}
 	private void setColumnsNames() {
-		openGamesColumnsNames= new String[3];
+		openGamesColumnsNames= new String[2];
 		openGamesColumnsNames[0]= "Player";
-		openGamesColumnsNames[1]= "Rank";
-		openGamesColumnsNames[2]= "Game Id";
-		gamesForWatchColumnsNames= new String [5];
+		openGamesColumnsNames[1]= "Game Id";
+		gamesForWatchColumnsNames= new String [3];
 		gamesForWatchColumnsNames[0]= "Player 1";
-		gamesForWatchColumnsNames[1]= "Rank";
-		gamesForWatchColumnsNames[2]= "Player 2";
-		gamesForWatchColumnsNames[3] = "Rank";
-		gamesForWatchColumnsNames[4]= "Game Id";
+		gamesForWatchColumnsNames[1]= "Player 2";
+		gamesForWatchColumnsNames[2]= "Game Id";
 		
 	}
 	private void setGamesPanel() {
-		gamesPanel = new JPanel(new GridLayout(2, 2));
+		gamesPanel = new JPanel(new GridLayout(1, 2));
 		JPanel left = new JPanel(); JPanel right= new JPanel();
 		left.setLayout(new BoxLayout(left, BoxLayout.PAGE_AXIS));
 		right.setLayout(new BoxLayout(right, BoxLayout.PAGE_AXIS));
@@ -146,9 +147,12 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		left.add(l); right.add(r);
 		gamesPanel.add(left);
 		gamesPanel.add(right);
-		 addGame= new JButton("Create Game");
-		addGame.addMouseListener(this);
-		gamesPanel.add(addGame);
+		
+//		addGame= new JButton("Create Game");
+//		addGame.addMouseListener(this);
+//		Box b = Box.createHorizontalBox();
+//		b.add( addGame);
+//		gamesPanel.add(b);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -197,10 +201,9 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 					{
 						continue;
 					}
-					Object [] arr= new Object[3];
+					Object [] arr= new Object[2];
 					arr[0]=game.getPlayerOneName().toString();
-					arr[1]="";
-					arr[2]=game.getGameId().toString();
+					arr[1]=game.getGameId().toString();
 					model.addRow(arr);
 				}
 				else
@@ -209,12 +212,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 					{
 						continue;
 					}
-					Object [] arr= new Object[5];
+					Object [] arr= new Object[3];
 					arr[0]=game.getPlayerOneName().toString();
-					arr[1]="";
-					arr[2]=game.getPlayerTwoName();
-					arr[3]="";
-					arr[4]=game.getGameId().toString();
+					arr[1]=game.getPlayerTwoName();
+					arr[2]=game.getGameId().toString();
 					watchModel.addRow(arr);
 				}
 				
@@ -234,7 +235,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private void joinGameClicked()
 	{
 		int rowIndex=openGames.getSelectedRow();
-		if (((String)openGames.getValueAt(rowIndex, 2)).equals(client.getClientName()))
+		if (((String)openGames.getValueAt(rowIndex, 0)).equals(client.getClientName()))
 		{
 			JOptionPane.showMessageDialog(null,"Unfortunately you cannot play agains yourself!");
 			return;
@@ -243,7 +244,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.PLAY,
 																								  String.valueOf(client.getGamePort()),
 																								  String.valueOf(client.getTransmitWaiterPort()),
-																								  (String)openGames.getValueAt(rowIndex, 2),
+																								  (String)openGames.getValueAt(rowIndex, 1),
 																								  client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
@@ -308,7 +309,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		try {
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.WATCH,
 																												String.valueOf(client.getWatchPort()),
-																												(String)gamesForWatch.getValueAt(rowIndex, 4),
+																												(String)gamesForWatch.getValueAt(rowIndex, 2),
 																												client.getClientName()}));
 			if (client.parseServerResponse(response)==null)
 			{
@@ -342,10 +343,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		{
 			joinGameClicked();
 		}
-		if (e.getSource()==addGame)
-		{
-			newGameClicked();
-		}
+//		if (e.getSource()==addGame)
+//		{
+//			newGameClicked();
+//		}
 		if (e.getSource()==watchGame)
 		{
 			watchGameClicked();
@@ -385,6 +386,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		{
 			openStatsWindow();
 			return;
+		}
+		if (e.getSource()==menu1Item3)
+		{
+			newGameClicked();
 		}
 		
 	}

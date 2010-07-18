@@ -74,21 +74,19 @@ public class DataBaseManager {
 			{
 				return;
 			}
-			for (UnhandeledReport report : reports.getUnhandeledReports().values()) {
+			for (UnhandeledReport report : reports.getUnhandeledReports()) {
 				try {
 					makeReport(report.getGameId(), report.getClientName(), report.getWinner());
-					reports.removeReport(report.getGameId());
+					
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (GameIdNotExists e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
+			reports.removeReportsFile();
 		} catch (NoReports e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -362,7 +360,7 @@ public class DataBaseManager {
 		
 	}
 	
-	public static StatsReport getTopTenUsers(String username) throws SQLException
+	public synchronized static StatsReport getTopTenUsers(String username) throws SQLException
 	{
 		treatUnhandeledReports();
 		Connection conn=null;
