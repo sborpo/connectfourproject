@@ -165,7 +165,7 @@ public class DataBaseManager {
 		
 	}
 	
-	private static Connection getConnection(String dbName)
+	public static Connection getConnection(String dbName)
 	{
 		try {
 			//Class.forName("org.h2.Driver");
@@ -460,5 +460,282 @@ public class DataBaseManager {
 		}
 		
 	}
+	
+	
+	//Liat && Gabby
+	//*******************************************************
+	public static boolean isReported(String gameId) throws SQLException
+	{
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT * FROM games WHERE gameid=? AND user1rep IS NULL AND user2rep IS NULL;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			// false represent that rep#id is null
+			return (true == rowExists(prepareStatement)) ? true : false;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+		
+	}
+
+	public static String [] getPlayersName (String gameId)throws SQLException{
+		String [] usernames = new String [2];
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT User1 FROM games WHERE gameid=?;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			usernames[0] = query;
+				query= "SELECT User2 FROM games WHERE gameid=?;";
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,gameId);
+				usernames[1] = query;
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}
+		return usernames;
+	}
+	
+	public static void addToStats(String gameId,String report)throws SQLException
+	{
+		String usernames[] = new String[2];
+		usernames = getPlayersName(gameId);
+		String username1 = usernames[0];
+		String username2 = usernames[1];
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			conn.setAutoCommit(false);
+			if(username1.equals(report))
+			{		
+					String []query= {"UPDATE stats SET wins = wins+1 WHERE username=?;"};
+					synchronized (gameslock) {
+						for (int i=0; i<query.length; i++)
+						{
+							prepareStatement = conn.prepareStatement(query[i]);
+							prepareStatement.setString(1,username1);
+							prepareStatement.executeUpdate();
+						}
+						conn.commit();
+						conn.setAutoCommit(true);
+					}
+					String []query1= {"UPDATE stats SET loses = loses +1 WHERE username=?;"};
+					synchronized (gameslock) {
+						for (int i=0; i<query.length; i++)
+						{
+							prepareStatement = conn.prepareStatement(query1[i]);
+							prepareStatement.setString(1,username2);
+							prepareStatement.executeUpdate();
+						}
+						conn.commit();
+						conn.setAutoCommit(true);
+					}
+			}
+			else{ //in case the username lost
+				String []query= {"UPDATE stats SET loses = loses +1 WHERE username=?;"};
+				synchronized (gameslock) {
+					for (int i=0; i<query.length; i++)
+					{
+						prepareStatement = conn.prepareStatement(query[i]);
+						prepareStatement.setString(1,username1);
+						prepareStatement.executeUpdate();
+					}
+					conn.commit();
+					conn.setAutoCommit(true);
+				}
+				String []query1= {"UPDATE stats SET wins = wins +1 WHERE username=?;"};
+				synchronized (gameslock) {
+					for (int i=0; i<query.length; i++)
+					{
+						prepareStatement = conn.prepareStatement(query1[i]);
+						prepareStatement.setString(1,username2);
+						prepareStatement.executeUpdate();
+					}
+					conn.commit();
+					conn.setAutoCommit(true);
+				}
+			}
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+		
+	}
+	
+	public static String getReport(String gameId, int userR) throws SQLException{
+		String report = "";
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			if (userR == 1){
+				conn = getConnection(DataBaseManager.dbName);
+				String query= "SELECT user1rep FROM games WHERE gameid=?;";
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,gameId);
+				return query;
+			}
+			else if (userR == 2)
+			{
+				conn = getConnection(DataBaseManager.dbName);
+				String query= "SELECT user2rep FROM games WHERE gameid=?;";
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,gameId);
+				return query;
+			}
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+		return report;
+	}
+	
+	public static void removeFromStats(String gameId, String userR) throws SQLException
+	{
+		String usernames[] = new String[2];
+		usernames = getPlayersName(gameId);
+		String username1 = usernames[0];
+		String username2 = usernames[1];
+		String report = ""; //report = the winner's name as reported the 1st time 
+		if (userR.equals(username1))
+			report = getReport(gameId, 2);
+		else 
+			report = getReport(gameId, 1);
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			conn.setAutoCommit(false);
+			if(username1.equals(report))
+			{		
+					String []query= {"UPDATE stats SET wins = wins -1 WHERE username=?;"};
+					synchronized (gameslock) {
+						for (int i=0; i<query.length; i++)
+						{
+							prepareStatement = conn.prepareStatement(query[i]);
+							prepareStatement.setString(1,username1);
+							prepareStatement.executeUpdate();
+						}
+						conn.commit();
+						conn.setAutoCommit(true);
+					}
+					String []query1= {"UPDATE stats SET loses = loses -1 WHERE username=?;"};
+					synchronized (gameslock) {
+						for (int i=0; i<query.length; i++)
+						{
+							prepareStatement = conn.prepareStatement(query1[i]);
+							prepareStatement.setString(1,username2);
+							prepareStatement.executeUpdate();
+						}
+						conn.commit();
+						conn.setAutoCommit(true);
+					}
+			}
+			else{ //in case the username lost
+				String []query= {"UPDATE stats SET loses = loses -1 WHERE username=?;"};
+				synchronized (gameslock) {
+					for (int i=0; i<query.length; i++)
+					{
+						prepareStatement = conn.prepareStatement(query[i]);
+						prepareStatement.setString(1,username1);
+						prepareStatement.executeUpdate();
+					}
+					conn.commit();
+					conn.setAutoCommit(true);
+				}
+				String []query1= {"UPDATE stats SET wins = wins -1 WHERE username=?;"};
+				synchronized (gameslock) {
+					for (int i=0; i<query.length; i++)
+					{
+						prepareStatement = conn.prepareStatement(query1[i]);
+						prepareStatement.setString(1,username2);
+						prepareStatement.executeUpdate();
+					}
+					conn.commit();
+					conn.setAutoCommit(true);
+				}
+			}
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+		
+	}
+	
+	public static void updateStats(String gameId,String username,String report) throws SQLException
+	{
+		boolean bool = false;
+		bool = isReported(gameId);
+		if (bool == false) {  // in case we need to update stats
+			addToStats(gameId,report);
+		}
+		else {
+			bool = areReportsTheSame(gameId);
+			if (bool == true) return; // the reports o.k.
+			removeFromStats(gameId, username);
+		}
+	}
+	
+	public static int[] returnStats (String username) throws SQLException{
+		
+		int [] stats = new int [2];
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		String query = "";
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			query= "SELECT wins FROM stats WHERE username=?;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,username);
+			stats[0] = Integer.parseInt(query);
+			
+			query= "SELECT loses FROM stats WHERE username=?;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,username);
+			stats[1] = Integer.parseInt(query);
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}
+		return stats;
+	}
+
+
 	
 }
