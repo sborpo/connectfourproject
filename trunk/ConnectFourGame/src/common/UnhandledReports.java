@@ -19,7 +19,7 @@ public class UnhandledReports {
 	public static class NoReports extends Exception {}
 	public static class FileChanged extends Exception {}
 	private String fileName;
-	private HashMap<String, UnhandeledReport> reports;
+	private ArrayList< UnhandeledReport> reports;
 	
 	public UnhandledReports(String clientName) throws NoReports, FileChanged
 	{
@@ -27,14 +27,14 @@ public class UnhandledReports {
 		File f= new File(fileName);
 		if (!f.exists())
 		{
-			reports= new HashMap<String, UnhandeledReport>();
+			reports= new ArrayList<UnhandeledReport>();
 			return;
 		}
 		ObjectInputStream stream;
 		try {
 			AESmanager manager = new AESmanager();
 			stream = new ObjectInputStream(manager.getDecryptedInStream(f));
-			reports=(HashMap<String,UnhandeledReport>)stream.readObject();
+			reports=(ArrayList<UnhandeledReport>)stream.readObject();
 			stream.close();
 			if (reports.size()==0)
 			{
@@ -52,7 +52,8 @@ public class UnhandledReports {
 		}
 	}
 	
-	public HashMap<String, UnhandeledReport> getUnhandeledReports()
+
+	public ArrayList< UnhandeledReport> getUnhandeledReports()
 	{
 		return reports;
 	}
@@ -76,7 +77,7 @@ public class UnhandledReports {
 	
 	public String printReports()
 	{
-		 Collection<UnhandeledReport> list = reports.values();
+		 Collection<UnhandeledReport> list = reports;
 		 StringBuilder sb = new StringBuilder();
 			
 			for (UnhandeledReport gameReport :list) {
@@ -87,7 +88,7 @@ public class UnhandledReports {
 	
 	public String createGamesReportString()
 	{
-	    Collection<UnhandeledReport> list = reports.values();
+	    Collection<UnhandeledReport> list = reports;
 		if(list.isEmpty()){
 			return null;
 		}
@@ -109,14 +110,20 @@ public class UnhandledReports {
 	
 	public void addReport(UnhandeledReport report) throws IOException
 	{
-		reports.put(report.getGameId(), report);
+		if (reports.contains(report))
+		{
+			reports.remove(report);
+			
+		}
+		reports.add(report);
 		saveFile();
 	}
-	public void removeReport(String gameId) throws IOException
+	public void removeReport(String gameId,String clientName) throws IOException
 	{
-		if (reports.containsKey(gameId))
+		UnhandeledReport report= new UnhandeledReport(gameId, clientName, null, null);
+		if (reports.contains(report))
 		{
-			reports.remove(gameId);
+			reports.remove(report);
 		}
 		saveFile();
 		

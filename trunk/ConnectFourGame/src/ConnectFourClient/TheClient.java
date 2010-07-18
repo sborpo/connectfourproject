@@ -686,10 +686,10 @@ public class TheClient {
 		if(gameReports != null){
 			String preparedPass = preparePassword(password);
 			gameReports = gameReports + ClientServerProtocol.paramSeparator + preparedPass;
-			ArrayList<String> response = (ArrayList<String>)sendMessageToServer(gameReports);
+			ArrayList<UnhandeledReport> response = (ArrayList<UnhandeledReport>)sendMessageToServer(gameReports);
 			if(response != null){
-				for (String unhandeledReport : response) {
-					reports.removeReport(unhandeledReport);
+				for (UnhandeledReport unhandeledReport : response) {
+					reports.removeReport(unhandeledReport.getGameId(),unhandeledReport.getClientName());
 				}
 				if(reports.getReportNumber() == 0){
 					System.out.println("REMOVE REPORT FILE");

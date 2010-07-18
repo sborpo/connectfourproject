@@ -254,14 +254,14 @@ public class RequestHandler implements Runnable {
 		String[] reportsArr = new String[params.length - 2];
 		System.arraycopy(params, 1, reportsArr, 0, params.length - 2);
 		ArrayList<UnhandeledReport> reports= UnhandledReports.gameReportsFromReportsArray(reportsArr);
-		ArrayList<String> correctGameIds= new ArrayList<String>();
+		ArrayList<UnhandeledReport> correctGameIds= new ArrayList<UnhandeledReport>();
 		for (UnhandeledReport unhandeledReport : reports) {
 			server.printer.print_info("Trying to add report: " + unhandeledReport);
 			String result =this.gamesReportTreat(unhandeledReport.getGameId(), unhandeledReport.getClientName(), 
 					Boolean.getBoolean(unhandeledReport.getGameResult()), unhandeledReport.getWinner(), params[params.length-1]);
 			System.out.println("RESUT: " +result);
 			if(result.equals(ClientServerProtocol.OK)){
-				correctGameIds.add(unhandeledReport.getGameId());
+				correctGameIds.add(unhandeledReport);
 			}
 		}
 		return correctGameIds;	
@@ -370,7 +370,7 @@ public class RequestHandler implements Runnable {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 						try {
-							UnhandledReports reports = new UnhandledReports(server.ReportFileName);
+							UnhandledReports reports = new UnhandledReports(MainServer.ReportFileName);
 							try {
 								reports.addReport(new UnhandeledReport(gameId, clientName, String.valueOf(gameRes), winner));
 								server.printer.print_info("The report for game: " + gameId + " was added locally correctly");
