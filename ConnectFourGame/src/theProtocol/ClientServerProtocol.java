@@ -106,9 +106,9 @@ public class ClientServerProtocol {
 	
 	private void mapInit(){
 		numOfParametersForCmd.put(MEETME, 3);
-		numOfParametersForCmd.put(NEWGAME, 3);
-		numOfParametersForCmd.put(PLAY, 4);
-		numOfParametersForCmd.put(WATCH, 3);
+		numOfParametersForCmd.put(NEWGAME, 4);
+		numOfParametersForCmd.put(PLAY, 5);
+		numOfParametersForCmd.put(WATCH, 4);
 		numOfParametersForCmd.put(OK, 0);
 		numOfParametersForCmd.put(NOCONN, 0);
 		numOfParametersForCmd.put(KNOWYA, 1);
@@ -121,7 +121,7 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(VIEWERTRANSMIT, 4);
 		numOfParametersForCmd.put(GAMEMOVE, 3);
 		numOfParametersForCmd.put(GAMEREPORT, 5);
-		numOfParametersForCmd.put(IMALIVE, 5);
+		numOfParametersForCmd.put(IMALIVE, 4);
 		numOfParametersForCmd.put(ENJOYWATCH, 0);
 		numOfParametersForCmd.put(USERNOTEXISTS, 0);
 		numOfParametersForCmd.put(USERALREADYEXISTS, 0);

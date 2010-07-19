@@ -64,12 +64,9 @@ public class AliveSender extends Thread implements TimerListener{
 	synchronized public void timeOutReceived(TimeOutEvent event) {
 		//send to server client Alive message!
 		try {
-			client.getServerPublicKey();
 			noServerConnection = false;
-			String preparedPass = client.preparePassword(client.getPassword());
 			String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
 																			client.getClientName(), 
-																			preparedPass,
 																			Integer.toString(client.getTransmitWaiterPort()),
 																			client.getGameId(),
 																			Integer.toString(client.getGamePort())});

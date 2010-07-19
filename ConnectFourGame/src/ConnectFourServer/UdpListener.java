@@ -76,7 +76,6 @@ public class UdpListener implements Runnable,TimerListener {
 						break;
 					}
 					
-					String clientMessage = aliveMessageArr[0];
 					String clientName = aliveMessageArr[1];
 					server.printer.print_info("\n----------------------------\nUDP recieved From Client: "+clientName
 									+ ", "+aliveMsg.getAddress().toString()
@@ -107,32 +106,26 @@ public class UdpListener implements Runnable,TimerListener {
 	
 	private void addAliveClient(String[] message,DatagramPacket packet){
 			String clientName = message[1];
-			String password = message[2];
-			int transmitPort = Integer.parseInt(message[3]);
-			String gameId   = message[4];
-			int tcpPort = Integer.parseInt(message[5]);
-			if(server.authUser(clientName, password)){
-				OnlineClient theClient = new OnlineClient(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
-				server.clients.addClientToUdpList(theClient);
-				if(gameId != null && !gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
-					Game theGame = server.games.getGame(gameId);
-					if(theGame == null){
-						server.printer.print_info("Creating new game: " + gameId);
-						theGame = new GameGUI(clientName, null, gameId, null, tcpPort, null, TheClient.unDEFport, false, null,TheClient.unDEFport);
-						server.games.addGame(theGame);
-						theClient.setGameForClient(gameId);
-					}
-					else{
-						theGame.addPlayer(clientName);
-					}
-					server.printer.print_info("Adding client: " + clientName);
+			int transmitPort = Integer.parseInt(message[2]);
+			String gameId   = message[3];
+			int tcpPort = Integer.parseInt(message[4]);
+			OnlineClient theClient = new OnlineClient(packet.getAddress(), packet.getPort(), clientName, tcpPort, transmitPort);
+			server.clients.addClientToUdpList(theClient);
+			if(gameId != null && !gameId.equalsIgnoreCase(ClientServerProtocol.noGame)){
+				Game theGame = server.games.getGame(gameId);
+				if(theGame == null){
+					server.printer.print_info("Creating new game: " + gameId);
+					theGame = new GameGUI(clientName, null, gameId, null, tcpPort, null, TheClient.unDEFport, false, null,TheClient.unDEFport);
+					server.games.addGame(theGame);
+					theClient.setGameForClient(gameId);
 				}
-				openTimerFor(clientName);
-				server.printer.print_info("Authentication had succeded for: " + clientName);
+				else{
+					theGame.addPlayer(clientName);
+				}
+				server.printer.print_info("Adding client: " + clientName);
 			}
-			else{
-				server.printer.print_error("Authentication had failed for: " + clientName);
-			}
+			openTimerFor(clientName);
+			server.printer.print_info("User has been successfully added: " + clientName);
 	}
 	
 	@SuppressWarnings("unchecked")

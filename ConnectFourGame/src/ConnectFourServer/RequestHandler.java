@@ -146,7 +146,7 @@ public class RequestHandler implements Runnable {
 				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],params[3]); 
 			}
 			else if(command.equals(ClientServerProtocol.NEWGAME)){
-				respondMsg = newGameTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3]);
+				respondMsg = newGameTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3],params[4]);
 			}
 			else if(command.equals(ClientServerProtocol.DISCONNECT)){
 				respondMsg = playerDisconnectTreat(params[1]);
@@ -161,7 +161,7 @@ public class RequestHandler implements Runnable {
 				respondMsg = signupTreat(params[1],params[2]);
 			}
 			else if(command.equals(ClientServerProtocol.PLAY)){
-				respondMsg = playTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3],params[4]);
+				respondMsg = playTreat(Integer.parseInt(params[1]),Integer.parseInt(params[2]),params[3],params[4],params[5]);
 			}
 			else if(command.equals(ClientServerProtocol.GAMELIST)){
 				respondMsg = getOnlineGamesTreat();
@@ -170,7 +170,7 @@ public class RequestHandler implements Runnable {
 				respondMsg = getStatisticsTreat(params[1]);
 			}
 			else if(command.equals(ClientServerProtocol.WATCH)){
-				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3]);
+				respondMsg = watchTreat(Integer.parseInt(params[1]),params[2],params[3],params[4]);
 			}
 			else if(command.equals(ClientServerProtocol.GETPUBKEY)){
 				respondMsg = pubKeyTreat();
@@ -393,8 +393,13 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
-	private String watchTreat(int watcherPort, String gameId,String watcherName) {
-		String response = ClientServerProtocol.KNOWYA;
+	private String watchTreat(int watcherPort, String gameId,String watcherName, String password) {
+		String response = ClientServerProtocol.DENIED;
+		
+		if(!authenticateUser(watcherName,password)){
+			return response;
+		}
+		
 		OnlineClient viewer=server.clients.getClient(watcherName);
 		if(viewer != null)
 		{
@@ -461,8 +466,13 @@ public class RequestHandler implements Runnable {
 		
 	}
 
-	private String playTreat(int gamePort, int transmitionPort, String gameId,String clientName) {
-		String response = ClientServerProtocol.KNOWYA;
+	private String playTreat(int gamePort, int transmitionPort, String gameId,String clientName,String password) {
+		String response = ClientServerProtocol.DENIED;
+		
+		if(!authenticateUser(clientName,password)){
+			return response;
+		}
+		
 		//check if the client is in the list and not in a game
 		OnlineClient theClient = server.clients.getClient(clientName);
 		if(theClient != null){
@@ -521,8 +531,13 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
-	private String newGameTreat(int gamePort,int transmitionPort, String playerName) {
-		String response = ClientServerProtocol.KNOWYA;
+	private String newGameTreat(int gamePort,int transmitionPort, String playerName, String password) {
+		String response = ClientServerProtocol.DENIED;
+		
+		if(!authenticateUser(playerName,password)){
+			return response;
+		}
+		
 		//generate game id
 		String gameId = playerName + Long.toString(System.currentTimeMillis());
 		//check if the client is in the list 
@@ -547,6 +562,18 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 	
+	private boolean authenticateUser(String playerName, String password) {
+		boolean result = false;
+		try {
+			if(DataBaseManager.authenticateUser(playerName, password)){
+				result = true;
+			}
+		} catch (Exception e) {
+			server.printer.print_error("Failed to athenticate user: " + playerName);
+		}
+		return result;
+	}
+
 	private String signupTreat(String username , String password)
 	{
 		String response = ClientServerProtocol.SERVPROB;

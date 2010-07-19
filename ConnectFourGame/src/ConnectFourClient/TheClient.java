@@ -271,7 +271,7 @@ public class TheClient {
 		String[] commandPar = parseCommand(message,parser);
 		if(commandPar == null){
 			this.logger.print_error("Wrong message to server: " + parser.result);
-			return resp;
+			throw new IOException("Wrong message to the server");
 		}
 		
 		// send the command to the server
@@ -300,13 +300,12 @@ public class TheClient {
 			throw new ServerWriteOrReadException();
 		}
 		ObjectInputStream response = new ObjectInputStream(serverConnection.getInputStream());
-		logger.print_info("READING socket...");
+		logger.print_info("READING response from socket...");
 		
 		// get server's response
 		try {
 			if((resp = response.readObject()) != null) {
 				logger.print_info("Server Response is:" + resp);
-				
 			}
 		}catch (SocketTimeoutException e)
 		{
@@ -363,32 +362,32 @@ public class TheClient {
 	
 	private void parseArguments(String[] args) {
 		//From Prroperites
-//		Properties props = getProperties();
-//		
-//		//serverHost = (args[0]);
-//		serverHost = props.getProperty("SERVER_HOST");
-//		logger.print_info("Server: " + serverHost);
-//		//serverPort = Integer.parseInt(args[1]);
-//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-//		logger.print_info("Server TCP port: "+serverPort);
-//		//clientUdp = Integer.parseInt(args[2]);
-//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-//		logger.print_info("Client Udp Listen port: "+clientUdp);
-//		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-//		//clientGamePort = Integer.parseInt(args[4]);
-//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-//		logger.print_info("Client Game port: "+clientGamePort);
+		Properties props = getProperties();
+		
+		//serverHost = (args[0]);
+		serverHost = props.getProperty("SERVER_HOST");
+		logger.print_info("Server: " + serverHost);
+		//serverPort = Integer.parseInt(args[1]);
+		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+		logger.print_info("Server TCP port: "+serverPort);
+		//clientUdp = Integer.parseInt(args[2]);
+		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+		logger.print_info("Client Udp Listen port: "+clientUdp);
+		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+		//clientGamePort = Integer.parseInt(args[4]);
+		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+		logger.print_info("Client Game port: "+clientGamePort);
 		
 		
 		//From command line
 		
-		serverHost = (args[0]);
-		serverPort = Integer.parseInt(args[1]);
-		clientUdp = Integer.parseInt(args[2]);
-		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientGamePort = Integer.parseInt(args[4]);
+//		serverHost = (args[0]);
+//		serverPort = Integer.parseInt(args[1]);
+//		clientUdp = Integer.parseInt(args[2]);
+//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientGamePort = Integer.parseInt(args[4]);
 		
 		
 		clientWatchPort= clientGamePort;
@@ -451,14 +450,17 @@ public class TheClient {
 		else if(params[0].equals(ClientServerProtocol.NEWGAME)){
 			clientGamePort = Integer.parseInt(params[1]);
 			clientTransmitWaiterPort = Integer.parseInt(params[2]);
+			params[4] = preparePassword(params[4]);
 		}
 		else if(params[0].equals(ClientServerProtocol.PLAY)){
 			clientGamePort = Integer.parseInt(params[1]);
 			clientTransmitWaiterPort = Integer.parseInt(params[2]);
 			gameId = params[3];
+			params[5] = preparePassword(params[5]);
 		}
 		else if(params[0].equals(ClientServerProtocol.WATCH)){
 			clientWatchPort = Integer.parseInt(params[1]);
+			params[4] = preparePassword(params[4]);
 		}
 		else if(params[0].equals(ClientServerProtocol.SIGNUP)){
 			clientName = params[1];
@@ -638,20 +640,11 @@ public class TheClient {
 		}
 		return responseRes;
 	}
-	
-	public static void main(String[] args) {
-		try {
-			new MainFrame(args);
-		} catch (IOException e) {
-			System.out.println(LogPrinter.error_msg("Client had failed!"));
-		}
-
-	}
 
 	public void disconnect()
 	{
 		String disconnectStr = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.DISCONNECT,
-				clientName});
+																				clientName});
 		logger.print_info("Send disconnection to server: " + disconnectStr);
 		Object resp = null;
 		try{
