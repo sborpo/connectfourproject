@@ -27,27 +27,46 @@ import common.PasswordHashManager.SystemUnavailableException;
 
 
 
+/**
+ * This class handles the communitcation with 
+ * the databse using JDBC.
+ */
 public class DataBaseManager {
 
 
 
-	
+	/**
+	 * 
+	 * Thrown where trying to add a user which already exists in the system
+	 *
+	 */
 	public static class UserAlreadyExists extends Exception{		
 		public String getMessage(){
 			return "User is already exists in the database";
 		}
 	}
+	
+	/**
+	 * Thrown when trying to add a gameid which already exists
+	 *
+	 */
 	public static class GameIdAlreadyExists extends Exception{
 		public String getMessage(){
 			return "The gameId is already exists in the database";
 		}
 	}
+	
+	/**
+	 * Thrown when the gameId not exists
+	 *
+	 */
 	public static class GameIdNotExists extends Exception{
 		public String getMessage(){
 			return "The gameId is already exists in the database";
 		}
 	}
 	
+	//These fields are for connecting to the database
 	private static String dbName ; 
 	private static String userName;
 	private static String password;
@@ -55,7 +74,9 @@ public class DataBaseManager {
 	private static Integer userslock;
 	private static Integer gameslock;
 	
-	
+	/**
+	 * Initialiaze the parameters for connecting the database
+	 */
 	static
 	{
 		dbName="db";
@@ -66,6 +87,11 @@ public class DataBaseManager {
 		gameslock=new Integer(0);
 	}
 	
+	/**
+	 * This method moves the unhandled user reports from the server reports file
+	 * into the databse. (The unhandeled reports were saved in the file because the
+	 * database was not available
+	 */
 	public static void treatUnhandeledReports()
 	{
 		try {
@@ -95,14 +121,27 @@ public class DataBaseManager {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * initializes the database name
+	 * @param dbName
+	 */
 	public static void initDBname(String dbName){
 		DataBaseManager.dbName = dbName;
 	}
 	
+	/**
+	 * @return database name
+	 */
 	public static String getDBname(){
 		return DataBaseManager.dbName;
 	}
 	
+	/**
+	 * creates a new database
+	 * @param dbName
+	 * @throws SQLException
+	 */
 	public static void createDB(String dbName) throws SQLException{
 		DataBaseManager.dbName = dbName;
 		Connection conn=getConnection("");
@@ -121,6 +160,10 @@ public class DataBaseManager {
 		
 	}
 	
+	/**
+	 * construct the tables of the database
+	 * @throws SQLException
+	 */
 	public static void  constructTables() throws SQLException
 	{
 		Connection conn=getConnection(DataBaseManager.dbName);
@@ -165,6 +208,10 @@ public class DataBaseManager {
 		
 	}
 	
+	/**
+	 * Returns a new Connection to the database 
+	 * through which other methods can execute queires
+	 */
 	public static Connection getConnection(String dbName)
 	{
 		try {
@@ -182,6 +229,13 @@ public class DataBaseManager {
 		return null; 
 	}
 	
+	/**
+	 * Hashes a given password using the PasswordHashManager
+	 * The hash is nessary to maintain basic security
+	 * @param pass
+	 * @return
+	 * @throws SystemUnavailableException
+	 */
 	private static String hashPassword(String pass) throws SystemUnavailableException{
 		String hashed = null;
 		PasswordHashManager hashManager = PasswordHashManager.getInstance();
@@ -189,6 +243,22 @@ public class DataBaseManager {
 		return hashed;
 	}
 	
+	/**
+	 * This method authenticates the given user with it's previous 
+	 * details in the database. if they match , returns true , otherwise
+	 * return false.
+	 * @param username
+	 * @param password
+	 * @return
+	 * @throws SQLException
+	 * @throws InvalidKeyException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws IOException
+	 * @throws SystemUnavailableException
+	 */
 	public static boolean authenticateUser(String username,String password) throws SQLException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, SystemUnavailableException
 	{
 		String decrypted = RSAgenerator.decrypt(password);
@@ -213,7 +283,13 @@ public class DataBaseManager {
 		}
 	}
 	
-	
+	/**
+	 * Executes the prepared stamtement query on the database, if some row has returned
+	 * the method returns true, otherwise if empty set returned , the method returns false
+	 * @param query
+	 * @return
+	 * @throws SQLException
+	 */
 	private static boolean rowExists(PreparedStatement st) throws SQLException
 	{
 		ResultSet set = st.executeQuery();
@@ -224,11 +300,24 @@ public class DataBaseManager {
 		return true;
 	}
 	
+	/**
+	 * Returns true if the given clientName exists , false otherwise
+	 * @param clientName
+	 * @return
+	 * @throws SQLException
+	 */
 	public static boolean isUserExists(String clientName) throws SQLException{
 		Connection conn= getConnection(DataBaseManager.dbName);
 		return checkUserExists(clientName,conn);
 	}
 	
+	/**
+	 * 
+	 * @param username
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */
 	private static boolean checkUserExists(String username,Connection conn) throws SQLException
 	{
 			String query= "SELECT * FROM users WHERE username=?";
@@ -237,6 +326,12 @@ public class DataBaseManager {
 			return rowExists(prepareStatement);
 	}
 	
+	/**
+	 * Retunrs true if the gameId exists  , otherwise returns false
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
+	 */
 	public static boolean isGameIdExists(String gameId) throws SQLException{
 		if (gameId==null)
 		{
@@ -246,6 +341,30 @@ public class DataBaseManager {
 		return checkGameIdExists(gameId,conn);
 	}
 	
+	/**
+	 * Returns true if the given game exists , otherwise returns false.
+	 * this is an auxilary function which uses a given connection
+	 * @param gameId
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */
+	private static boolean checkGameIdExists(String gameId,Connection conn) throws SQLException
+	{
+			String query= "SELECT * FROM games WHERE gameid=?";
+			PreparedStatement prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			return rowExists(prepareStatement);
+	}
+	
+	/**
+	 * Returns true if the given client name was a player in the given gameId ,
+	 * otherwise returns false
+	 * @param clientName
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
+	 */
 	public static boolean isClientPlayedGame(String clientName, String gameId) throws SQLException{
 
 		Connection conn= getConnection(DataBaseManager.dbName);
@@ -257,14 +376,23 @@ public class DataBaseManager {
 		return rowExists(prepareStatement);
 	}
 	
-	private static boolean checkGameIdExists(String gameId,Connection conn) throws SQLException
-	{
-			String query= "SELECT * FROM games WHERE gameid=?";
-			PreparedStatement prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,gameId);
-			return rowExists(prepareStatement);
-	}
-		
+	
+	
+	/**
+	 * This method Inserts a new username with a given password into the system, if the 
+	 * username already exists , it throws an exception	
+	 * @param username
+	 * @param password
+	 * @throws SQLException
+	 * @throws UserAlreadyExists
+	 * @throws InvalidKeyException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws IOException
+	 * @throws SystemUnavailableException
+	 */
 	public static void insertUser(String username,String password) throws SQLException, UserAlreadyExists, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, SystemUnavailableException
 	{
 		String decrypted = RSAgenerator.decrypt(password);
@@ -313,6 +441,15 @@ public class DataBaseManager {
 
 	}
 	
+	/**
+	 * Creates a new game with the given gameId , and the two given
+	 * players , if the gameId already exists  , it throws exception
+	 * @param username1
+	 * @param username2
+	 * @param gameId
+	 * @throws SQLException
+	 * @throws GameIdAlreadyExists
+	 */
 	public static void createGame(String username1,String username2,String gameId) throws SQLException, GameIdAlreadyExists
 	{
 		Connection conn=null;
@@ -341,6 +478,14 @@ public class DataBaseManager {
 		
 	}
 	
+	/**
+	 * Checks if the user-reports about the result of the given gameId are the same,
+	 * if they are the same , it returns true, otherwise returns false.
+	 * comment : if someone of the players not reported yet , the function returns false
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
+	 */
 	public static boolean areReportsTheSame(String gameId) throws SQLException
 	{
 		Connection conn=null;
@@ -360,6 +505,13 @@ public class DataBaseManager {
 		
 	}
 	
+	/**
+	 * Retuns a StatsReport object which contrains the statistics of the top ten users
+	 * of the system according to their rank. the rank is winw-loses.
+	 * @param username
+	 * @return
+	 * @throws SQLException
+	 */
 	public synchronized static StatsReport getTopTenUsers(String username) throws SQLException
 	{
 		treatUnhandeledReports();
@@ -395,6 +547,18 @@ public class DataBaseManager {
 		}	
 
 	}
+	
+	
+	/**
+	 * Make a user report about game result. The report is from the given username which has to be
+	 * a memeber of the given game (given in the gameId) and the game result which is given in the report
+	 * parameter
+	 * @param gameId
+	 * @param username
+	 * @param report
+	 * @throws SQLException
+	 * @throws GameIdNotExists
+	 */
 	public static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
 		
@@ -435,7 +599,12 @@ public class DataBaseManager {
 	}
 	
 	
-	
+	/**
+	 * Removes the given gameId from the system
+	 * @param gameId
+	 * @throws SQLException
+	 * @throws GameIdNotExists
+	 */
 	public static void  removeGame(String gameId) throws SQLException, GameIdNotExists
 	{
 	

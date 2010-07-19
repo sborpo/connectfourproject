@@ -26,6 +26,12 @@ import common.PasswordHashManager;
 import common.RSAgenerator;
 import common.PasswordHashManager.SystemUnavailableException;
 
+/**
+ * This class represents the server of the game , which
+ * every client must connect to in order to search , create ,view and join
+ * online games
+ *
+ */
 public class MainServer {
 	
 	final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
@@ -71,6 +77,11 @@ public class MainServer {
 //		c.start();
 //	}
 
+	/**
+	 * The servers constructor , which is initialized with the command line arguemnts (or using a 
+	 * properties file). 
+	 * It uses a thread pool to manage clients requests.
+	 */
 	public MainServer(String[] args) throws SQLException, IOException {
 		try {
 			printer = new LogPrinter("Server");
@@ -96,6 +107,10 @@ public class MainServer {
 
 	}
 	
+	/**
+	 * This method initiates the database , in case it is not initiated yet.
+	 * @throws SQLException
+	 */
 	private void initDatabase() throws SQLException
 	{
 		this.printer.print_info("Loading the database...");
@@ -104,6 +119,13 @@ public class MainServer {
 		this.printer.print_info("Done loading the database");
 	}
 	
+	/**
+	 * This method authnitcates a given client
+	 * @param clientName
+	 * @param password
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean authUserWitExp(String clientName,String password) throws Exception
 	{
 		boolean result = false;
