@@ -99,7 +99,6 @@ public class UdpListener implements Runnable,TimerListener {
 
 				catch (IOException e) {
 					server.printer.print_error(e.getMessage());
-					e.printStackTrace();
 				}
 		}
 	}

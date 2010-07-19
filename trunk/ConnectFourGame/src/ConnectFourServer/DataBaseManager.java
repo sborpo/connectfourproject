@@ -561,7 +561,6 @@ public class DataBaseManager {
 	 */
 	public static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
-		
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
@@ -903,6 +902,38 @@ public class DataBaseManager {
 			if (conn!=null){conn.close();}
 		}
 		return stats;
+	}
+	
+	
+	//VALERIY
+	public static void updateGamePlayer(String gameId, String clientName) throws GameIdNotExists, SQLException {
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			if(checkGameIdExists(gameId, conn)){			
+				prepareStatement = conn.prepareStatement("UPDATE games SET user2=? WHERE gameid=?;");
+				prepareStatement.setString(1,clientName);
+				prepareStatement.setString(2,gameId);
+				
+				synchronized (gameslock) {
+					prepareStatement.executeUpdate();
+				}
+			}
+			else{
+				throw new GameIdNotExists();
+			}
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+			throw ex;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
 	}
 
 
