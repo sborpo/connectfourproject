@@ -36,6 +36,7 @@ public class MainServer {
 	
 	final String[] enabledCipherSuites = { "SSL_DH_anon_WITH_RC4_128_MD5" };
 	
+	//The unhandeled report file name
 	public static String ReportFileName="server";
 
 	// the connection pool of the server. each incoming
@@ -62,10 +63,18 @@ public class MainServer {
 	//The udpListener
 	public UdpListener udpListener = null;
 	
+	/**
+	 * Returns the server TCP port
+	 * @return
+	 */
 	public int getServerTCPPort() {
 		return serverTCPPort;
 	}
 	
+	/**
+	 * Returns the server UDP port
+	 * @return
+	 */
 	public int getServerUDPPort() {
 		return serverUDPPort;
 	}
@@ -120,7 +129,9 @@ public class MainServer {
 	}
 	
 	/**
-	 * This method authnitcates a given client
+	 * This method authnitcates a given client, returns true if its authenticated ,
+	 * false otherwise. this method also throws SQL exception in case we have a problem 
+	 * with the database
 	 * @param clientName
 	 * @param password
 	 * @return
@@ -143,6 +154,14 @@ public class MainServer {
 		return false;
 	}
 	
+	
+	/**
+	 * This method works just like authUserWitExp , but it doesn't throws an exception . In case that we
+	 * have a porblem , it reutns false
+	 * @param clientName
+	 * @param password
+	 * @return
+	 */
 	public boolean authUser(String clientName, String password){
 		
 		boolean result=false;
@@ -207,12 +226,16 @@ public class MainServer {
 
 	}
 
+	/**
+	 * Returns the udp listener , an object that manages the Alive messages protocol
+	 * @return
+	 */
 	public UdpListener getUdpListener(){
 		return udpListener;
 	}
 	
 	/**
-	 * @param args
+	 * Here we start the server
 	 */
 	public static void main(String[] args) {
 

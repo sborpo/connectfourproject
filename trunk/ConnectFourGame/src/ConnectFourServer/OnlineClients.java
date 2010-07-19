@@ -8,6 +8,11 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * This class manages the online clients which are now
+ * connected to the server.
+ *
+ */
 public class OnlineClients {
 	private MainServer server;
 	//The current online client (their udp addresses)
@@ -24,6 +29,9 @@ public class OnlineClients {
 		
 	}
 	
+	/**
+	 * 
+	 */
 	public synchronized void resetIsAliveMap(){
 		for(String key : isAlive.keySet()){
 			resetAlive(key);
