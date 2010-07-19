@@ -87,7 +87,6 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		setLocationRelativeTo(null);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
 	}
 	
 	public void openSignIn()
@@ -245,7 +244,13 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 																								  String.valueOf(client.getGamePort()),
 																								  String.valueOf(client.getTransmitWaiterPort()),
 																								  (String)openGames.getValueAt(rowIndex, 1),
-																								  client.getClientName()}));
+																								  client.getClientName(),
+																								  client.getPassword()}));
+			if(response == null){
+				this.showMessageDialog("There was an error in server's response!", MsgType.error);
+				return;
+			}
+			
 			if (client.parseServerResponse(response)==null)
 			{
 				this.showMessageDialog("There was an error in server's response!", MsgType.error);
@@ -283,7 +288,13 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.NEWGAME,
 																												String.valueOf(client.getGamePort()),
 																												String.valueOf(client.getTransmitWaiterPort()),
-																												client.getClientName()}));
+																												client.getClientName(),
+																												client.getPassword()}));
+			if(response == null){
+				this.showMessageDialog("There was an error in server's response!", MsgType.error);
+				return;
+			}
+			
 			if (client.parseServerResponse(response)==null)
 			{
 				this.showMessageDialog("There was an error in server's response!", MsgType.error);
@@ -310,7 +321,13 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.WATCH,
 																												String.valueOf(client.getWatchPort()),
 																												(String)gamesForWatch.getValueAt(rowIndex, 2),
-																												client.getClientName()}));
+																												client.getClientName(),
+																												client.getPassword()}));
+			if(response == null){
+				this.showMessageDialog("There was an error in server's response!", MsgType.error);
+				return;
+			}
+			
 			if (client.parseServerResponse(response)==null)
 			{
 				this.showMessageDialog("There was an error in server's response!", MsgType.error);

@@ -534,6 +534,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private boolean sendMessageGetResponse(String message){
 		boolean succeeded = false;
 		try {
+			theClient.logger.print_info("Trying to send your message to opponent: " + message);
 			ClientServerProtocol prot= new ClientServerProtocol(msgType.CLIENT);
 			String [] messageCommand=prot.parseCommand(message);
 			if(messageCommand == null){
@@ -687,7 +688,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		this.blocked = true;
 		theClient.logger.print_info("Handling I_surrender message..." + plays.getTimer());
 		while(succeeded == false && !plays.getTimer().isTimedOut()){
-			System.out.println("send I surr to opp");
 			succeeded = sendMessageGetResponse(ClientServerProtocol.ISURRENDER);
 			if(!succeeded){
 				this.sleepAWhile(1000);
@@ -723,7 +723,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 
 	@Override
 	public void run() {
-		System.out.println("STARTING GAME");
 		gameReport=startOnlineGame(clientGamePort,(String)opponentHost,opponentGamePort,opponentTransmitWaiterPort,startedGame,theClient);
 		//this.setVisible(false);
 		if(gameReport == null){
@@ -738,6 +737,20 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		else if(infoMessage != null){
 			popupDialog(infoMessage,MsgType.info);
 		}
+		else{
+			if(Boolean.parseBoolean(gameReport.getGameResult()) == Game.gameRes.WINNER){
+				if(gameReport.getWinner().equals(clientPlayer.getName())){
+					popupDialog("You are the winner!",MsgType.info);
+				}
+				else{
+					popupDialog("You are the loser!",MsgType.info);
+				}
+			}
+			else{
+				popupDialog("Noboody had won!", MsgType.info);
+			}
+		}
+		this.setVisible(false);
 		System.out.println("GUI IS FINISHED: "+gameReport );
 	}
 
@@ -793,10 +806,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	public void opponentSurrender(){
 		state = GameState.OPPONENT_SURRENDED;
-		
-		//infoMessage = "Opponent has surrended!";
 		this.closeAndNotify();
-		popupDialog("Opponent has surrended!",MsgType.info);
+		infoMessage = "Opponent has surrended!";
 	}
 
 	synchronized public void resetConnection(){
