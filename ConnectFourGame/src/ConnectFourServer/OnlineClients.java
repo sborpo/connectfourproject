@@ -119,8 +119,7 @@ public class OnlineClients {
 				toRemove.add(key);
 			}
 			else{
-				//for testing
-				System.out.println(key + "is alive");
+				server.printer.print_info(key + " is alive");
 			}
 		}
 

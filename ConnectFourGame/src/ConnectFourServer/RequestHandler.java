@@ -288,7 +288,7 @@ public class RequestHandler implements Runnable {
 			}
 			//try to authenticate user
 			try{
-				if(!server.authUserWitExp(clientName,password)){
+				if(!authenticateUser(clientName,password)){
 						server.printer.print_error("Cannot authenticate user: " + clientName + " PASS: '" + password + "'");
 						if(theGame != null){
 							server.games.addGame(theGame);
@@ -308,7 +308,6 @@ public class RequestHandler implements Runnable {
 			}
 			catch(SQLException ex)
 			{
-				System.out.println("chec if game exists error");
 				throw ex;
 			}
 			if(!(gameId != null && isExists ))
@@ -396,7 +395,12 @@ public class RequestHandler implements Runnable {
 	private String watchTreat(int watcherPort, String gameId,String watcherName, String password) {
 		String response = ClientServerProtocol.DENIED;
 		
-		if(!authenticateUser(watcherName,password)){
+		try {
+			if(!authenticateUser(watcherName,password)){
+				return response;
+			}
+		} catch (Exception e1) {
+			response = ClientServerProtocol.SERVPROB;
 			return response;
 		}
 		
@@ -469,7 +473,12 @@ public class RequestHandler implements Runnable {
 	private String playTreat(int gamePort, int transmitionPort, String gameId,String clientName,String password) {
 		String response = ClientServerProtocol.DENIED;
 		
-		if(!authenticateUser(clientName,password)){
+		try {
+			if(!authenticateUser(clientName,password)){
+				return response;
+			}
+		} catch (Exception e1) {
+			response = ClientServerProtocol.SERVPROB;
 			return response;
 		}
 		
@@ -486,8 +495,8 @@ public class RequestHandler implements Runnable {
 			Game theGame = server.games.getGame(gameId);
 			if(theGame != null){
 				//and has no second player
-				Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
-				if(thePlayer == null){
+				//Player thePlayer = theGame.getPlayer(Player.Color.BLUE);
+				//if(thePlayer == null){
 					theGame.addPlayer(clientName);
 					OnlineClient enemy = server.clients.getClient(theGame.getPlayer(Player.Color.RED).getName());
 					if(enemy != null){
@@ -499,16 +508,24 @@ public class RequestHandler implements Runnable {
 						server.printer.print_info("Player has been added to the game: " + gameId + "\n");
 						theClient.setGameForClient(gameId);
 						try {
-							server.printer.print_info("Adding the game to database: " + gameId + "\n");
-							DataBaseManager.createGame(enemy.getName(), clientName, gameId);
+							if(DataBaseManager.isGameIdExists(gameId)){
+								server.printer.print_info("Game exists in database - updating the second player...");
+								try {
+									DataBaseManager.updateGamePlayer(gameId,clientName);
+								} catch (GameIdNotExists e) {
+									//CANNOT HAPPEN
+								}
+							}
+							else{
+								server.printer.print_info("Adding the game to database: " + gameId + "\n");
+								DataBaseManager.createGame(enemy.getName(), clientName, gameId);
+							}
 						} catch (SQLException e) {
 							server.printer.print_error("Cannot insert the game to the database: " + e.getMessage());
-							e.printStackTrace();
 							response = ClientServerProtocol.SERVPROB;
 							//TODO to do something
 						} catch (GameIdAlreadyExists e) {
 							server.printer.print_error("The game is already in the database: " + e.getMessage());
-							e.printStackTrace();
 							response = ClientServerProtocol.SERVPROB;
 							//TODO something
 						}
@@ -517,11 +534,11 @@ public class RequestHandler implements Runnable {
 						server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");
 						response = ClientServerProtocol.SERVPROB;
 					}
-				}
-				else{
-					server.printer.print_error("Other man playing..." + thePlayer.getName() +"\n");
-					response = ClientServerProtocol.DENIED;
-				}
+//				}
+//				else{
+//					server.printer.print_error("Other man playing..." + thePlayer.getName() +"\n");
+//					response = ClientServerProtocol.DENIED;
+//				}
 			}
 			else{
 				server.printer.print_error("No such gameId:" + gameId);
@@ -534,7 +551,12 @@ public class RequestHandler implements Runnable {
 	private String newGameTreat(int gamePort,int transmitionPort, String playerName, String password) {
 		String response = ClientServerProtocol.DENIED;
 		
-		if(!authenticateUser(playerName,password)){
+		try {
+			if(!authenticateUser(playerName,password)){
+				return response;
+			}
+		} catch (Exception e) {
+			response = ClientServerProtocol.SERVPROB;
 			return response;
 		}
 		
@@ -560,9 +582,9 @@ public class RequestHandler implements Runnable {
 
 		}
 		return response;
-	}
+	}	
 	
-	private boolean authenticateUser(String playerName, String password) {
+	private boolean authenticateUser(String playerName, String password) throws Exception {
 		boolean result = false;
 		try {
 			if(DataBaseManager.authenticateUser(playerName, password)){
@@ -570,6 +592,7 @@ public class RequestHandler implements Runnable {
 			}
 		} catch (Exception e) {
 			server.printer.print_error("Failed to athenticate user: " + playerName);
+			throw e;
 		}
 		return result;
 	}
@@ -596,14 +619,19 @@ public class RequestHandler implements Runnable {
 	}
 	
 	private String meetMeTreat(int clientUDPPort,String clientName,String password){
-		String response = ClientServerProtocol.SERVPROB;
+		String response = ClientServerProtocol.DENIED;
 		
-		if(!server.authUser(clientName,password)){
-			response = ClientServerProtocol.USERNOTEXISTS;
+		try {
+			if(!authenticateUser(clientName,password)){
+				response = ClientServerProtocol.USERNOTEXISTS;
+				return response;
+			}
+			else{
+				server.printer.print_info("User entered: " + clientName);	
+			}
+		} catch (Exception e) {
+			response = ClientServerProtocol.SERVPROB;
 			return response;
-		}
-		else{
-			server.printer.print_info("User entered: " + clientName);	
 		}
 		
 		server.clients.addClientToUdpList(new OnlineClient(clientSock.getInetAddress(), clientUDPPort,clientName,TheClient.unDEFport,TheClient.unDEFport));

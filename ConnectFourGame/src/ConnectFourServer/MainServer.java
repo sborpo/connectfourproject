@@ -128,58 +128,7 @@ public class MainServer {
 		this.printer.print_info("Done loading the database");
 	}
 	
-	/**
-	 * This method authnitcates a given client, returns true if its authenticated ,
-	 * false otherwise. this method also throws SQL exception in case we have a problem 
-	 * with the database
-	 * @param clientName
-	 * @param password
-	 * @return
-	 * @throws Exception
-	 */
-	public boolean authUserWitExp(String clientName,String password) throws Exception
-	{
-		boolean result = false;
-		try{
-			if(DataBaseManager.authenticateUser(clientName, password)){
-				return true;
-			}
-		} catch (SQLException e) {
-			printer.print_error("Database error: " + e.getMessage());
-			throw e;
-		} catch (Exception e) {
-			throw e;
-		}
-	
-		return false;
-	}
-	
-	
-	/**
-	 * This method works just like authUserWitExp , but it doesn't throws an exception . In case that we
-	 * have a porblem , it reutns false
-	 * @param clientName
-	 * @param password
-	 * @return
-	 */
-	public boolean authUser(String clientName, String password){
-		
-		boolean result=false;
-		try{
-			result=authUserWitExp(clientName, password);
-			return result;
-		}
-		catch(SQLException e)
-		{
-			
-		}
-		catch(Exception e)
-		{
-			
-		}
-		return result;
-	}
-	
+
 	/**
 	 * The method parses the given arguments and initializes the fields of the
 	 * server

@@ -236,7 +236,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		int rowIndex=openGames.getSelectedRow();
 		if (((String)openGames.getValueAt(rowIndex, 0)).equals(client.getClientName()))
 		{
-			JOptionPane.showMessageDialog(null,"Unfortunately you cannot play agains yourself!");
+			this.showMessageDialog("Unfortunately you cannot play agains yourself!", MsgType.error);
 			return;
 		}
 		try {
@@ -263,7 +263,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			}
 			if (client.parseServerResponse(response)[0].equals(ClientServerProtocol.DENIED))
 			{
-				this.showMessageDialog("This game doesn't exists or someone else\n is connected ,\n Updating game list...", MsgType.error);
+				this.showMessageDialog("Cannot connect to this game ,\n Updating game list...", MsgType.error);
 				getOnlineGames();
 				return;
 			}
