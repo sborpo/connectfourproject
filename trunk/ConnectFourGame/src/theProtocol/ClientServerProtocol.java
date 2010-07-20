@@ -3,12 +3,27 @@ package theProtocol;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * This class represents the protocol messages which are sent between:
+ * 1) Client- Server
+ * 2) Player-Player
+ * 3) Player- Watcher
+ *
+ */
 public class ClientServerProtocol {
 
+	/**
+	 * To whom the message is intended to .
+	 *
+	 */
 	public static enum msgType {
 		SERVER, CLIENT
 	}
 	
+	/**
+	 * The result that the parser functions may return
+	 *
+	 */
 	public static class parseRes{
 		public static final String SUCCESS = "SUCCESS";
 		public static final String WRONG_COMMAND = "WRONG_COMMAND";
@@ -18,9 +33,11 @@ public class ClientServerProtocol {
 	public static final int timeout = 5000;
 	
 	static public String noGame = "noGame";
+	//The seperator tag between the parameters
 	static public String paramSeparator = ":PARAM:";
 	
 	private msgType type;
+	// the messages types
 	public static final String MEETME = "MEETME";
 	public static final String NEWGAME = "NEWGAME";
 	public static final String PLAY = "PLAY";
@@ -51,10 +68,13 @@ public class ClientServerProtocol {
 	public static final String STATS_REQUEST = "STATS_REQUEST";
 	public static final String MOVE_TIME = "MOVE_TIME";
 	
+	//saves the legal commands
 	private ArrayList<String> legalCommands;
+	//maps the command and its legal number of parameters
 	private HashMap<String,Integer> numOfParametersForCmd;
 	
 	public String result;
+	
 	
 	public ClientServerProtocol(msgType type){
 		this.type = type;
@@ -104,6 +124,9 @@ public class ClientServerProtocol {
 		}
 	}
 	
+	/**
+	 * Sets the legal number of parameters for each command
+	 */
 	private void mapInit(){
 		numOfParametersForCmd.put(MEETME, 3);
 		numOfParametersForCmd.put(NEWGAME, 4);
@@ -136,6 +159,12 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(MOVE_TIME, 1);
 	}
 	
+	/**
+	 * parses the given command , seperates the command arguments with the predefined
+	 * delimiter : paramSeparator. and returns these arguments
+	 * @param command
+	 * @return
+	 */
 	public String[] parseCommand(String command){
 		String[] params = command.split(paramSeparator);
 		if(legalCommands.contains(params[0])){ 
@@ -155,6 +184,11 @@ public class ClientServerProtocol {
 		}
 	}
 	
+	/**
+	 * Returns the given command as a string where  the parameters are delimited by the paramSeperator
+	 * @param elements
+	 * @return
+	 */
 	static public String buildCommand(String[] elements){
 		String command = "";
 		for(String elem : elements){
