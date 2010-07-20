@@ -943,7 +943,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 																	plays.getName(),
 																	move,plays.getColor().getColorStr()});
 				System.out.println("Sending: " + moveMsg);
+				System.out.println("Socket is : "+opponentSocket.isConnected());
 				clientToOpponent.writeObject(moveMsg);
+				clientToOpponent.flush();
+				System.out.println("Sent the move succefully");
+				
 			}
 			//HANDLE CONNECTIONS PROBLEMS
 			catch (IOException ex)
