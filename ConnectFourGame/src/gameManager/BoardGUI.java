@@ -38,12 +38,30 @@ import ConnectFourClient.SingUpWindow;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+ * This class represents the GUI components and view of the game board
+ *
+ */
 public class BoardGUI extends Board implements Serializable{
 
 
+	/**
+	 *This class handles the connection box writing (where we present the current
+	 *players of the game) the EDT runs this operation
+	 *
+	 */
 	public static class ConnectionBoxPrinter implements Runnable
 	{
 	
+		/**
+		 * Prints the current player names of the game , including their colors
+		 * @param printLabel
+		 * @param printLabe2
+		 * @param playerName1
+		 * @param player1Col
+		 * @param playerName2
+		 * @param player2Col
+		 */
 		public ConnectionBoxPrinter(JLabel printLabel, JLabel printLabe2,
 				String playerName1, Color player1Col, String playerName2,
 				Color player2Col) {
@@ -76,6 +94,11 @@ public class BoardGUI extends Board implements Serializable{
 		
 	}
 	
+	/**
+	 * Prints the given text in the given JLable on the EDT 
+	 * @author Boris
+	 *
+	 */
 	public static class MessagePrinter implements Runnable
 	{
 		public MessagePrinter(JLabel printLabel, String text) {
@@ -92,6 +115,10 @@ public class BoardGUI extends Board implements Serializable{
 		
 	}
 	
+	/**
+	 * This class paints the board according to the players move
+	 * It uses the given Jbutton[][] as cells
+	 */
 	public static class Painter implements Runnable
 	{
 		public Painter(int[] colFil, int col, Color plays, JButton[][] slots) {
@@ -134,6 +161,10 @@ public class BoardGUI extends Board implements Serializable{
 		
 	}
 	
+	/**
+	 * Returns the current column fill array
+	 * @return
+	 */
 	public int[] getColumnsFil()
 	{
 		return columnsFil;
@@ -143,11 +174,11 @@ public class BoardGUI extends Board implements Serializable{
 
 
 	/**
-	 * Initialize the whole board to be empty
+	 * Checks if the given move of the column is legal. (if the column is not full
+	 * and in the borders)
+	 * @param colNum
+	 * @return
 	 */
-
-
-
 	public boolean checkMove(int colNum)
 	{
 		if ((colNum < 0) || (colNum > (width - 1))
@@ -157,6 +188,14 @@ public class BoardGUI extends Board implements Serializable{
 		return true; 
 	}
 
+	/**
+	 * Like Board.playColumn , but also paints the cells on success
+	 * @param colNum
+	 * @param color
+	 * @param slots
+	 * @return
+	 * @throws IllegalMove
+	 */
 	public GameState playColumn(int colNum, Player.Color color,JButton[][] slots)
 			throws IllegalMove {
 
@@ -178,20 +217,6 @@ public class BoardGUI extends Board implements Serializable{
 		numOfSteps++;
 		return checkWinning(columnsFil[colNum], colNum, color);
 
-	}
-
-
-	public void markColNum(int colnum,Player.Color plays, JButton[][] slots2) {
-		if (plays.equals(Player.Color.BLUE)) {
-		slots2[columnsFil[colnum]+1][colnum].setBackground(java.awt.Color.BLUE);
-		slots2[columnsFil[colnum]+1][colnum].repaint();
-		}
-		else
-		{
-			slots2[columnsFil[colnum]+1][colnum].setBackground(java.awt.Color.RED);
-			slots2[columnsFil[colnum]+1][colnum].repaint();
-		}
-		
 	}
 }
 

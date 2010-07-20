@@ -260,7 +260,16 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
-	
+	/**
+	 * Given the new watcher details , they are sent to the client , in order to connect
+	 * between them
+	 * @param clientAddr
+	 * @param clientPort
+	 * @param viewerAddr
+	 * @param watcherPort
+	 * @param watcherName
+	 * @throws IOException
+	 */
 	private void SendToClient(InetAddress clientAddr, int clientPort,
 			InetAddress viewerAddr, int watcherPort, String watcherName ) throws IOException {
 		try {
@@ -284,7 +293,20 @@ public class RequestHandler implements Runnable {
 		
 	}
 	
+
 	
+	
+	
+	//-------------------------------------------------------------------------------------------------
+	//****************************** Treat Methods*****************************************************
+	//-------------------------------------------------------------------------------------------------
+	
+	
+	/**
+	 * This method treats a batch reports request, where client want to report
+	 * game results that he couldn't report before (the server couldn't save the results before)
+	 * The server must update the database accordingly
+	 */
 	private Object batchGamesReportTreat(String[] params) {
 		String[] reportsArr = new String[params.length - 2];
 		System.arraycopy(params, 1, reportsArr, 0, params.length - 2);
@@ -302,19 +324,26 @@ public class RequestHandler implements Runnable {
 		return correctGameIds;	
 	}
 	
+	/**
+	 * This method treats server's public key request (the public key for
+	 * RSA encryption)
+	 * @return
+	 */
 	private Object pubKeyTreat(){
 		return RSAgenerator.getPubKey();
 	}
 	
-	
-	
-	//-------------------------------------------------------------------------------------------------
-	//****************************** Treat Methods*****************************************************
-	//-------------------------------------------------------------------------------------------------
-	
-	
-	
-	
+	/**
+	 * This method treats a recieved report about certain game result. If the database is not 
+	 * available now , the report will be saved in a special Unahndeled Reports file for futher
+	 * fetching (when the db will return to work)
+	 * @param gameId
+	 * @param clientName
+	 * @param gameRes
+	 * @param winner
+	 * @param password
+	 * @return
+	 */
 	private synchronized String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
 		String response = ClientServerProtocol.KNOWYA ;
 		//check if the client is online
@@ -439,7 +468,17 @@ public class RequestHandler implements Runnable {
 	
 
 	
-
+	/**
+	 * This methods should handle join game requests. It recieves the second game participant of gameId , and his
+	 * detials (game port, transmition Port for watchers and ect..). If everything is o.k , it adds the new player
+	 * to the game , afther this operation , watchers can watch the game.
+	 * @param gamePort
+	 * @param transmitionPort
+	 * @param gameId
+	 * @param clientName
+	 * @param password
+	 * @return
+	 */
 	private String playTreat(int gamePort, int transmitionPort, String gameId,String clientName,String password) {
 		String response = ClientServerProtocol.DENIED;
 		
@@ -519,7 +558,14 @@ public class RequestHandler implements Runnable {
 	}
 
 	
-	
+	/**
+	 * This method authenticates the given player with the DB. Returns true if he is
+	 * authenticated, false otherwise.
+	 * @param playerName
+	 * @param password
+	 * @return
+	 * @throws Exception
+	 */
 	private boolean authenticateUser(String playerName, String password) throws Exception {
 		boolean result = false;
 		try {
@@ -533,7 +579,17 @@ public class RequestHandler implements Runnable {
 		return result;
 	}
 
-	
+	/**
+	 * This method treats a user request to watch the given gameId. The user sends its watchPort 
+	 * , (his address is already exists in the server, becuase he is connected) .
+	 * Now the server chooses randonly the player that will send to the watcher the moves and sends
+	 * him watcher's details.
+	 * @param watcherPort
+	 * @param gameId
+	 * @param watcherName
+	 * @param password
+	 * @return
+	 */
 	private String watchTreat(int watcherPort, String gameId,String watcherName, String password) {
 		String response = ClientServerProtocol.DENIED;
 		
@@ -589,7 +645,14 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 	
-	
+	/**
+	 * This method treats a sign-up request, when new user want to register to
+	 * the system (have his statistics and ect..). If the username already exists , It returns
+	 * an error
+	 * @param username
+	 * @param password
+	 * @return
+	 */
 	private String signupTreat(String username , String password)
 	{
 		String response = ClientServerProtocol.SERVPROB;
@@ -606,11 +669,25 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 	
+	/**
+	 * This method handles online games request, it sends to the client the current
+	 * online games, using the Online games data structure
+	 * @return
+	 */
 	private ArrayList<GameForClient> getOnlineGamesTreat()
 	{
 		return server.games.getOnlineGamesForClient();
 	}
 	
+	/**
+	 * This method handles the login-in process , when the user wants to log into
+	 * the system , he send a meet-me request , and this method adds the user to the current
+	 * online players.
+	 * @param clientUDPPort
+	 * @param clientName
+	 * @param password
+	 * @return
+	 */
 	private String meetMeTreat(int clientUDPPort,String clientName,String password){
 		String response = ClientServerProtocol.DENIED;
 		
@@ -634,7 +711,15 @@ public class RequestHandler implements Runnable {
 		return response; 
 	}
 	
-	
+	/**
+	 * This method handles a new game request. if the client is participating in a game , it removes it 
+	 * from the online games and creates a new game where the given client is the host
+	 * @param gamePort
+	 * @param transmitionPort
+	 * @param playerName
+	 * @param password
+	 * @return
+	 */
 	private String newGameTreat(int gamePort,int transmitionPort, String playerName, String password) {
 		String response = ClientServerProtocol.DENIED;
 		
@@ -671,6 +756,12 @@ public class RequestHandler implements Runnable {
 		return response;
 	}	
 	
+	/**
+	 * This method treats a statistics request. It sends to the client his statistics
+	 * and the statistics of the top 10 players of the system.
+	 * @param username
+	 * @return
+	 */
 	private Object getStatisticsTreat(String username) {
 		StatsReport users=null;	
 		try {
@@ -681,6 +772,12 @@ public class RequestHandler implements Runnable {
 		return users;
 	}
 
+	/**
+	 * This method treats a player disconnection. it removes him from the online players
+	 * and stops the udp listener from waiting for alive message from this player
+	 * @param clientName
+	 * @return
+	 */
 	private Object playerDisconnectTreat(String clientName) {
 		server.clients.removeClient(clientName);
 		server.getUdpListener().removeClient(clientName);
