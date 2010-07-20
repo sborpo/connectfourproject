@@ -2,6 +2,12 @@ package gameManager;
 
 import java.io.Serializable;
 
+/**
+ * This class represents the current game board with
+ * defined rows and cols. each player should fill 4 coint in 
+ * a row , column , or diagonal.
+ *
+ */
 public class Board implements Serializable{
 
 
@@ -18,14 +24,25 @@ public class Board implements Serializable{
 		private static final long serialVersionUID = -7438721808184643398L;
 	}
 
+	/**
+	 * Each cell has a state, empty or one of two colors : Red or Blue were each
+	 * color represents the color of the player
+	 *
+	 */
 	public static enum Cell implements Serializable{
 		EMPTY, RED, BLUE
 	}
 
+	/**
+	 * Represents the current game state
+	 * @author Boris
+	 *
+	 */
 	public static enum GameState implements Serializable{
 		TIE, RED_WON, BLUE_WON, PROCEED , I_SURRENDED,OPPONENT_SURRENDED, I_TIMED_OUT, OPP_TIMED_OUT
 	}
 
+	
 	protected Cell[][] board;
 	protected int[] columnsFil;
 	protected int width;
@@ -41,6 +58,9 @@ public class Board implements Serializable{
 		initBoard();
 	}
 
+	/**
+	 * This method prints the borad in the command line
+	 */
 	public void PrintBoard() {
 		for (int i = height - 1; i >= 0; i--) {
 			for (int j = 0; j < width; j++) {
@@ -88,10 +108,22 @@ public class Board implements Serializable{
 		numOfSteps = 0;
 	}
 
+	/**
+	 * Returns true if the game board is full , otherwise returns false
+	 * @return
+	 */
 	public boolean isFull() {
 		return (numOfSteps == width * height);
 	}
 
+	/**
+	 * Throws a coint of the given color into the given column. The function
+	 * returns the gamestate after this operation
+	 * @param colNum
+	 * @param color
+	 * @return
+	 * @throws IllegalMove
+	 */
 	public GameState playColumn(int colNum, Player.Color color)
 			throws IllegalMove {
 
@@ -111,6 +143,14 @@ public class Board implements Serializable{
 
 	}
 
+	/**
+	 * Checks the game state , where the given colored coint was thrown in the given cell.
+	 * 
+	 * @param lastRow
+	 * @param lastCol
+	 * @param color
+	 * @return
+	 */
 	protected GameState checkWinning(int lastRow, int lastCol, Player.Color color) {
 		Cell cellColor;
 		GameState canWin;
@@ -139,6 +179,13 @@ public class Board implements Serializable{
 		return GameState.PROCEED;
 	}
 
+	/**
+	 * Returns true if the given cell is one of a row sequence
+	 * @param lastRow
+	 * @param lastCol
+	 * @param color
+	 * @return
+	 */
 	protected boolean checkRow(int lastRow, int lastCol, Cell color) {
 		int count = 1;
 		for (int j = lastCol + 1; j < width; j++) {
@@ -163,6 +210,13 @@ public class Board implements Serializable{
 
 	}
 
+	/**
+	 *  Returns true if the given cell is one of a column
+	 * @param lastRow
+	 * @param lastCol
+	 * @param color
+	 * @return
+	 */
 	protected boolean checkColumn(int lastRow, int lastCol, Cell color) {
 		int count = 1;
 		for (int i = lastRow + 1; i < height; i++) {
@@ -187,6 +241,13 @@ public class Board implements Serializable{
 
 	}
 
+	/**
+	 *  Returns true if the given cell is one of a diagonal
+	 * @param lastRow
+	 * @param lastCol
+	 * @param color
+	 * @return
+	 */
 	protected boolean checkDiagonals(int lastRow, int lastCol, Cell color) {
 		int count = 1;
 		int i, j;

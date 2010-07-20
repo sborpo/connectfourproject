@@ -18,13 +18,22 @@ import gameManager.GameGUI;
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
+/**
+ * This class handles the UDP listening for alive messages from the current
+ * online users
+ *
+ */
 public class UdpListener implements Runnable,TimerListener {
 
 	//The thread that should run the udpListener
 	private Thread theThread;
+	//time out for alive message, during this time , everyone should send alive message
 	private int timeOut;
+	//the main server
 	private MainServer server;
+	//the socket through which we listening to the alive messages
 	private DatagramSocket socket;
+	//a hash map of clients timers
 	private HashMap<String,Timer> clientTimers;
 
 	public UdpListener(MainServer server) {
@@ -35,11 +44,19 @@ public class UdpListener implements Runnable,TimerListener {
 		theThread = new Thread(this);
 	}
 
+	/**
+	 * starts a new UDP listener in a new thread
+	 */
 	public void start()
 	{
 		theThread.start();
 	}
 	
+	/**
+	 * Removes the given client name from the udp list , now we will not
+	 * wait for his Alive message
+	 * @param clientName
+	 */
 	public void removeClient(String clientName){
 		server.clients.resetAlive(clientName);
 		Timer timer = null;
@@ -50,6 +67,11 @@ public class UdpListener implements Runnable,TimerListener {
 		clientTimers.remove(clientName);
 	}
 	
+	/**
+	 * This is the UDP listener method , which runs in a thread infinitely
+	 *  until it closed. It resets the timers of the clients from which it
+	 * recieved alive messages.  
+	 */
 	@Override
 	public void run() {
 		//now do it infinitely
@@ -103,6 +125,11 @@ public class UdpListener implements Runnable,TimerListener {
 		}
 	}
 	
+	/**
+	 * This method adds a new client to the udp clients and initializes it's timer
+	 * @param message
+	 * @param packet
+	 */
 	private void addAliveClient(String[] message,DatagramPacket packet){
 			String clientName = message[1];
 			int transmitPort = Integer.parseInt(message[2]);
@@ -127,6 +154,10 @@ public class UdpListener implements Runnable,TimerListener {
 			server.printer.print_info("User has been successfully added: " + clientName);
 	}
 	
+	/**
+	 * This method checks the current timers of all online clients , if sime of the timers
+	 * timed - out so it will remove the client from the online clients .
+	 */
 	@SuppressWarnings("unchecked")
 	synchronized private void checkTimers(){
 		Timer timer= null;
@@ -146,14 +177,11 @@ public class UdpListener implements Runnable,TimerListener {
 		server.clients.removeIfNotAlive();
 	}
 	
-//	private void resetAllTimers(){
-//		Timer timer= null;
-//		for(String name : clientTimers.keySet()){
-//			timer = clientTimers.get(name);
-//			timer.reset();
-//		}
-//	}
 	
+	/**
+	 * This method opens a new timer of the given client
+	 * @param clientName
+	 */
 	public void openTimerFor(String clientName){
 		Timer timer = null;
 		if(clientTimers.containsKey(clientName)){
@@ -168,6 +196,9 @@ public class UdpListener implements Runnable,TimerListener {
 		server.clients.setAlive(clientName);
 	}
 
+	/**
+	 * This is a method that is run when a timeout is recieved
+	 */
 	@Override
 	public void timeOutReceived(TimeOutEvent event) {
 		server.printer.print_error("Client timeout received");

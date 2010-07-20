@@ -68,21 +68,6 @@ public class OnlineGames {
 	}
 	
 	
-	public synchronized ArrayList<String> getDownGames(){
-		ArrayList<String> downGamesIds = new ArrayList<String>();
-		
-		for(String gameId : playingGames.keySet()){
-			Game currGame = playingGames.get(gameId); 
-			String player1 = currGame.getPlayer(Player.Color.RED).getName();
-			String player2 = currGame.getPlayer(Player.Color.BLUE).getName();
-			
-			if(server.clients.getClient(player1) == null && server.clients.getClient(player2) == null)
-				downGamesIds.add(currGame.getId());
-		}
-		
-		return downGamesIds;
-	}
-	
 	/**
 	 * Returns a Game object of the given gameId , if the gameId wasn't found in the 
 	 * online games , then it reutns null
