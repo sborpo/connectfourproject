@@ -707,6 +707,7 @@ public class TheClient {
 	}
 	
 	public void refreshGameConnection(){
+		System.out.println("The game is Null? : "+(game==null));
 		if(game != null){
 			game.resetConnection();
 		}
