@@ -2,7 +2,6 @@ package ConnectFourServer;
 
 import gameManager.Game;
 import gameManager.GameGUI;
-//import gameManager.GameImp;
 import gameManager.Player;
 import gameManager.Player.Color;
 
@@ -11,43 +10,33 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Random;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLSocket;
 
-import common.OnlineClient;
-import common.PasswordHashManager;
-import common.RSAgenerator;
-import common.StatsReport;
-import common.UnhandeledReport;
-import common.UnhandledReports;
-import common.PasswordHashManager.SystemUnavailableException;
-import common.UnhandledReports.FileChanged;
-import common.UnhandledReports.NoReports;
-
+import theProtocol.ClientServerProtocol;
+import theProtocol.ClientServerProtocol.msgType;
 import ConnectFourClient.TheClient;
 import ConnectFourServer.DataBaseManager.GameIdAlreadyExists;
 import ConnectFourServer.DataBaseManager.GameIdNotExists;
 import ConnectFourServer.DataBaseManager.UserAlreadyExists;
 
-import theProtocol.ClientServerProtocol;
-import theProtocol.ClientServerProtocol.msgType;
+import common.OnlineClient;
+import common.RSAgenerator;
+import common.StatsReport;
+import common.UnhandeledReport;
+import common.UnhandledReports;
+import common.UnhandledReports.FileChanged;
+import common.UnhandledReports.NoReports;
 
 /**
- * Handles the TCP requests
+ * This class handles the clients request from the server.
+ * it is instansiated when the servers accept a connection in the thread pool
+ * and runs the RequestHandler in a new thread 
  *
  */
 public class RequestHandler implements Runnable {
@@ -59,11 +48,21 @@ public class RequestHandler implements Runnable {
 	// the server which the Request was sent to
 	private MainServer server;
 
+	/**
+	 * Initialized with the client socket , where we should read the command from,
+	 * and the main server.
+	 * @param clientSocket
+	 * @param server
+	 */
 	public RequestHandler(SSLSocket clientSocket, MainServer server) {
 		clientSock = clientSocket;
 		this.server = server;
 	}
 
+	/**
+	 * This is the run method of the RequestHandler thread. It parses
+	 * the client's request, processing it , and returns response.
+	 */
 	@Override
 	public void run() {
 		ObjectOutputStream out = null;
@@ -131,6 +130,13 @@ public class RequestHandler implements Runnable {
 		}
 	}
 	
+	/**
+	 * This method parsees the given client's message , treat's the message (manipulating 
+	 * data structures inside the system according to the request) and returns a response
+	 * Object which is sent to the client back.
+	 * @param message
+	 * @return
+	 */
 	private Object respondToMessage(String message){
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.SERVER);
 		String[] params = parser.parseCommand(message);
@@ -141,7 +147,7 @@ public class RequestHandler implements Runnable {
 		}
 		else{
 			String command = params[0];
-	
+			//After parsing the command , we will invoke the appropriate method
 			if(command.equals(ClientServerProtocol.MEETME)){
 				respondMsg = meetMeTreat(Integer.parseInt(params[1]),params[2],params[3]); 
 			}
@@ -183,22 +189,13 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
-	private Object getStatisticsTreat(String username) {
-		StatsReport users=null;	
-		try {
-			 users=DataBaseManager.getTopTenUsers(username);
-		} catch (SQLException e) {
-			return null;
-		}
-		return users;
-	}
 
-	private Object playerDisconnectTreat(String clientName) {
-		server.clients.removeClient(clientName);
-		server.getUdpListener().removeClient(clientName);
-		return ClientServerProtocol.OK;
-	}
-
+	/**
+	 * this method checks whenever the client is online or not , it 
+	 * uses the server's OnlineClients data structure.
+	 * @param clientName
+	 * @return
+	 */
 	private boolean isClientOnline(String clientName){
 		boolean res = false;
 		OnlineClient theClient = server.clients.getClient(clientName);
@@ -208,6 +205,12 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
+	/**
+	 * Returns true of the game is active , otherwise returns false.
+	 * It uses the server's OnlineGames data structure.
+	 * @param gameId
+	 * @return
+	 */
 	private boolean isGameOnline(String gameId){
 		boolean res = false;
 		Game theGame = server.games.getGame(gameId);
@@ -217,6 +220,14 @@ public class RequestHandler implements Runnable {
 		return res;
 	}
 	
+	/**
+	 * Returns true if the given client was participating in the given
+	 * game. Otherwise returns false.
+	 * @param clientName
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
+	 */
 	private boolean wasClientInTheGame(String clientName,String gameId) throws SQLException{
 		boolean res= false;
 		OnlineClient theClient = server.clients.getClient(clientName);
@@ -250,6 +261,30 @@ public class RequestHandler implements Runnable {
 	}
 	
 	
+	private void SendToClient(InetAddress clientAddr, int clientPort,
+			InetAddress viewerAddr, int watcherPort, String watcherName ) throws IOException {
+		try {
+			server.printer.print_info("Trying to send transmit command to: " + clientAddr.getHostAddress() + " on port: " + clientPort);
+			Socket clientTsmtSocket = new Socket(clientAddr,clientPort);
+			PrintWriter out = new PrintWriter(clientTsmtSocket.getOutputStream(),true);
+			String message = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.VIEWERTRANSMIT,
+																			Integer.toString(watcherPort),
+																			viewerAddr.getHostAddress(),
+																			watcherName,
+																			clientSock.getInetAddress().getHostAddress()});
+			server.printer.print_info("Transmit message: " + message +"\n");
+			out.println(message);		
+		} catch (IOException e) {
+			server.printer.print_error("Problem sending transmit command: " + e.getMessage());
+			e.printStackTrace();
+			throw e;
+		}
+		
+		
+		
+	}
+	
+	
 	private Object batchGamesReportTreat(String[] params) {
 		String[] reportsArr = new String[params.length - 2];
 		System.arraycopy(params, 1, reportsArr, 0, params.length - 2);
@@ -270,6 +305,15 @@ public class RequestHandler implements Runnable {
 	private Object pubKeyTreat(){
 		return RSAgenerator.getPubKey();
 	}
+	
+	
+	
+	//-------------------------------------------------------------------------------------------------
+	//****************************** Treat Methods*****************************************************
+	//-------------------------------------------------------------------------------------------------
+	
+	
+	
 	
 	private synchronized String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
 		String response = ClientServerProtocol.KNOWYA ;
@@ -392,83 +436,9 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
-	private String watchTreat(int watcherPort, String gameId,String watcherName, String password) {
-		String response = ClientServerProtocol.DENIED;
-		
-		try {
-			if(!authenticateUser(watcherName,password)){
-				return response;
-			}
-		} catch (Exception e1) {
-			response = ClientServerProtocol.SERVPROB;
-			return response;
-		}
-		
-		OnlineClient viewer=server.clients.getClient(watcherName);
-		if(viewer != null)
-		{
-			Random random= new Random();
-			int num=random.nextInt(2);
-			Color r = (num==0) ? Color.RED : Color.BLUE;
-			Game theGame = server.games.getGame(gameId);
-			server.printer.print_info("Looking for game: " + gameId);
-			if(theGame != null)
-			{				
-				server.printer.print_info("Game is found!");
-				String playerName = theGame.getPlayer(r).getName();
-				Player thePlayer = theGame.addWatcher(watcherName, playerName);
-				//if the watcher is already watching the game from another player
-				if(thePlayer.getName().equals(playerName)){
-					playerName = thePlayer.getName();
-				}
-				
-				OnlineClient client=server.clients.getClient(playerName);
-				InetAddress clientAddr=client.getAddress();
-				int clientPort= client.getTransmitPort();
-				
-				InetAddress viewerAddr= viewer.getAddress();
-				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
-				try {
-					SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
-				} catch (IOException e) {
-					response = ClientServerProtocol.DENIED;
-					return response;
-				}
-				response = ClientServerProtocol.ENJOYWATCH;
-			}
-			else{
-				server.printer.print_error("No game found with id: " + gameId);
-				response = ClientServerProtocol.DENIED;
-			}
-		}
-		else{
-			System.out.println("No such user: '" + watcherName + "'");
-		}
-		return response;
-	}
+	
 
-	private void SendToClient(InetAddress clientAddr, int clientPort,
-			InetAddress viewerAddr, int watcherPort, String watcherName ) throws IOException {
-		try {
-			server.printer.print_info("Trying to send transmit command to: " + clientAddr.getHostAddress() + " on port: " + clientPort);
-			Socket clientTsmtSocket = new Socket(clientAddr,clientPort);
-			PrintWriter out = new PrintWriter(clientTsmtSocket.getOutputStream(),true);
-			String message = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.VIEWERTRANSMIT,
-																			Integer.toString(watcherPort),
-																			viewerAddr.getHostAddress(),
-																			watcherName,
-																			clientSock.getInetAddress().getHostAddress()});
-			server.printer.print_info("Transmit message: " + message +"\n");
-			out.println(message);		
-		} catch (IOException e) {
-			server.printer.print_error("Problem sending transmit command: " + e.getMessage());
-			e.printStackTrace();
-			throw e;
-		}
-		
-		
-		
-	}
+	
 
 	private String playTreat(int gamePort, int transmitionPort, String gameId,String clientName,String password) {
 		String response = ClientServerProtocol.DENIED;
@@ -548,41 +518,7 @@ public class RequestHandler implements Runnable {
 		return response;
 	}
 
-	private String newGameTreat(int gamePort,int transmitionPort, String playerName, String password) {
-		String response = ClientServerProtocol.DENIED;
-		
-		try {
-			if(!authenticateUser(playerName,password)){
-				return response;
-			}
-		} catch (Exception e) {
-			response = ClientServerProtocol.SERVPROB;
-			return response;
-		}
-		
-		//generate game id
-		String gameId = playerName + Long.toString(System.currentTimeMillis());
-		//check if the client is in the list 
-		OnlineClient theClient = server.clients.getClient(playerName);
-		if(theClient != null){
-			//remove old online game of the client
-			if(theClient.getGame() != null){
-				server.printer.print_info("Removing old online game of the client");
-				server.games.removeGame(theClient.getGame());
-				theClient.resetGame();
-			}
-			//create new game
-			theClient.setTCPPort(gamePort);
-			theClient.setTransmitPort(transmitionPort);
-			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, TheClient.unDEFport, true, null,TheClient.unDEFport);
-			server.games.addGame(newGame);
-			theClient.setGameForClient(gameId);
-			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});
-			server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
-
-		}
-		return response;
-	}	
+	
 	
 	private boolean authenticateUser(String playerName, String password) throws Exception {
 		boolean result = false;
@@ -597,6 +533,63 @@ public class RequestHandler implements Runnable {
 		return result;
 	}
 
+	
+	private String watchTreat(int watcherPort, String gameId,String watcherName, String password) {
+		String response = ClientServerProtocol.DENIED;
+		
+		try {
+			if(!authenticateUser(watcherName,password)){
+				return response;
+			}
+		} catch (Exception e1) {
+			response = ClientServerProtocol.SERVPROB;
+			return response;
+		}
+		
+		OnlineClient viewer=server.clients.getClient(watcherName);
+		if(viewer != null)
+		{
+			Random random= new Random();
+			int num=random.nextInt(2);
+			Color r = (num==0) ? Color.RED : Color.BLUE;
+			Game theGame = server.games.getGame(gameId);
+			server.printer.print_info("Looking for game: " + gameId);
+			if(theGame != null)
+			{				
+				server.printer.print_info("Game is found!");
+				String playerName = theGame.getPlayer(r).getName();
+				Player thePlayer = theGame.addWatcher(watcherName, playerName);
+				//if the watcher is already watching the game from another player
+				if(thePlayer.getName().equals(playerName)){
+					playerName = thePlayer.getName();
+				}
+				
+				OnlineClient client=server.clients.getClient(playerName);
+				InetAddress clientAddr=client.getAddress();
+				int clientPort= client.getTransmitPort();
+				
+				InetAddress viewerAddr= viewer.getAddress();
+				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
+				try {
+					SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
+				} catch (IOException e) {
+					response = ClientServerProtocol.DENIED;
+					return response;
+				}
+				response = ClientServerProtocol.ENJOYWATCH;
+			}
+			else{
+				server.printer.print_error("No game found with id: " + gameId);
+				response = ClientServerProtocol.DENIED;
+			}
+		}
+		else{
+			System.out.println("No such user: '" + watcherName + "'");
+		}
+		return response;
+	}
+	
+	
 	private String signupTreat(String username , String password)
 	{
 		String response = ClientServerProtocol.SERVPROB;
@@ -639,6 +632,59 @@ public class RequestHandler implements Runnable {
 																	,Integer.toString(server.getServerUDPPort())});
 		server.udpListener.openTimerFor(clientName);
 		return response; 
+	}
+	
+	
+	private String newGameTreat(int gamePort,int transmitionPort, String playerName, String password) {
+		String response = ClientServerProtocol.DENIED;
+		
+		try {
+			if(!authenticateUser(playerName,password)){
+				return response;
+			}
+		} catch (Exception e) {
+			response = ClientServerProtocol.SERVPROB;
+			return response;
+		}
+		
+		//generate game id
+		String gameId = playerName + Long.toString(System.currentTimeMillis());
+		//check if the client is in the list 
+		OnlineClient theClient = server.clients.getClient(playerName);
+		if(theClient != null){
+			//remove old online game of the client
+			if(theClient.getGame() != null){
+				server.printer.print_info("Removing old online game of the client");
+				server.games.removeGame(theClient.getGame());
+				theClient.resetGame();
+			}
+			//create new game
+			theClient.setTCPPort(gamePort);
+			theClient.setTransmitPort(transmitionPort);
+			Game newGame = new GameGUI(playerName, null, gameId, null, gamePort, null, TheClient.unDEFport, true, null,TheClient.unDEFport);
+			server.games.addGame(newGame);
+			theClient.setGameForClient(gameId);
+			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});
+			server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
+
+		}
+		return response;
+	}	
+	
+	private Object getStatisticsTreat(String username) {
+		StatsReport users=null;	
+		try {
+			 users=DataBaseManager.getTopTenUsers(username);
+		} catch (SQLException e) {
+			return null;
+		}
+		return users;
+	}
+
+	private Object playerDisconnectTreat(String clientName) {
+		server.clients.removeClient(clientName);
+		server.getUdpListener().removeClient(clientName);
+		return ClientServerProtocol.OK;
 	}
 
 }
