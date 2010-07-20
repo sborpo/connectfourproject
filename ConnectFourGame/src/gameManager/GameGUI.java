@@ -821,6 +821,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				//closing old socket data
 				this.closeConnection();
 				//restarting
+				System.out.println("Entering : setupConnection()");
 				this.setupConnection();
 				this.reconnect = false;
 			} catch (IOException e) {
@@ -954,7 +955,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				}
 				theClient.logger.print_error("While writing object: " + ex.getMessage());
 				reconnectOnRead= true;
-				handleReconnectionProcess();			
+				System.out.println("Entering : handleReconnectionProcess");
+				handleReconnectionProcess();	
+				System.out.println("Exited : handleRecconectionProcess");
 			}
 		}
 	}
@@ -1046,6 +1049,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 		opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
+		System.out.println("Existing setupConnection()");
 		if(!this.reconnect){
 			excahngeData(clientToOpponent,opponentIn);
 		}
