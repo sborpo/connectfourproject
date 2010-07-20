@@ -25,7 +25,7 @@ public class AliveSender extends Thread implements TimerListener{
 	// the client to which the listener is bind to
 	private TheClient client;
 	
-	private boolean noServerConnection;
+	private boolean noInternetConnection;
 	
 	static final private int delayTime = 20;
 	//this will wait some time
@@ -36,12 +36,12 @@ public class AliveSender extends Thread implements TimerListener{
 	public AliveSender(TheClient client) {
 		this.client = client;
 		delayTimer = new Timer(delayTime,this);
-		noServerConnection = false;
+		noInternetConnection = false;
 	}
 
-	synchronized public boolean noServerConnection(){
-		client.logger.print_info("Server no connection: " + noServerConnection);
-		return noServerConnection;
+	synchronized public boolean noInternetConnection(){
+		client.logger.print_info("Internet no connection: " + noInternetConnection);
+		return noInternetConnection;
 	}
 	
 	public void run() {
@@ -64,7 +64,7 @@ public class AliveSender extends Thread implements TimerListener{
 	synchronized public void timeOutReceived(TimeOutEvent event) {
 		//send to server client Alive message!
 		try {
-			noServerConnection = false;
+			noInternetConnection = false;
 			String aliveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.IMALIVE,
 																			client.getClientName(), 
 																			Integer.toString(client.getTransmitWaiterPort()),
@@ -78,21 +78,21 @@ public class AliveSender extends Thread implements TimerListener{
 					client.getServerAddress(), client.serverUDPPort()));
 		} catch (Exception e) {
 			client.logger.print_error("Problems sening alive message to the server: " + e.getMessage());
-			noServerConnection = true;
-			try{
-				HttpURLConnection c = (HttpURLConnection)(new  URL("http://www.google.com")).openConnection();
-				int resCode = c.getResponseCode(); 
-				if(resCode == 200){
-					noServerConnection = false;
-				}
-				client.logger.print_info("google is reachable: "+!noServerConnection);
-				
-			}
-			catch(IOException e1){
-				//DO NOTHING
+		}
+		//now check if there any connection to internet
+		try{
+			HttpURLConnection c = (HttpURLConnection)(new  URL("http://www.google.com")).openConnection();
+			int resCode = c.getResponseCode(); 
+			if(resCode != 200){
+				noInternetConnection = true;
 			}
 		}
+		catch(IOException e){
+			client.logger.print_error("Problem echoing GOOGLE: " + e.getMessage());
+			noInternetConnection = true;
+		}
 		finally{
+			client.logger.print_info("google is reachable: "+!noInternetConnection);
 			delayTimer.restart();
 		}
 		//isAlive.notify();

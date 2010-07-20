@@ -95,7 +95,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 			watchSocket = Isocket.accept();
 			watcherIn =  new BufferedReader(new InputStreamReader(watchSocket.getInputStream()));
 			//set the timeout to read
-			watchSocket.setSoTimeout((int)(moveTime*1.2*1000));
+			watchSocket.setSoTimeout((int)(moveTime*1000));
 			String inputLine = null;
 			super.initTimers();
 			plays = red;

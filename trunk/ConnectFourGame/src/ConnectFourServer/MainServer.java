@@ -21,6 +21,8 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
 
+import theProtocol.ClientServerProtocol;
+
 import common.LogPrinter;
 import common.PasswordHashManager;
 import common.RSAgenerator;
@@ -166,7 +168,7 @@ public class MainServer {
 
 			try {
 				SSLSocket sock= (SSLSocket)serverSocket.accept();
-				sock.setSoTimeout(20000);
+				sock.setSoTimeout(ClientServerProtocol.timeout);
 				connectionsPool.execute(new RequestHandler(sock, this));
 			} catch (IOException e) {
 				printer.print_error("Probem while accepting socket connection: "+ e.getMessage());

@@ -278,7 +278,7 @@ public class TheClient {
 		try{
 			serverConnection = (SSLSocket)sslsocketfactory.createSocket(serverAddress, serverPort);
 			serverConnection.setEnabledCipherSuites(enabledCipherSuites);
-			//set a 20 sec timeout to server answer
+			//set a 10 sec timeout to server answer
 			serverConnection.setSoTimeout(ClientServerProtocol.timeout);
 		}
 		catch (IOException ex){
@@ -307,7 +307,8 @@ public class TheClient {
 			if((resp = response.readObject()) != null) {
 				logger.print_info("Server Response is:" + resp);
 			}
-		}catch (SocketTimeoutException e)
+		}
+		catch (SocketTimeoutException e)
 		{
 			throw new ServerWriteOrReadException();
 		} catch (ClassNotFoundException e) {
@@ -329,14 +330,7 @@ public class TheClient {
 	public Key getServerPublicKey() throws IOException, ServerWriteOrReadException{
 		logger.print_info("Getting the public key of server...");
 		Key serverKey = null;
-//		try {
-			serverKey = (Key)innerSendMessageToServer(ClientServerProtocol.GETPUBKEY);
-			
-//		} catch (IOException e) {
-//			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
-//		} catch (ServerWriteOrReadException e) {
-//			logger.print_error("Cannot get the public key from server: "+ e.getMessage());
-//		}
+		serverKey = (Key)innerSendMessageToServer(ClientServerProtocol.GETPUBKEY);
 		if(serverKey != null){
 			RSAgenerator.setEncKey(serverKey);
 			return serverKey;
@@ -362,32 +356,32 @@ public class TheClient {
 	
 	private void parseArguments(String[] args) {
 		//From Prroperites
-//		Properties props = getProperties();
-//		
-//		//serverHost = (args[0]);
-//		serverHost = props.getProperty("SERVER_HOST");
-//		logger.print_info("Server: " + serverHost);
-//		//serverPort = Integer.parseInt(args[1]);
-//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-//		logger.print_info("Server TCP port: "+serverPort);
-//		//clientUdp = Integer.parseInt(args[2]);
-//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-//		logger.print_info("Client Udp Listen port: "+clientUdp);
-//		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-//		//clientGamePort = Integer.parseInt(args[4]);
-//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-//		logger.print_info("Client Game port: "+clientGamePort);
+		Properties props = getProperties();
+		
+		//serverHost = (args[0]);
+		serverHost = props.getProperty("SERVER_HOST");
+		logger.print_info("Server: " + serverHost);
+		//serverPort = Integer.parseInt(args[1]);
+		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
+		logger.print_info("Server TCP port: "+serverPort);
+		//clientUdp = Integer.parseInt(args[2]);
+		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
+		logger.print_info("Client Udp Listen port: "+clientUdp);
+		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
+		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+		//clientGamePort = Integer.parseInt(args[4]);
+		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
+		logger.print_info("Client Game port: "+clientGamePort);
 		
 		
 		//From command line
 		
-		serverHost = (args[0]);
-		serverPort = Integer.parseInt(args[1]);
-		clientUdp = Integer.parseInt(args[2]);
-		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-		clientGamePort = Integer.parseInt(args[4]);
+//		serverHost = (args[0]);
+//		serverPort = Integer.parseInt(args[1]);
+//		clientUdp = Integer.parseInt(args[2]);
+//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
+//		clientGamePort = Integer.parseInt(args[4]);
 		
 		
 		clientWatchPort= clientGamePort;

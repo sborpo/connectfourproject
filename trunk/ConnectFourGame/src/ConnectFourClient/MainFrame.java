@@ -161,10 +161,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		try {
 			response = (ArrayList<GameForClient>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
 		} catch (IOException e) {
-			this.showMessageDialog("There was a probem connecting the server",MsgType.error);
+			this.showMessageDialog("There was a probem connecting the server: " + e.getMessage(),MsgType.error);
 			return;
 		} catch (ServerWriteOrReadException e) {
-			this.showMessageDialog("There was a probem connecting the server",MsgType.error);
+			this.showMessageDialog("There was a probem connecting the server: " + e.getMessage(),MsgType.error);
 			clearTables();
 			return;
 		}

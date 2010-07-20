@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -549,6 +550,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			Socket opponentTransmitSocket = new Socket(address, opponentTransmitWaiterPort);
 			PrintWriter clientToOpponent = new PrintWriter(opponentTransmitSocket.getOutputStream(),true);
 			clientToOpponent.println(message);
+			opponentTransmitSocket.setSoTimeout(ClientServerProtocol.timeout);
 			BufferedReader oppIn = new BufferedReader(new InputStreamReader((opponentTransmitSocket.getInputStream())));
 			String response = (String)oppIn.readLine();
 			if(response.equals(ClientServerProtocol.OK)){
@@ -779,7 +781,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		if (gameThread!=null)
 		{
-			System.out.println("closing, and ...");
 			state = GameState.I_SURRENDED;
 			this.AsynchroniousISurrender();
 			this.closeAndNotify();
@@ -789,7 +790,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			this.sleepAWhile(1000);
 		}
 		this.removeWindowListener(this);
-		System.out.println("closing ended");
 	}
 	
 	private void closeAndNotify(){
@@ -825,7 +825,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				//closing old socket data
 				this.closeConnection();
 				//restarting
-				System.out.println("Entering : setupConnection()");
 				this.setupConnection();
 				this.reconnect = false;
 			} catch (IOException e) {
@@ -839,7 +838,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	
 	private void closeConnection(){
 		try {
-			System.out.println("Closing connections...");
+			theClient.logger.print_info("Closing connections...");
 			if(serverSocket != null){
 				serverSocket.close();
 			}
@@ -892,7 +891,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(plays.equals(clientPlayer)){
 			theClient.logger.print_info("My timer is timed out!");
 			//no server connection - my timeout - I lose
-			if(theClient.getAliveSender().noServerConnection()){
+			if(theClient.getAliveSender().noInternetConnection()){
 				state = GameState.I_TIMED_OUT;
 			}
 			//there is server connection but cannot send move - opp lose
@@ -906,7 +905,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		else{
 			theClient.logger.print_info("Opponents timer is timed out!");
-			if(theClient.getAliveSender().noServerConnection()){
+			if(theClient.getAliveSender().noInternetConnection()){
 				theClient.logger.print_info("I had no server connection");
 				state = GameState.I_TIMED_OUT;
 			}
@@ -919,7 +918,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			if (pending.isPending())
 			{
 				pending.setPending(false);
-				System.out.println("Notify pending");
 				pending.notify();
 			}
 		}
@@ -946,17 +944,13 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																	plays.getName(),
 																	move,plays.getColor().getColorStr()});
-				if (!isOpponentConnected())
-				{
-					writeToScreen("Connection problem to opponent ",MsgType.info);
-					throw new IOException();
-				}
-				System.out.println("Sending: " + moveMsg);
-				System.out.println("Socket is : "+opponentSocket.isConnected());
-				clientToOpponent.writeObject(moveMsg);
-				clientToOpponent.flush();
-				System.out.println("Sent the move succefully");
+//				if (!isOpponentConnected())
+//				{
+//					writeToScreen("Connection problem to opponent ",MsgType.info);
+//					throw new IOException();
+//				}
 				
+				this.innerSendMoveToOpp(moveMsg);				
 			}
 			//HANDLE CONNECTIONS PROBLEMS
 			catch (IOException ex)
@@ -968,14 +962,26 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				}
 				theClient.logger.print_error("While writing object: " + ex.getMessage());
 				reconnectOnRead= true;
-				System.out.println("Entering : handleReconnectionProcess");
 				handleReconnectionProcess();	
-				System.out.println("Exited : handleRecconectionProcess");
+			} catch (ClassNotFoundException e) {
+				reconnectOnRead= true;
+				theClient.logger.print_error("Problem sending the move to the opponent: " + e.getMessage());
 			}
 		}
 	}
 		
-	 private boolean isOpponentConnected() {
+	 private void innerSendMoveToOpp(String moveMsg) throws IOException, ClassNotFoundException {
+		 theClient.logger.print_info("Sending move to opponent: " + moveMsg);
+		 opponentSocket.setSoTimeout(ClientServerProtocol.timeout);
+		 clientToOpponent.writeObject(moveMsg);
+		 clientToOpponent.flush();
+		 System.out.println("getting response...");
+		 //now get the response to be sure the opponent is connected
+		 String response = (String)opponentIn.readObject();
+		 opponentSocket.setSoTimeout(moveTime*1000);
+	}
+
+	private boolean isOpponentConnected() {
 		 try{
 		 InetAddress address = InetAddress.getByName(opponentHost);
 		 Socket opponentTransmitSocket = new Socket(address, opponentTransmitWaiterPort);
@@ -1007,9 +1013,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						continue;
 					}
 					move = moveArr[2];
-//					int time = Integer.parseInt(moveArr[4]);
-//					plays.getTimer().updateTimer(time);
-//					int after = plays.getTimer().getElapsed();
+
+					//send response ok to the opponent
+					clientToOpponent.writeObject(ClientServerProtocol.OK);
+					clientToOpponent.flush();
 				} catch (IOException e) {
 					
 					if(this.reconnect){
@@ -1036,7 +1043,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				}
 			}
 		}
-		System.out.println("OPPP MOVE IS REEAD");
 		return move;
 	}
 	
@@ -1075,13 +1081,13 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			writeClients(blue.getName(),blue.getColor(),red.getName(),red.getColor());
 
 		}
+		opponentSocket.setSoTimeout(this.moveTime*1000);
 		clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 		opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 	
 		if(!this.reconnect){
 			excahngeData(clientToOpponent,opponentIn);
 		}
-		System.out.println("Existing setupConnection()");
 	}
 
 	@Override
