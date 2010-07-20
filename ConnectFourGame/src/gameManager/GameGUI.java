@@ -1049,10 +1049,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 		clientToOpponent = new ObjectOutputStream(opponentSocket.getOutputStream());
 		opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
-		System.out.println("Existing setupConnection()");
+	
 		if(!this.reconnect){
 			excahngeData(clientToOpponent,opponentIn);
 		}
+		System.out.println("Existing setupConnection()");
 	}
 
 	@Override
