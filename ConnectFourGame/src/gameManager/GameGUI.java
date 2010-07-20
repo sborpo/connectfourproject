@@ -130,7 +130,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return player;
 	}
 	
-	synchronized public Player addWatcher(String watchName, String playerName){
+	 public Player addWatcher(String watchName, String playerName){
 		Player player = isPlayer(playerName);
 		
 		if(player != null){
@@ -145,7 +145,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return player;
 	}
 	
-	synchronized public Integer getCurrMoveTime(){
+	 public Integer getCurrMoveTime(){
 		if(plays != null){
 			return plays.getTimer().getElapsed();
 		}
@@ -583,7 +583,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
-	synchronized private String decideWinner() {
+	 private String decideWinner() {
 		String winner = null;
 		switch(state){
 			case TIE: 
@@ -628,7 +628,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		plays.getTimer().resume();
 	}
 	
-	synchronized public void addPlayer(String player2){
+	 public void addPlayer(String player2){
 		blue = new Player(Player.Color.BLUE,player2);
 	}
 	 
@@ -808,7 +808,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		infoMessage = "Opponent has surrended!";
 	}
 
-	synchronized public void resetConnection(){
+	 public void resetConnection(){
 		this.reconnect = true;
 		this.blocked = true;
 		writeToScreen("Handling reconnection, wait...",MsgType.info);
@@ -962,7 +962,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 		
-	synchronized private String getOpponentMove(){
+	 private String getOpponentMove(){
 		String move = null;
 		if(opponentIn != null){
 			boolean reconnectOnRead= true;
