@@ -948,6 +948,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 																	move,plays.getColor().getColorStr()});
 				if (!isOpponentConnected())
 				{
+					writeToScreen("Connection problem to opponent ",MsgType.info);
 					throw new IOException();
 				}
 				System.out.println("Sending: " + moveMsg);
