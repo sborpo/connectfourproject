@@ -8,7 +8,6 @@ import gameManager.Player;
 import gameManager.Player.Color;
 /**
  * Datastructure of the current online games.
- * @author Boris
  *
  */
 public class OnlineGames {
@@ -17,18 +16,30 @@ public class OnlineGames {
 	private HashMap<String,Game> playingGames;
 	
 	
-	
+	/**
+	 * Initialize the online games of the given MainServer
+	 * @param server
+	 */
 	public OnlineGames(MainServer server)
 	{
 		this.server = server;
 		playingGames = new HashMap<String,Game>();		
 	}		
 	
+	/**
+	 * Adds the given game into the online games
+	 * @param game
+	 */
 	public synchronized void addGame(Game game){
 		playingGames.put(game.getId(), game);
 		server.printer.print_info("Game has been added : " + game.getId() + "\n");
 	}
 	
+	/**
+	 * Returns an array list of GameForClient object which represent online games
+	 * that should be sent to the client.
+	 * @return
+	 */
 	public synchronized ArrayList<GameForClient> getOnlineGamesForClient()
 	{
 		ArrayList<GameForClient> clientGames= new ArrayList<GameForClient>();
@@ -41,6 +52,11 @@ public class OnlineGames {
 		}
 		return clientGames;
 	}
+	
+	/**
+	 * Returns the current online games
+	 * @return
+	 */
 	public synchronized ArrayList<Game> getOnlineGames(){
 		ArrayList<Game> onlineGames = new ArrayList<Game>();
 		
@@ -50,6 +66,7 @@ public class OnlineGames {
 		
 		return onlineGames;
 	}
+	
 	
 	public synchronized ArrayList<String> getDownGames(){
 		ArrayList<String> downGamesIds = new ArrayList<String>();
@@ -66,6 +83,12 @@ public class OnlineGames {
 		return downGamesIds;
 	}
 	
+	/**
+	 * Returns a Game object of the given gameId , if the gameId wasn't found in the 
+	 * online games , then it reutns null
+	 * @param gameId
+	 * @return
+	 */
 	public synchronized Game getGame(String gameId){
 		if(playingGames.containsKey(gameId)){
 			return playingGames.get(gameId);
@@ -76,6 +99,11 @@ public class OnlineGames {
 		return null;
 	}
 
+	/**
+	 * Removes the given gameId from the online games , if the
+	 * game doesn't exists, does nothing
+	 * @param gameId
+	 */
 	public synchronized void removeGame(String gameId){
 		if(gameId != null){
 			if(playingGames.containsKey(gameId)){
