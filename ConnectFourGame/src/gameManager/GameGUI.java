@@ -985,6 +985,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 }
 		 catch (Exception e)
 		 {
+			 System.out.println("Opponent Not Responding");
 			 return false;
 		 }
 	}
