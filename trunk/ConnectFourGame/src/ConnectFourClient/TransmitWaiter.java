@@ -52,16 +52,20 @@ public class TransmitWaiter extends Thread {
 					
 					in = new BufferedReader(new InputStreamReader(transmitCommandSocket.getInputStream()));
 					String inputLine = null;
-					
-					if((inputLine = in.readLine()) != null) {
-						//print the received message from the server
-						client.logger.print_info("Message received on transmit waiter: '" + inputLine +"'");
-						
-						//check if the message received was ok
-						if (!treatMessage(inputLine)){
-							client.logger.print_error("Bad transmit command");
+					try{
+						if((inputLine = in.readLine()) != null) {
+							//print the received message from the server
+							client.logger.print_info("Message received on transmit waiter: '" + inputLine +"'");
+							
+							//check if the message received was ok
+							if (!treatMessage(inputLine)){
+								client.logger.print_error("Bad transmit command");
+							}
 						}
-				}
+					}catch (Exception e)
+					{
+						//do nothing , client closed the socket
+					}
 			}
 		} 
 		catch (Exception e) {

@@ -809,6 +809,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	}
 
 	 public void resetConnection(){
+		 if (reconnect)
+		 {
+			 return;
+		 }
 		this.reconnect = true;
 		this.blocked = true;
 		writeToScreen("Handling reconnection, wait...",MsgType.info);
@@ -942,6 +946,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																	plays.getName(),
 																	move,plays.getColor().getColorStr()});
+				if (!isOpponentConnected())
+				{
+					throw new IOException();
+				}
 				System.out.println("Sending: " + moveMsg);
 				System.out.println("Socket is : "+opponentSocket.isConnected());
 				clientToOpponent.writeObject(moveMsg);
@@ -966,7 +974,21 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 		
-	 private String getOpponentMove(){
+	 private boolean isOpponentConnected() {
+		 try{
+		 InetAddress address = InetAddress.getByName(opponentHost);
+		 Socket opponentTransmitSocket = new Socket(address, opponentTransmitWaiterPort);
+		 //if we got to this line , so the opponent is connected
+		 opponentTransmitSocket.close();
+		 return true;
+		 }
+		 catch (Exception e)
+		 {
+			 return false;
+		 }
+	}
+
+	private String getOpponentMove(){
 		String move = null;
 		if(opponentIn != null){
 			boolean reconnectOnRead= true;
