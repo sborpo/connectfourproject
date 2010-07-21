@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -22,8 +21,6 @@ import java.util.Properties;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.swing.SwingUtilities;
-
 import common.LogPrinter;
 import common.PasswordHashManager;
 import common.RSAgenerator;
@@ -38,9 +35,8 @@ import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
 /**
- * 
- * @author Valeriy Leykin The client class, represents a player which can play
- *         the game with another player P2P
+ * The client class, represents a player which can play
+ * the game with another player P2P or watch someone playing
  */
 public class TheClient {
 
@@ -74,7 +70,7 @@ public class TheClient {
 	private ServerSocket transmitWaiterSocket = null;
 	
 	//this will send the alive messages to the server
-	private AliveSender 	echoServerListener = null;
+	private AliveSender 	aliveSender = null;
 	
 	//this will accept the TRANSMIT command
 	private TransmitWaiter transmitWaiter = null;
@@ -85,35 +81,71 @@ public class TheClient {
 	
 	private InetAddress serverAddress;
 	
+	/**
+	 * Gets the user password string.
+	 * @return password
+	 */
 	public String getPassword(){
 		return password;
 	}
 	
+	/**
+	 * Gets the game ID.
+	 * @return gameId
+	 */
 	public String getGameId(){
 		return gameId;
 	}
 	
+	/**
+	 * Gets the game port of the user.
+	 * @return clientGamePort
+	 */
 	public int getGamePort(){
 		return clientGamePort;
 	}
 	
+	/**
+	 * Gets the watch port of the user.
+	 * @return clientWatchPort
+	 */
 	public int getWatchPort()
 	{
 		return clientWatchPort;
 	}
 	
+	/**
+	 * Gets the transmit waiter socket.
+	 * @return transmitWaiterSocket
+	 */
 	public ServerSocket getTransmitWaiterSocket(){
 		return transmitWaiterSocket;
 	}
 	
+	/**
+	 * Gets the game history for a game.
+	 * @return gameHistory
+	 */
 	public ArrayList<String> getGameHistory(){
-		return game.getGameHistory();
+		ArrayList<String> gameHistory = null;
+		if(game != null){
+			gameHistory = game.getGameHistory();
+		}
+		return gameHistory;
 	}
 	
+	/**
+	 * Gets the alive sender instance.
+	 * @return aliveSender
+	 */
 	public AliveSender getAliveSender(){
-		return echoServerListener;
+		return aliveSender;
 	}
 	
+	/**
+	 * Inner class representing the Viewer (watcher) for this
+	 * specific user.
+	 */
 	public static class Viewer extends  OnlineClient
 	{
 		public static class SendingToWatcherProblem extends Exception{}
@@ -122,6 +154,13 @@ public class TheClient {
 		private PrintWriter viewerWriter;
 		private boolean firstMove;
 
+		/**
+		 * Constructor for the Viewer class. Creates the socket for transmission.
+		 * @param transmitter
+		 * @param hostAddr
+		 * @param watcherPort
+		 * @param name
+		 */
 		public Viewer(TheClient transmitter, InetAddress hostAddr, int watcherPort, String name) {
 			super(hostAddr, TheClient.unDEFport, name, watcherPort,TheClient.unDEFport);
 			this.transmitter = transmitter;
@@ -135,6 +174,9 @@ public class TheClient {
 			firstMove = true;
 		}
 		
+		/**
+		 * Ends the transmission. Closes the sockets.
+		 */
 		public void endTransmition(){
 			if(viewerWriter != null){
 				viewerWriter.close();
@@ -148,6 +190,11 @@ public class TheClient {
 			}
 		}
 		
+		/**
+		 * Sends a move to the viewer.
+		 * @param move
+		 * @throws SendingToWatcherProblem
+		 */
 		public void sendMove(String move) throws SendingToWatcherProblem{	
 			if(viewerWriter == null){
 				return;
@@ -161,14 +208,21 @@ public class TheClient {
 				endTransmition();
 				throw new SendingToWatcherProblem();
 			}
-			transmitter.logger.print_info("Move sent");
+			transmitter.logger.print_info("Move sent!");
 			firstMove = false;
 		}
 		
+		/**
+		 * Returns true if no move were sent yet, else - false.
+		 * @return firstMove
+		 */
 		public boolean isFirstMove(){
 			return firstMove;
 		}
 		
+		/**
+		 * Sends the game history till now, all moves.
+		 */
 		public void sendPreviousMoves(){
 			ArrayList<String> gameHistory= transmitter.getGameHistory();
 			StringBuilder strBuilder = new StringBuilder();
@@ -188,14 +242,22 @@ public class TheClient {
 			strBuilder.append(moveTimer);
 			viewerWriter.println(strBuilder.toString());
 			viewerWriter.println();
-			System.out.println("Hystory has been sent!");
+			transmitter.logger.print_info("Hystory has been sent!");
 		}
 	}
 	
+	/**
+	 * Gets the list of all connected viewers.
+	 * @return viewersList
+	 */
 	public HashMap<String, Viewer> getViewerList(){
 		return viewersList;
 	}
 	
+	/**
+	 * Removes a viewer by name if it is exists.
+	 * @param viewerName
+	 */
 	synchronized public void removeViewerIfExists(String viewerName){
 		if (viewersList.containsKey(viewerName))
 		{
@@ -206,6 +268,10 @@ public class TheClient {
 		}
 	}
 	
+	/**
+	 * Adds a viewer to the viewer list.
+	 * @param viewer
+	 */
 	public void addToViewerList(Viewer viewer)
 	{
 		String name = viewer.getName();
@@ -217,35 +283,60 @@ public class TheClient {
 		viewersList.put(name, viewer);
 	}
 	
+	/**
+	 * returns the server InetAddress
+	 * @return serverAddress
+	 */
 	public InetAddress getServerAddress() {
 		return serverAddress;
 	}
 	
+	/**
+	 * Gets the clients name.
+	 * @return clientName
+	 */
 	public String getClientName()
 	{
 		return clientName;
 	}
 
 	/**
-	 * 
-	 * @return The UDP port that the client listens on to the server
+	 * Gets the clients alive port.
+	 * @return clientUdp
 	 */
 	public int getClientAlivePort() {
 		return clientUdp;
 	}
 	
+	/**
+	 * Gets the transmit waiter port
+	 * @return clientTransmitWaiterPort
+	 */
 	public int getTransmitWaiterPort(){
 		return clientTransmitWaiterPort;
 	}
 
+	/**
+	 * gets the transmit waiter instance.
+	 * @return transmitWaiter
+	 */
 	public TransmitWaiter getTransmitWaiter(){
 		return transmitWaiter;
 	}
 	
+	/**
+	 * Gets server UDP port.
+	 * @return serverUdpPort
+	 */
 	public int serverUDPPort() {
 		return serverUdpPort;
 	}
 
+	/**
+	 * The client class constructor.
+	 * @param args
+	 * @throws IOException
+	 */
 	public TheClient(String[] args) throws IOException {
 		try {
 			sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
@@ -263,6 +354,13 @@ public class TheClient {
 		}
 	}	
 	
+	/**
+	 * Actually send a message to server and gets its response.
+	 * @param message
+	 * @return resp
+	 * @throws IOException
+	 * @throws ServerWriteOrReadException
+	 */
 	public Object innerSendMessageToServer(String message) throws IOException, ServerWriteOrReadException{
 		Object resp=null;
 		SSLSocket serverConnection = null;
@@ -278,7 +376,6 @@ public class TheClient {
 		try{
 			serverConnection = (SSLSocket)sslsocketfactory.createSocket(serverAddress, serverPort);
 			serverConnection.setEnabledCipherSuites(enabledCipherSuites);
-			//set a 10 sec timeout to server answer
 			serverConnection.setSoTimeout(ClientServerProtocol.timeout);
 		}
 		catch (IOException ex){
@@ -327,6 +424,12 @@ public class TheClient {
 
 	}
 	
+	/**
+	 * Gets the server public key.
+	 * @return serverKey
+	 * @throws IOException
+	 * @throws ServerWriteOrReadException
+	 */
 	public Key getServerPublicKey() throws IOException, ServerWriteOrReadException{
 		logger.print_info("Getting the public key of server...");
 		Key serverKey = null;
@@ -340,6 +443,10 @@ public class TheClient {
 		}
 	}
 	
+	/**
+	 * Loads the properties file and returns it.
+	 * @return prop
+	 */
 	private Properties getProperties(){
 		Properties prop = new Properties();
 		try {
@@ -354,39 +461,35 @@ public class TheClient {
 		return prop;
 	}
 	
+	/**
+	 * Loads the arguments from the properties file.
+	 * @param args
+	 */
 	private void parseArguments(String[] args) {
-		//From Prroperites
+		//From Properites
 		Properties props = getProperties();
 		
-		//serverHost = (args[0]);
 		serverHost = props.getProperty("SERVER_HOST");
 		logger.print_info("Server: " + serverHost);
-		//serverPort = Integer.parseInt(args[1]);
 		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
 		logger.print_info("Server TCP port: "+serverPort);
-		//clientUdp = Integer.parseInt(args[2]);
 		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
 		logger.print_info("Client Udp Listen port: "+clientUdp);
-		//clientTransmitWaiterPort = Integer.parseInt(args[3]);
 		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
 		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-		//clientGamePort = Integer.parseInt(args[4]);
 		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
 		logger.print_info("Client Game port: "+clientGamePort);
-		
-		
-		//From command line
-		
-//		serverHost = (args[0]);
-//		serverPort = Integer.parseInt(args[1]);
-//		clientUdp = Integer.parseInt(args[2]);
-//		clientTransmitWaiterPort = Integer.parseInt(args[3]);
-//		clientGamePort = Integer.parseInt(args[4]);
-		
 		
 		clientWatchPort= clientGamePort;
 	}
 	
+	/**
+	 * Gets a server public key and then sends the message to the server.
+	 * @param message
+	 * @return response from the inner function
+	 * @throws IOException
+	 * @throws ServerWriteOrReadException
+	 */
 	public Object sendMessageToServer(String message) throws IOException, ServerWriteOrReadException
 	{
 		Key srvPK= getServerPublicKey();
@@ -396,10 +499,17 @@ public class TheClient {
 		return innerSendMessageToServer(message);
 	}
 	
+	/**
+	 * Reset the watcher to null.
+	 */
 	public void stopWatching(){
 		watcher = null;
 	}
 	
+	/**
+	 * Starts the transmission waiter waiting for transmission
+	 * command on the created transmission socket.
+	 */
 	private void startTransmitionWaiter(){
 		try {
 			transmitWaiterSocket = new ServerSocket(clientTransmitWaiterPort);
@@ -411,6 +521,9 @@ public class TheClient {
 		transmitWaiter.start();
 	}
 	
+	/**
+	 * Stops the transmission and reset the transmission data.
+	 */
 	private void closeTransmitions(){
 		if(transmitWaiterSocket != null){
 			this.getTransmitWaiter().endTransmition();
@@ -419,6 +532,12 @@ public class TheClient {
 		transmitWaiter = null;
 	}
 	
+	/**
+	 * Prepare the password for transmission. First hashes it
+	 * then encrypts with public key of the server.
+	 * @param password
+	 * @return preparedPass
+	 */
 	public String preparePassword(String password){
 		String preparedPass = this.hashPassword(password);
 		try {
@@ -429,6 +548,13 @@ public class TheClient {
 		return preparedPass;
 	}
 	
+	/**
+	 * Parses a command and initializes data.
+	 * return null if command is wrong.
+	 * @param command
+	 * @param parser
+	 * @return params
+	 */
 	private String[] parseCommand(String command,ClientServerProtocol parser){
 		String[] params = parser.parseCommand(command);
 		
@@ -461,13 +587,15 @@ public class TheClient {
 			password = params[2];
 			params[2] = preparePassword(params[2]);
 		}
-		else if(params[0].equals(ClientServerProtocol.DISCONNECT)){
-			//echoServerListener.die();
-		}
 		
 		return params;
 	}
 	
+	/**
+	 * Hashes a password.
+	 * @param pass
+	 * @return hashed
+	 */
 	private String hashPassword(String pass){
 		String hashed = null;
 		PasswordHashManager hashManager = PasswordHashManager.getInstance();
@@ -480,14 +608,24 @@ public class TheClient {
 		return hashed;
 	}
 	
-	
+	/**
+	 * The nice to meet you handler function.
+	 * Creates an AliveSender instance and starts it.
+	 * @param params
+	 */
 	public void handleNICETM(String [] params)
 	{
 		 serverUdpPort = Integer.parseInt(params[1]);
-		 echoServerListener = new AliveSender(this);
-		 echoServerListener.start();
+		 aliveSender = new AliveSender(this);
+		 aliveSender.start();
 	}
 	
+	/**
+	 * Game handler. Creates and starts a game GUI.
+	 * Also starts the transmission waiter.
+	 * @param params
+	 * @param f
+	 */
 	public void HandleGameGUI(String [] params,MainFrame f)
 	{
 		gameId = params[1];
@@ -497,12 +635,14 @@ public class TheClient {
 		game  = new GameGUI(clientName, null,gameId,f,clientGamePort, null,-1, true,this,unDEFport);
 
 		((GameGUI)game).setVisible(true);
-		//UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();
 		this.closeTransmitions();
 		gameId = ClientServerProtocol.noGame;
 	}
 		
-	
+	/**
+	 * Creates an empty report for game.
+	 * @return gameReport
+	 */
 	public UnhandeledReport getEmptyReport() {
 		UnhandeledReport gameReport = new UnhandeledReport(this.gameId,this.clientName,
 											Boolean.toString(Game.gameRes.NO_WINNER),
@@ -510,6 +650,10 @@ public class TheClient {
 		return gameReport;
 	}
 
+	/**
+	 * Sends a game report to all the viewers.
+	 * @param gameReportH
+	 */
 	public void makeReportToViewers(UnhandeledReport gameReportH) {
 		this.logger.print_info("Trying to send report to viewers...");
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
@@ -526,6 +670,11 @@ public class TheClient {
 		getTransmitWaiter().sendMoveToViewers(gameReport);
 	}
 	
+	/**
+	 * Sends the report to the server. If sending is failed
+	 * saves the report to the local file.
+	 * @param gameReportH
+	 */
 	public void makeReportToServer(UnhandeledReport gameReportH) {
 		this.logger.print_info("Trying to send report to server...");
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.SERVER);
@@ -544,7 +693,7 @@ public class TheClient {
 		Object resp = null;
 		try {
 			resp = this.sendMessageToServer(gameReport);
-			if(!this.parseResponse(resp)){
+			if(this.parseServerResponse((String)resp) == null){
 				throw new IOException("Bad server response");
 			}
 			String [] response = parseServerResponse((String)resp);
@@ -563,6 +712,10 @@ public class TheClient {
 		
 	}
 
+	/**
+	 * Saves a report to a local file.
+	 * @param gameReportH
+	 */
 	private void saveLocalReport(UnhandeledReport gameReportH) {
 		//if the report is empty
 		if(gameReportH.getWinner().equals(Game.gameWinner.GAME_NOT_PLAYED)){
@@ -585,6 +738,12 @@ public class TheClient {
 		
 	}
 	
+	/**
+	 * GOGOGO handler function. Creates and starts a game GUI.
+	 * Also starts the transmission waiter.
+	 * @param params
+	 * @param mainFrame
+	 */
 	public void HandleGoGoGoGUI(String [] params, MainFrame mainFrame)
 	{
 		opponentGamePort = Integer.parseInt(params[1]);
@@ -600,41 +759,39 @@ public class TheClient {
 		this.startTransmitionWaiter();
 		game= new  GameGUI(opponentName, clientName,gameId,mainFrame,clientGamePort,opponentGameHost,opponentGamePort, false,this,opponentTransmitWaiterPort);
 		((GameGUI)game).setVisible(true);
-		//UnhandeledReport gameReportH = ((GameGUI)game).getReportStatus();	
 		this.closeTransmitions();
 		gameId = ClientServerProtocol.noGame;
 	}
 	
+	/**
+	 * EnjoyWatch handler function. Creates and starts the game watcher GUI.
+	 * @param params
+	 * @param redPlayer
+	 * @param bluePlayer
+	 * @param mainFrame
+	 */
 	public void HandleEnjoyWatch(String [] params,String redPlayer,String bluePlayer, MainFrame mainFrame)
 	{
-		
 		watcher = new GameWatcher(this,redPlayer,bluePlayer,mainFrame);
 		watcher.setVisible(true);
 	}
 	
-	//the one that used
+	/**
+	 * Checks whether the server response is legal.
+	 * Breakes it down to elements and returns them
+	 * @param message
+	 * @return params
+	 */
 	public String[] parseServerResponse(String message)
 	{
 		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
 		String[] params = parser.parseCommand(message);
 		return params;
 	}
-	
-	private boolean parseResponse(Object message){
-		ClientServerProtocol parser = new ClientServerProtocol(msgType.CLIENT);
-		if (!message.getClass().equals("StringClass".getClass()))
-		{
-			return false;
-		}
-		String[] params = parser.parseCommand((String)message);
-		boolean responseRes = true;
-		
-		if(params == null){
-			responseRes = false;
-		}
-		return responseRes;
-	}
 
+	/**
+	 * Sends the disconnect command to the server.
+	 */
 	public void disconnect()
 	{
 		String disconnectStr = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.DISCONNECT,
@@ -643,7 +800,7 @@ public class TheClient {
 		Object resp = null;
 		try{
 			resp = this.sendMessageToServer(disconnectStr);
-			if(!parseResponse(resp)){
+			if(parseServerResponse((String)resp) == null){
 				throw new IOException("Bad server response");
 			}
 		}
@@ -656,6 +813,14 @@ public class TheClient {
 			//never mind , it will remove us because of the udp listener
 		}			
 	}
+	
+	/**
+	 * Report to the server the batch of unhandeled reports.
+	 * @return true - if succeeded, else - false.
+	 * @throws FileChanged
+	 * @throws IOException
+	 * @throws ServerWriteOrReadException
+	 */
 	public boolean reportUnhandeledReports() throws FileChanged, IOException, ServerWriteOrReadException {
 		UnhandledReports reports=null;
 		try {
@@ -694,12 +859,18 @@ public class TheClient {
 		
 	}
 
+	/**
+	 * Calls the opponentSurrender method of the game.
+	 */
 	public void opponentSurrender() {
 		if(game != null){
 			game.opponentSurrender();
 		}		
 	}
 	
+	/**
+	 * Calls the resetConnection method of the game.
+	 */
 	public void refreshGameConnection(){
 		System.out.println("The game is Null? : "+(game==null));
 		if(game != null){

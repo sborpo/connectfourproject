@@ -1,26 +1,29 @@
 package common;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-
-import org.w3c.dom.Element;
-
 import theProtocol.ClientServerProtocol;
 
+/**
+ * Represents a group of Unhandeled reports.
+ */
 public class UnhandledReports {
 	public static class NoReports extends Exception {}
 	public static class FileChanged extends Exception {}
 	private String fileName;
 	private ArrayList< UnhandeledReport> reports;
 	
+	/**
+	 * The constructor for the group of Unhandled reports class.
+	 * @param clientName
+	 * @throws NoReports
+	 * @throws FileChanged
+	 */
 	public UnhandledReports(String clientName) throws NoReports, FileChanged
 	{
 		fileName=clientName+".report";
@@ -53,14 +56,26 @@ public class UnhandledReports {
 	}
 	
 
+	/**
+	 * Gets the unhandeled reports.
+	 * @return reports
+	 */
 	public ArrayList< UnhandeledReport> getUnhandeledReports()
 	{
 		return reports;
 	}
+	
+	/**
+	 * Gets the number of the reports. 
+	 * @return size of the reports list.
+	 */
 	public int getReportNumber(){
 		return reports.size();
 	}
 	
+	/**
+	 * Removes reports file.
+	 */
 	public void removeReportsFile()
 	{
 		System.out.println("INSIDE");
@@ -75,6 +90,10 @@ public class UnhandledReports {
 		reports = null;
 	}
 	
+	/**
+	 * Prints the reports.
+	 * @return string with all the reports.
+	 */
 	public String printReports()
 	{
 		 Collection<UnhandeledReport> list = reports;
@@ -86,6 +105,10 @@ public class UnhandledReports {
 			return sb.toString();
 	}
 	
+	/**
+	 * Creates a string for a batch reporting of the reports.
+	 * @return report
+	 */
 	public String createGamesReportString()
 	{
 	    Collection<UnhandeledReport> list = reports;
@@ -108,6 +131,12 @@ public class UnhandledReports {
 		return report;
 	}
 	
+	/**
+	 * Adds a report to the reports list and saves the reports file
+	 * updated with the new report.
+	 * @param report
+	 * @throws IOException
+	 */
 	public void addReport(UnhandeledReport report) throws IOException
 	{
 		if (reports.contains(report))
@@ -118,6 +147,14 @@ public class UnhandledReports {
 		reports.add(report);
 		saveFile();
 	}
+	
+	/**
+	 * Removes a report from reports list and saves the 
+	 * updated report file.
+	 * @param gameId
+	 * @param clientName
+	 * @throws IOException
+	 */
 	public void removeReport(String gameId,String clientName) throws IOException
 	{
 		UnhandeledReport report= new UnhandeledReport(gameId, clientName, null, null);
@@ -129,7 +166,11 @@ public class UnhandledReports {
 		
 	}
 	
-	
+	/**
+	 * Creates a list of reports from report string array.
+	 * @param params
+	 * @return list
+	 */
 	public static ArrayList<UnhandeledReport> gameReportsFromReportsArray(String [] params )
 	{
 		ArrayList<UnhandeledReport> list = new ArrayList<UnhandeledReport>();
@@ -142,13 +183,15 @@ public class UnhandledReports {
 				arr[j]= params[4*i+j];
 			}
 			UnhandeledReport report = new UnhandeledReport(arr[0], arr[1], arr[2], arr[3]);
-			System.out.println("Adding Report: "+report);
 			list.add(report);
-			
 		}
 		return list;
 	}
 	
+	/**
+	 * Saves an encrypted file with the reports list object.
+	 * @throws IOException
+	 */
 	private void saveFile() throws IOException
 	{
 		AESmanager manager = new AESmanager();
