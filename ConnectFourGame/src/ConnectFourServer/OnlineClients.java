@@ -1,10 +1,8 @@
 package ConnectFourServer;
 
 import gameManager.Game;
-import gameManager.Player;
 import common.OnlineClient;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 

@@ -2,21 +2,10 @@ package ConnectFourServer;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.SocketException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.RSAPublicKeySpec;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
@@ -24,9 +13,7 @@ import javax.net.ssl.SSLSocket;
 import theProtocol.ClientServerProtocol;
 
 import common.LogPrinter;
-import common.PasswordHashManager;
 import common.RSAgenerator;
-import common.PasswordHashManager.SystemUnavailableException;
 
 /**
  * This class represents the server of the game , which

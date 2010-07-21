@@ -1,42 +1,10 @@
 package gameManager;
-import gameManager.Board.Cell;
-import gameManager.Board.GameState;
-import gameManager.Board.IllegalMove;
 import gameManager.Player.Color;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-
-import theProtocol.*;
-
-import java.awt.GridLayout;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
-import java.io.IOException;
-import java.awt.Image;
-
 import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-
-import javax.swing.*;
-import javax.swing.border.*;
-import java.awt.*;
-import ConnectFourClient.SingUpWindow;
-
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class represents the GUI components and view of the game board
