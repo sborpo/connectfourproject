@@ -1,6 +1,5 @@
 package gameManager;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import ConnectFourClient.TheClient;
 import common.UnhandeledReport;

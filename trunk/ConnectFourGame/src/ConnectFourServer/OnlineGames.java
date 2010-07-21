@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import gameManager.Game;
-import gameManager.Player;
 import gameManager.Player.Color;
 /**
  * Datastructure of the current online games.
