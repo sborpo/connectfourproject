@@ -1,11 +1,7 @@
 package ConnectFourClient;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -16,11 +12,9 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JSeparator;
-import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -29,6 +23,9 @@ import ConnectFourClient.TheClient.ServerWriteOrReadException;
 
 import theProtocol.ClientServerProtocol;
 
+/**
+ * SignUp window class.
+ */
 public class SingUpWindow extends JDialog implements MouseListener{
 	private JPanel mainPane;
 	private JPanel serversResponsePanel;
@@ -44,11 +41,11 @@ public class SingUpWindow extends JDialog implements MouseListener{
 	private JTextArea log;
 	private MainFrame main;
 	
-	
-	
-
-	
-	
+	/**
+	 * The constructor for class.
+	 * @param father
+	 * @param main
+	 */
 	public SingUpWindow(JDialog father,MainFrame main)
 	{
 		super(father, "Sign Up Window", true);
@@ -77,6 +74,9 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		setVisible(true);
 	}
 	
+	/**
+	 * Creates the details pane.
+	 */
 	private void setDetailsPane()
 	{
 		usernameLabel= new JLabel("username:");
@@ -92,9 +92,11 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		detailsGrid.add(password);
 		detailsGrid.add(confirmPasswordLabel);
 		detailsGrid.add(confirmpassword);
-		
 	}
 	
+	/**
+	 * Creates a panel for server responses presentation.
+	 */
 	public void setServersResponsePanel()
 	{
 		serversResponsePanel.setLayout(new BoxLayout(serversResponsePanel, BoxLayout.PAGE_AXIS));
@@ -107,6 +109,11 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		serversResponsePanel.add(log);
 	}
 
+	/**
+	 * Overrides handler of the mouseClicked event.
+	 * Activates signUp process.
+	 * @param e
+	 */
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		
@@ -131,7 +138,6 @@ public class SingUpWindow extends JDialog implements MouseListener{
 																									                password.getText().toString()}));
 			if (main.client.parseServerResponse(response)==null)
 			{
-				//TODO problem with syntax , server doesn't understand
 				main.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
 				return;
 			}
@@ -147,41 +153,42 @@ public class SingUpWindow extends JDialog implements MouseListener{
 			}
 			main.showMessageDialog("The server had a problem serving your request , please retry.",MsgType.error);
 			return;
-	
-		} catch (IOException e1) {
-			//TODO: handle with server problems , retry reconnect
+		} catch (Exception ex) {
 			main.showMessageDialog("A problem with server connection",MsgType.error);
 			return;
-		} catch (ServerWriteOrReadException ex) {
-			main.showMessageDialog("A problem with server connection",MsgType.error);
-			return;
-		}
-		
-		
+		}	
 	}
 
+	/**
+	 * Overrides handler of the mouseEntered event.
+	 * @param e
+	 */
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides handler of the mouseExited event.
+	 * @param e
+	 */
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides handler of the mousePressed event.
+	 * @param e
+	 */
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides handler of the mouseReleased event.
+	 * @param e
+	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	

@@ -8,16 +8,22 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.CipherSpi;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import sun.misc.BASE64Encoder;
 import sun.misc.BASE64Decoder;
 
+/**
+ * RSA manager class.
+ */
 public class RSAgenerator {
 	static private Key publicKey = null;
 	static private Key privateKey = null;
 
+	/**
+	 * Generates a pair of public/private keys.
+	 * @throws NoSuchAlgorithmException
+	 */
 	static public void generatePair() throws NoSuchAlgorithmException{
 		KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
 		kpg.initialize(2048);
@@ -26,19 +32,34 @@ public class RSAgenerator {
 		privateKey = kp.getPrivate();
 	}
 	
+	/**
+	 * Sets a public keyfor the class.
+	 * @param pubKey
+	 */
 	static public void setEncKey(Key pubKey){
 		publicKey = pubKey;
 	}
 	
+	/**
+	 * Gets a public key of the class.
+	 * @return
+	 */
 	static public Key getPubKey(){
 		return publicKey;
 		
 	}
 	
-	static public Key getPrvKey(){
-		return privateKey;
-	}
-	
+	/**
+	 * Encrypts a message with the public key.
+	 * @param msg
+	 * @return encrypted message
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeyException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws IOException
+	 */
 	static public String encrypt(String msg) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException{
 		/* Create the cipher */
 		javax.crypto.Cipher rsaCipher = javax.crypto.Cipher.getInstance("RSA");
@@ -49,12 +70,22 @@ public class RSAgenerator {
 		BASE64Decoder de = new BASE64Decoder();
 		
 		byte[] enc= rsaCipher.doFinal(de.decodeBuffer(msg));
-		// Now here i am using BASE64Encryptor and BASE64Decoder as specified by you
 		
 		BASE64Encoder en = new BASE64Encoder();
 		return en.encodeBuffer(enc);
 	}
 	
+	/**
+	 * Decrypts the encrypted message with the private key.
+	 * @param msg
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeyException
+	 * @throws IllegalBlockSizeException
+	 * @throws BadPaddingException
+	 * @throws IOException
+	 */
 	static public String decrypt(String msg) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException{
 		/* Create the cipher */
 		javax.crypto.Cipher rsaCipher = javax.crypto.Cipher.getInstance("RSA");

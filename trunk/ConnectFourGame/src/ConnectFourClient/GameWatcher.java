@@ -1,11 +1,9 @@
 package ConnectFourClient;
 
-import gameManager.Board;
 import gameManager.BoardGUI;
 import gameManager.Game;
 import gameManager.GameGUI;
 import gameManager.Player;
-import gameManager.Board.GameState;
 import gameManager.Board.IllegalMove;
 import gameManager.Player.Color;
 
@@ -15,11 +13,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import javax.swing.Box;
@@ -33,6 +28,9 @@ import ConnectFourClient.MainFrame.MsgType;
 
 import theProtocol.ClientServerProtocol;
 
+/**
+ * Class represents the Watcher entity and his GUI.
+ */
 public class GameWatcher extends GameGUI implements Runnable{
 
 	static public class GameEndedException extends Exception{};
@@ -47,6 +45,13 @@ public class GameWatcher extends GameGUI implements Runnable{
 	private JButton stopWatch;
 	private boolean timeUpdated;
 	
+	/**
+	 * Constructs a new game watcher GUI.
+	 * @param client
+	 * @param redPlayer
+	 * @param bluePlayer
+	 * @param mainFrame
+	 */
 	public GameWatcher(TheClient client,String redPlayer,String bluePlayer,MainFrame mainFrame)
 	{	
 		this.mainFrame = mainFrame;
@@ -74,6 +79,10 @@ public class GameWatcher extends GameGUI implements Runnable{
 		setLocationRelativeTo(null);
 	}
 	
+	/**
+	 * Creates a box containing STOP_WATCH button.
+	 * @return stopWatchBox
+	 */
 	private Box createStopWatchButton(){
 		Box stopWatchBox = Box.createHorizontalBox();
 		stopWatch= new JButton(GameWatcher.STOP_WATCH);
@@ -85,6 +94,9 @@ public class GameWatcher extends GameGUI implements Runnable{
 		return stopWatchBox;
 	}
 	
+	/**
+	 * Main thread function - running GUI, showing each move.
+	 */
 	@Override
 	public void run() {
 		theClient.logger.print_info("Game Watcher Is Running! ");
@@ -122,18 +134,8 @@ public class GameWatcher extends GameGUI implements Runnable{
 							state = gameBoard.playColumn(Integer.parseInt(parsed[2]), c);
 							SwingUtilities.invokeAndWait(new BoardGUI.Painter(((BoardGUI)gameBoard).getColumnsFil(),Integer.parseInt(parsed[2]),c, slots));
 							writeToScreen("Waiting for "+ playingName +" turn...",MsgType.info);
-						} catch (NumberFormatException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (InvocationTargetException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IllegalMove e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+						} catch (Exception e) {
+							popupDialog("Bad move or other problem: " + e.getMessage(), MsgType.error);
 						}
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEREPORT)){
@@ -192,21 +194,27 @@ public class GameWatcher extends GameGUI implements Runnable{
 		}
 	}
 	
+	/**
+	 * Set the watcher GUI invisible and remove mouse listeners.
+	 */
 	private void watchOver(){
 		stopWatch.removeMouseListener(this);
 		this.setVisible(false);
 	}
 	
+	/**
+	 * Closes all sockets and stops watching process.
+	 */
 	private void stopWatching(){
 		watching = false;
 		try {
-			if(watchSocket != null){
-				watchSocket.close();
-				watchSocket = null;
-			}
 			if(watcherIn != null){
 				watcherIn.close();
 				watcherIn = null;
+			}
+			if(watchSocket != null){
+				watchSocket.close();
+				watchSocket = null;
 			}
 			if(Isocket != null){
 				Isocket.close();
@@ -218,6 +226,11 @@ public class GameWatcher extends GameGUI implements Runnable{
 		theClient.stopWatching();
 	}
 	
+	/**
+	 * Parses the report from transmitter.
+	 * @param message
+	 * @return winner
+	 */
 	private String parseReport(String[] message){
 		String winner = null;
 		if(message[0].equalsIgnoreCase(ClientServerProtocol.GAMEREPORT)){
@@ -231,27 +244,37 @@ public class GameWatcher extends GameGUI implements Runnable{
 		return winner;
 	}
 	
-	
+	/**
+	 * Overrides handler of the window closing event.
+	 * Joins the watcher thread.
+	 * @param e
+	 */
 	@Override
 	public void windowClosing(WindowEvent e) {
 		this.stopWatching();
 		try {
 			watcher.join();
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			popupDialog("Problem while joining thread: " + e1.getMessage(), MsgType.error);
 		}
-		
-		
 	}
 	
-	
+	/**
+	 * Overrides handler of the window opened event.
+	 * Starts the whatcher thread.
+	 * @param e
+	 */
 	@Override
 	public void windowOpened(WindowEvent e) {
 		watcher = new Thread(this);
 		watcher.start();
 	}
 
+	/**
+	 * Overrides handler of the mouse clicked event.
+	 * Stops watching is STOP_WATCH button was clicked.
+	 * @param e
+	 */
 	@Override
 	public  void mouseClicked(MouseEvent e) {
 		String buttonName=((JButton)e.getComponent()).getName();
@@ -263,6 +286,10 @@ public class GameWatcher extends GameGUI implements Runnable{
 		}		
 	}
 	
+	/**
+	 * Overrides handler of the timeout event.
+	 * @param event
+	 */
 	@Override
 	public void timeOutReceived(TimeOutEvent event) {
 		//DO NOTHING

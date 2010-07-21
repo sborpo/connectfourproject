@@ -9,10 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.channels.ClosedByInterruptException;
 import java.util.Collection;
-
-import common.AESmanager;
 
 import ConnectFourClient.TheClient.Viewer;
 import ConnectFourClient.TheClient.Viewer.SendingToWatcherProblem;
@@ -20,6 +17,9 @@ import ConnectFourClient.TheClient.Viewer.SendingToWatcherProblem;
 import theProtocol.ClientServerProtocol;
 import theProtocol.ClientServerProtocol.msgType;
 
+/**
+ * Represent the TransmitWaiter.
+ */
 public class TransmitWaiter extends Thread {
 	// the client to which the waiter is bind to
 	private TheClient client;
@@ -27,6 +27,11 @@ public class TransmitWaiter extends Thread {
 	Socket transmitCommandSocket = null;
 	BufferedReader in = null;
 	
+	/**
+	 * Constructs anew instance of the class.
+	 * @param transmitWaiterSocket
+	 * @param client
+	 */
 	public TransmitWaiter(ServerSocket transmitWaiterSocket,TheClient client) {
 		this.client = client;
 		this.transmitWaiterSocket = transmitWaiterSocket;
@@ -34,6 +39,10 @@ public class TransmitWaiter extends Thread {
 		in = null;
 	}
 
+	/**
+	 * The thread main function. Waits for commands
+	 * and calls appropriate functions.
+	 */
 	public void run() {
 		// open a UDP socket , from which we will do the communications
 		// with the server
@@ -69,11 +78,15 @@ public class TransmitWaiter extends Thread {
 			}
 		} 
 		catch (Exception e) {
-			client.logger.print_error("In transmit receiving");
-			e.printStackTrace();
+			client.logger.print_error("Problem In transmit receiving: " + e.getMessage());
 		}
 	}
 	
+	/**
+	 * Trying to send move to the viewers, if any viewer don't
+	 * responds - removes it.
+	 * @param move
+	 */
 	public void sendMoveToViewers(String move)
 	{
 		Collection<Viewer> viewers=client.getViewerList().values();
@@ -86,6 +99,11 @@ public class TransmitWaiter extends Thread {
 		}	
 	}
 
+	/**
+	 * Treats the command received.
+	 * @param message
+	 * @return result
+	 */
 	private boolean treatMessage(String message){
 		boolean result = true;
 		ClientServerProtocol prot= new ClientServerProtocol(msgType.CLIENT);
@@ -132,6 +150,9 @@ public class TransmitWaiter extends Thread {
 		return result;
 	}
 	
+	/**
+	 * Closes the transmission sockets.
+	 */
 	public void endTransmition(){
 		try {
 			client.logger.print_info("Closing transmit waiter socket");

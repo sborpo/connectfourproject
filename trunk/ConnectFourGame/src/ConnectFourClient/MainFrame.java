@@ -1,11 +1,6 @@
 package ConnectFourClient;
 
-import java.awt.Frame;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Dialog.ModalExclusionType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -13,7 +8,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
-import java.security.Key;
 import java.util.ArrayList;
 
 import javax.swing.Box;
@@ -36,8 +30,14 @@ import theProtocol.ClientServerProtocol;
 import ConnectFourClient.TheClient.ServerWriteOrReadException;
 import ConnectFourServer.GameForClient;
 
-
+/**
+ * Class represents the main window of the game.
+ */
 public class MainFrame extends JFrame implements MouseListener , ActionListener , WindowListener{
+	
+	/**
+	 * Defines the message types.
+	 */
 	public static class MsgType{
 		public static final String error = "ERROR";
 		public static final String info = "INFO";
@@ -55,12 +55,13 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private JTable gamesForWatch;
 	private JButton joinGame;
 	private JButton watchGame;
-	public TheClient client;
-	//private JButton addGame;
-	
-	
+	public TheClient client;	
 
-	
+	/**
+	 * Constructs the main window.
+	 * @param args
+	 * @throws IOException
+	 */
 	public MainFrame(String [] args) throws IOException
 	{
 		super("The Main Client Window");
@@ -89,6 +90,9 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
+	/**
+	 * Opens the signIn window.
+	 */
 	public void openSignIn()
 	{
 		LoginWindow signIn=new LoginWindow(this);
@@ -98,6 +102,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			this.dispose();
 		}
 	}
+	
+	/**
+	 * Sets the names of the columns.
+	 */
 	private void setColumnsNames() {
 		openGamesColumnsNames= new String[2];
 		openGamesColumnsNames[0]= "Player";
@@ -108,6 +116,10 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		gamesForWatchColumnsNames[2]= "Game Id";
 		
 	}
+	
+	/**
+	 * Creates the games for join and games for watch panels.
+	 */
 	private void setGamesPanel() {
 		gamesPanel = new JPanel(new GridLayout(1, 2));
 		JPanel left = new JPanel(); JPanel right= new JPanel();
@@ -146,24 +158,18 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		left.add(l); right.add(r);
 		gamesPanel.add(left);
 		gamesPanel.add(right);
-		
-//		addGame= new JButton("Create Game");
-//		addGame.addMouseListener(this);
-//		Box b = Box.createHorizontalBox();
-//		b.add( addGame);
-//		gamesPanel.add(b);
 	}
 	
+	/**
+	 * Gets and shows the online game list from the server.
+	 */
 	@SuppressWarnings("unchecked")
 	public void getOnlineGames()
 	{
 		ArrayList<GameForClient> response= new ArrayList<GameForClient>();
 		try {
 			response = (ArrayList<GameForClient>)client.sendMessageToServer(ClientServerProtocol.GAMELIST);
-		} catch (IOException e) {
-			this.showMessageDialog("There was a probem connecting the server: " + e.getMessage(),MsgType.error);
-			return;
-		} catch (ServerWriteOrReadException e) {
+		}catch (Exception e) {
 			this.showMessageDialog("There was a probem connecting the server: " + e.getMessage(),MsgType.error);
 			clearTables();
 			return;
@@ -178,6 +184,9 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		
 	}
 
+	/**
+	 * Clears the tables of the games.
+	 */
 	private void clearTables()
 	{
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
@@ -188,6 +197,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		while (watchModel.getRowCount()>0)
 		{watchModel.removeRow(0);}
 	}
+	
+	/**
+	 * Adds the online games from games arrayList to the grid.
+	 * @param games
+	 */
 	public void setUpOnlineGames(ArrayList<GameForClient> games)
 	{
 		clearTables();
@@ -221,16 +235,22 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		}	
 	}
 	
+	/**
+	 * Creates the main window and opens signIn frame.
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
 			new MainFrame(args).openSignIn();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Error: " + e.getMessage());
 		}
 	
 	}
 	
+	/**
+	 * Sends the PLAY command to the server in order to play specific game. 
+	 */
 	private void joinGameClicked()
 	{
 		int rowIndex=openGames.getSelectedRow();
@@ -274,14 +294,15 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				getOnlineGames();
 				return;
 			}
-		} catch (IOException e1) {
-			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
-		} catch (ServerWriteOrReadException e) {
+		} catch (Exception e) {
 			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
 		}
 	}
 	
+	/**
+	 * Send the NEWGAME command to the serve in order to create a new game.
+	 */
 	private void newGameClicked()
 	{
 		try {
@@ -306,14 +327,15 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				return;
 			}
 			client.HandleGameGUI(client.parseServerResponse(response),this);
-		} catch (IOException e1) {
-			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
-		} catch (ServerWriteOrReadException e) {
+		} catch (Exception e) {
 			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
 		}
 	}
 	
+	/**
+	 * Send the WATCH command to the server in order to watch specific game.
+	 */
 	private void watchGameClicked()
 	{
 		int rowIndex=gamesForWatch.getSelectedRow();
@@ -347,51 +369,66 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 2),this);
 			//after watching is completed , now refresh the gamelist
 			getOnlineGames();
-		} catch (IOException e1) {
-			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
-		} catch (ServerWriteOrReadException e) {
+		} catch (Exception e) {
 			this.showMessageDialog("There was a communication problem with the server, please retry...", MsgType.error);
 			return;
 		}
 	}
+	
+	/**
+	 * Overrides handler of the mouse clicked event.
+	 * Calls appropriate function.
+	 * @param e
+	 */
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getSource()==joinGame)
 		{
 			joinGameClicked();
 		}
-//		if (e.getSource()==addGame)
-//		{
-//			newGameClicked();
-//		}
 		if (e.getSource()==watchGame)
 		{
 			watchGameClicked();
 		}
-		
-		
-		
 	}
+	
+	/**
+	 * Overrides handler of the mouseEntered event.
+	 * @param e
+	 */
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the mouseExited event.
+	 * @param e
+	 */
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the mousePressed event.
+	 * @param e
+	 */
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the mouseReleased event.
+	 * @param e
+	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the actionPerformed event.
+	 * Calls appropriate function for a menu item.
+	 * @param e
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==menu1Item1)
@@ -411,6 +448,9 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		
 	}
 	
+	/**
+	 * Opens the statistics window and loads the statistics.
+	 */
 	private void openStatsWindow() {
 
 		StatsReport response= new StatsReport();
@@ -433,7 +473,12 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		new StatsWindow(response);
 	}
 	
-	
+	/**
+	 * Shows a dialog and writes down the message to the log,
+	 * corresponding to the message type.
+	 * @param msg
+	 * @param type
+	 */
 	public void showMessageDialog(String msg,String type){
 		if(type.equals(MsgType.info)){
 			client.logger.print_info(msg);
@@ -443,40 +488,62 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		}
 		JOptionPane.showMessageDialog(this,msg);
 	}
+	
+	/**
+	 * Overrides handler of the windowActivated event.
+	 * @param e
+	 */
 	@Override
 	public void windowActivated(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the windowClosed event.
+	 * @param e
+	 */
 	@Override
 	public void windowClosed(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the windowClosing event.
+	 * @param e
+	 */
 	@Override
 	public void windowClosing(WindowEvent e) {
 		client.disconnect();
-		
 	}
+	
+	/**
+	 * Overrides handler of the windowDeactivated event.
+	 * @param e
+	 */
 	@Override
 	public void windowDeactivated(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the windowDeiconified event.
+	 * @param e
+	 */
 	@Override
 	public void windowDeiconified(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the windowIconified event.
+	 * @param e
+	 */
 	@Override
 	public void windowIconified(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	/**
+	 * Overrides handler of the windowOpened event.
+	 * @param e
+	 */
 	@Override
 	public void windowOpened(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

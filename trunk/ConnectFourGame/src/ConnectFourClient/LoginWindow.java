@@ -4,21 +4,17 @@ import java.awt.BorderLayout;
 import theProtocol.*;
 
 import java.awt.GridLayout;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
 import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -28,6 +24,9 @@ import ConnectFourClient.TheClient.ServerWriteOrReadException;
 
 import common.UnhandledReports.FileChanged;
 
+/**
+ * The Login Window class.
+ */
 public class LoginWindow extends JDialog implements MouseListener  {
 	private JPanel mainPane;
 	private JLabel command;
@@ -41,10 +40,20 @@ public class LoginWindow extends JDialog implements MouseListener  {
 	private MainFrame father;
 	private boolean signed;
 	
+	/**
+	 * Gets the value of the flag representing if
+	 * the user is signed in.
+	 * @return signed
+	 */
 	public boolean getSigned()
 	{
 		return signed;
 	}
+	
+	/**
+	 * The constructor of login window.
+	 * @param MainWindow
+	 */
 	public LoginWindow(MainFrame MainWindow)
 	{
 
@@ -72,7 +81,6 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		addWindowListener(new WindowAdapter() {
 			 public void windowClosed(WindowEvent e)
 			  {
-			 //  father.setVisible(false);
 			  }
 		});
 			
@@ -82,6 +90,9 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		setVisible(true);
 	}
 	
+	/**
+	 * Creates the pane for user inputs.
+	 */
 	private void setDetailsPane()
 	{	
 		usernameLabel= new JLabel("username:");
@@ -95,6 +106,12 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		detailsGrid.add(password);
 	}
 
+	/**
+	 * Overrides the mouse clicked handler.
+	 * Signing in if the "Sign in" button pushed
+	 * or opens the sign up  window.
+	 * @param e
+	 */
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (e.getSource()==enterButton)
@@ -152,28 +169,36 @@ public class LoginWindow extends JDialog implements MouseListener  {
 		
 	}
 
+	/**
+	 * Overrides mouseEntered event handler.
+	 * @param e
+	 */
 	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void mouseEntered(MouseEvent e) {		
 	}
 
+	/**
+	 * Overrides mouseExited event handler.
+	 * @param e
+	 */
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides mousePressed event handler.
+	 * @param e
+	 */
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides mouseReleased event handler.
+	 * @param e
+	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 

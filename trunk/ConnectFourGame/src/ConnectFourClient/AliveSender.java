@@ -4,11 +4,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.URL;
-
-import ConnectFourClient.TheClient.ServerWriteOrReadException;
 
 import common.Timer;
 import common.Timer.TimeOutEvent;
@@ -17,8 +14,8 @@ import common.Timer.TimerListener;
 import theProtocol.ClientServerProtocol;
 
 /**
- * Listens To UDP Alive Messages
- * 
+ * Sends Alive messages to the server and checks if there
+ * is connection to the Internet. 
  */
 public class AliveSender extends Thread implements TimerListener{
 
@@ -33,17 +30,29 @@ public class AliveSender extends Thread implements TimerListener{
 	
 	static private Boolean isAlive = true;
 
+	/**
+	 * Constructs a new AliveSender class.
+	 * @param client
+	 */
 	public AliveSender(TheClient client) {
 		this.client = client;
 		delayTimer = new Timer(delayTime,this);
 		noInternetConnection = false;
 	}
 
+	/**
+	 * Returns the flag specifying if there is no Internet
+	 * connection or there is.
+	 * @return noInternetConnection
+	 */
 	synchronized public boolean noInternetConnection(){
 		client.logger.print_info("Internet no connection: " + noInternetConnection);
 		return noInternetConnection;
 	}
 	
+	/**
+	 * The thread run function - just creates a UDP socket and runs the timer.
+	 */
 	public void run() {
 		
 		try {
@@ -60,6 +69,11 @@ public class AliveSender extends Thread implements TimerListener{
 		delayTimer.start();
 	}
 
+	/**
+	 * Overrides the timeout handler function. Sends alive message to server
+	 * and checks if there is connection to the Google (Internet).
+	 * @param event
+	 */
 	@Override
 	synchronized public void timeOutReceived(TimeOutEvent event) {
 		//send to server client Alive message!
@@ -95,7 +109,6 @@ public class AliveSender extends Thread implements TimerListener{
 			client.logger.print_info("google is reachable: "+!noInternetConnection);
 			delayTimer.restart();
 		}
-		//isAlive.notify();
 	}
 
 }

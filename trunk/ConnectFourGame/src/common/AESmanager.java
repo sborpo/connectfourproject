@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidKeyException;
@@ -13,6 +12,9 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * Class represents the AES encrypt manager.
+ */
 public class AESmanager {
 
 	static private Cipher aesCipher = null;
@@ -20,6 +22,9 @@ public class AESmanager {
 
 	static private SecretKeySpec aeskeySpec;
 	
+	/**
+	 * Gets an instance of the encryption class.
+	 */
 	static private void getInstance(){
 		if(aesCipher != null){
 			return;
@@ -28,25 +33,35 @@ public class AESmanager {
 		try {
 			aesCipher=Cipher.getInstance("AES");
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//MUST WORK PROPERTLY
 		} catch (NoSuchPaddingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//MUST WORK PROPERTLY
 		}
 	}
 	
+	/**
+	 * Returns an encrypted output stream for a file.
+	 * @param out
+	 * @return encrypted output stream
+	 * @throws FileNotFoundException
+	 */
 	static public CipherOutputStream getEncryptedOutStream(File out) throws FileNotFoundException{		
 	    return getEncryptedOutStream(new FileOutputStream(out));
 	}
 	
+	/**
+	 * Returns an encrypted output stream for a regular
+	 * output stream.
+	 * @param out
+	 * @return os
+	 * @throws FileNotFoundException
+	 */
 	public static  CipherOutputStream getEncryptedOutStream(OutputStream out){	
 		getInstance();
 	    try {
 			aesCipher.init(Cipher.ENCRYPT_MODE, aeskeySpec);
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//MUST NOT HAPPEND
 		}
 	    
 	    CipherOutputStream os = null;
@@ -54,17 +69,29 @@ public class AESmanager {
 	    return os;
     }
 	
+	/**
+	 * Returns a decrypted input stream for a file.
+	 * @param in
+	 * @return decrypted input stream
+	 * @throws FileNotFoundException
+	 */
 	static public CipherInputStream getDecryptedInStream(File in) throws FileNotFoundException  {
 		return  getDecryptedInStream(new FileInputStream(in));
 	  }
-	  
+	 
+	/**
+	 * Returns an decrypted input stream for a regular
+	 * input stream.
+	 * @param in
+	 * @return is
+	 * @throws FileNotFoundException
+	 */
 	static public CipherInputStream getDecryptedInStream(InputStream in)  {
 	    getInstance();
 	    try {
 			aesCipher.init(Cipher.DECRYPT_MODE, aeskeySpec);
 		} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//MUST NOT HAPPEND
 		}
 	    
 	    CipherInputStream is = null;
@@ -72,25 +99,5 @@ public class AESmanager {
 	    
 	    return is;
 	  }
-	  
-//	public static void   printKey(){
-//
-//	       // Get the KeyGenerator
-//
-//	       KeyGenerator kgen = null;
-//		try {
-//			kgen = KeyGenerator.getInstance("AES");
-//		} catch (NoSuchAlgorithmException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	       kgen.init(128); // 192 and 256 bits may not be available
-//
-//
-//	       // Generate the secret key specs.
-//	       SecretKey skey = kgen.generateKey();
-//	      String r = new String( 	skey.getEncoded());
-//	      System.out.println(r);
-//	  }
 	  
 }
