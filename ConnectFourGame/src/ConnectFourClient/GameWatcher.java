@@ -208,13 +208,13 @@ public class GameWatcher extends GameGUI implements Runnable{
 	private void stopWatching(){
 		watching = false;
 		try {
-			if(watcherIn != null){
-				watcherIn.close();
-				watcherIn = null;
-			}
 			if(watchSocket != null){
 				watchSocket.close();
 				watchSocket = null;
+			}
+			if(watcherIn != null){
+				watcherIn.close();
+				watcherIn = null;
 			}
 			if(Isocket != null){
 				Isocket.close();
@@ -251,11 +251,8 @@ public class GameWatcher extends GameGUI implements Runnable{
 	 */
 	@Override
 	public void windowClosing(WindowEvent e) {
-		this.stopWatching();
-		try {
-			watcher.join();
-		} catch (InterruptedException e1) {
-			popupDialog("Problem while joining thread: " + e1.getMessage(), MsgType.error);
+		if(watching){
+			this.stopWatching();
 		}
 	}
 	
