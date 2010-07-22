@@ -176,7 +176,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		}
 		if (response==null)
 		{
-			this.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
+			this.showMessageDialog("Problem in the server response!",MsgType.error);
 			return;
 		}
 		setUpOnlineGames(response);

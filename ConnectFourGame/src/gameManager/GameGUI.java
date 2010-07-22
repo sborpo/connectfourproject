@@ -687,13 +687,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private void handleReconnectionProcess(){
 		boolean succeeded = false;
 		this.blocked = true;
-		theClient.logger.print_error("Handling connection problems...");
+		writeToScreen("Handling connection problems...",MsgType.error);
 		while(state.equals(GameState.PROCEED) && succeeded == false){
 			succeeded = sendMessageGetResponse(ClientServerProtocol.SOCKETREFRESH);
 			if(succeeded){
 				break;
 			}
 			this.sleepAWhile(1000);
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
 		}
 		if(succeeded){
 			this.blocked = false;
