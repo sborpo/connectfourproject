@@ -497,7 +497,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						System.out.println("Move ENTERED");
 						if (inLine != null && inLine.equals(ClientServerProtocol.ISURRENDER))
 						{
-							writeToScreen("opp HOST: " + this.opponentHost,MsgType.info);
 							state=GameState.I_SURRENDED;
 							break;
 						}
@@ -573,7 +572,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(state.equals(GameState.I_SURRENDED) && !closing){
 			boolean res = AsynchroniousISurrender();
 			if(!res){
-				errorMessage = "Problem sending surrender message to opponent";
+				popupDialog("Problem sending surrender message to opponent",MsgType.error);
 			}
 		}
 		System.out.println("DECIDING WINNER");
