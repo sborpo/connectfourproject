@@ -17,6 +17,12 @@ public class UnhandledReports {
 	public static class FileChanged extends Exception {}
 	private String fileName;
 	private ArrayList< UnhandeledReport> reports;
+	private static Integer reportsLock;
+	
+	static
+	{
+		reportsLock= new Integer(0);
+	}
 	
 	/**
 	 * The constructor for the group of Unhandled reports class.
@@ -26,6 +32,9 @@ public class UnhandledReports {
 	 */
 	public UnhandledReports(String clientName) throws NoReports, FileChanged
 	{
+		synchronized (reportsLock) {
+			
+		
 		fileName=clientName+".report";
 		File f= new File(fileName);
 		if (!f.exists())
@@ -53,6 +62,7 @@ public class UnhandledReports {
 		} catch (ClassNotFoundException e) {
 			throw new FileChanged();
 		}
+		}
 	}
 	
 
@@ -78,6 +88,9 @@ public class UnhandledReports {
 	 */
 	public void removeReportsFile()
 	{
+		synchronized (reportsLock) {
+			
+		
 		System.out.println("INSIDE");
 		File f= new File(fileName);
 		boolean isExists = f.exists();
@@ -88,6 +101,7 @@ public class UnhandledReports {
 			System.out.println(res+" :removed..." + fileName);
 		}
 		reports = null;
+		}
 	}
 	
 	/**
@@ -194,12 +208,16 @@ public class UnhandledReports {
 	 */
 	private void saveFile() throws IOException
 	{
+		synchronized (reportsLock) {
+			
+		
 		AESmanager manager = new AESmanager();
 		ObjectOutputStream stream;
 		File f= new File(fileName);
 		stream = new ObjectOutputStream(manager.getEncryptedOutStream(f));
 		stream.writeObject(reports);
 		stream.close();
+		}
 	}
 	
 	

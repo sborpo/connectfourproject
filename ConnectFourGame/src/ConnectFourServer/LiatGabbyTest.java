@@ -11,12 +11,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import sun.font.CreatedFontTracker;
-
-import com.mysql.jdbc.DatabaseMetaData;
-
 import ConnectFourServer.DataBaseManager.UserAlreadyExists;
-import common.RSAgenerator;
+
 import common.PasswordHashManager.SystemUnavailableException;
 
 public class LiatGabbyTest {

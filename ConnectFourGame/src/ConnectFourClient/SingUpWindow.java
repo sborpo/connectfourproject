@@ -149,6 +149,7 @@ public class SingUpWindow extends JDialog implements MouseListener{
 			if (main.client.parseServerResponse(response)[0].equals(ClientServerProtocol.OK))
 			{
 				main.showMessageDialog("Your username has been added successfully \n You can sign in right now.",MsgType.info);
+				this.setVisible(false);
 				return;
 			}
 			main.showMessageDialog("The server had a problem serving your request , please retry.",MsgType.error);
