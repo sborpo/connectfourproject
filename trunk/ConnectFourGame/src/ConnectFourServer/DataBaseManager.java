@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -45,7 +46,7 @@ public class DataBaseManager {
 			return "User is already exists in the database";
 		}
 	}
-	
+
 	/**
 	 * Thrown when trying to add a gameid which already exists
 	 *
@@ -55,7 +56,7 @@ public class DataBaseManager {
 			return "The gameId is already exists in the database";
 		}
 	}
-	
+
 	/**
 	 * Thrown when the gameId not exists
 	 *
@@ -66,6 +67,9 @@ public class DataBaseManager {
 		}
 	}
 	
+	public static class AlreadyReported extends Exception{
+	}
+
 	//These fields are for connecting to the database
 	private static String dbName ; 
 	private static String userName;
@@ -73,7 +77,7 @@ public class DataBaseManager {
 	private static String url;
 	private static Integer userslock;
 	private static Integer gameslock;
-	
+
 	/**
 	 * Initialiaze the parameters for connecting the database
 	 */
@@ -86,7 +90,7 @@ public class DataBaseManager {
 		userslock=new Integer(0);
 		gameslock=new Integer(0);
 	}
-	
+
 	/**
 	 * This method moves the unhandled user reports from the server reports file
 	 * into the databse. (The unhandeled reports were saved in the file because the
@@ -103,7 +107,7 @@ public class DataBaseManager {
 			for (UnhandeledReport report : reports.getUnhandeledReports()) {
 				try {
 					makeReport(report.getGameId(), report.getClientName(), report.getWinner());
-					
+
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -121,7 +125,7 @@ public class DataBaseManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * initializes the database name
 	 * @param dbName
@@ -129,14 +133,14 @@ public class DataBaseManager {
 	public static void initDBname(String dbName){
 		DataBaseManager.dbName = dbName;
 	}
-	
+
 	/**
 	 * @return database name
 	 */
 	public static String getDBname(){
 		return DataBaseManager.dbName;
 	}
-	
+
 	/**
 	 * creates a new database
 	 * @param dbName
@@ -157,9 +161,9 @@ public class DataBaseManager {
 			if(statement!=null){statement.close();}
 			if (conn!=null){conn.close();}
 		}
-		
+
 	}
-	
+
 	/**
 	 * construct the tables of the database
 	 * @throws SQLException
@@ -169,45 +173,45 @@ public class DataBaseManager {
 		Connection conn=getConnection(DataBaseManager.dbName);
 		Statement statment=null;
 		try{
-		String tableName = "`" + DataBaseManager.dbName + "`.`users`";
-		String users="CREATE TABLE IF NOT EXISTS " + tableName +
-				"(`username` VARCHAR(100) NOT NULL ," +
-				"`password` VARCHAR(100) NOT NULL ," +
-				"PRIMARY KEY (`username`) );";
-		 statment= conn.createStatement();
-		 //statment.setString(1,"`database`.`users`");
-		 statment.executeUpdate(users); 
-		 
-		 tableName = "`" + DataBaseManager.dbName + "`.`games`";
-		 String games="CREATE  TABLE IF NOT EXISTS " + tableName +
-		 		"(`gameid` VARCHAR(250) NOT NULL " +
-		 		",`user1` VARCHAR(45) NOT NULL " +
-		 		",`user2` VARCHAR(45) NOT NULL " +
-		 		",`user1rep` VARCHAR(45) NULL " +
-		 		",`user2rep` VARCHAR(45) NULL " +
-		 		",PRIMARY KEY (`gameid`) );";
-		 //statment= conn.prepareStatement(games);
-		 //statment.setString(1,"`" + DataBaseManager.dbName + "`.`games`");
-		 statment.executeUpdate(games); 
-		 
-		 tableName = "`" + DataBaseManager.dbName + "`.`stats`";
-		 String stats="CREATE  TABLE IF NOT EXISTS " + tableName +" " +
-		 		"(`username` varchar(100) NOT NULL," +
-		 		"`wins` int(11) NOT NULL," +
-		 		"`loses` int(11) NOT NULL," +
-		 		"PRIMARY KEY (`username`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-		 statment.executeUpdate(stats); 
-		 
-		
+			String tableName = "`" + DataBaseManager.dbName + "`.`users`";
+			String users="CREATE TABLE IF NOT EXISTS " + tableName +
+			"(`username` VARCHAR(100) NOT NULL ," +
+			"`password` VARCHAR(100) NOT NULL ," +
+			"PRIMARY KEY (`username`) );";
+			statment= conn.createStatement();
+			//statment.setString(1,"`database`.`users`");
+			statment.executeUpdate(users); 
+
+			tableName = "`" + DataBaseManager.dbName + "`.`games`";
+			String games="CREATE  TABLE IF NOT EXISTS " + tableName +
+			"(`gameid` VARCHAR(250) NOT NULL " +
+			",`user1` VARCHAR(45) NOT NULL " +
+			",`user2` VARCHAR(45) NOT NULL " +
+			",`user1rep` VARCHAR(45) NULL " +
+			",`user2rep` VARCHAR(45) NULL " +
+			",PRIMARY KEY (`gameid`) );";
+			//statment= conn.prepareStatement(games);
+			//statment.setString(1,"`" + DataBaseManager.dbName + "`.`games`");
+			statment.executeUpdate(games); 
+
+			tableName = "`" + DataBaseManager.dbName + "`.`stats`";
+			String stats="CREATE  TABLE IF NOT EXISTS " + tableName +" " +
+			"(`username` varchar(100) NOT NULL," +
+			"`wins` int(11) NOT NULL," +
+			"`loses` int(11) NOT NULL," +
+			"PRIMARY KEY (`username`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+			statment.executeUpdate(stats); 
+
+
 		}
 		finally
 		{
 			if(statment!=null){statment.close();}
 			if (conn!=null){conn.close();}
 		}
-		
+
 	}
-	
+
 	/**
 	 * Returns a new Connection to the database 
 	 * through which other methods can execute queires
@@ -228,7 +232,7 @@ public class DataBaseManager {
 		} 
 		return null; 
 	}
-	
+
 	/**
 	 * Hashes a given password using the PasswordHashManager
 	 * The hash is nessary to maintain basic security
@@ -242,7 +246,7 @@ public class DataBaseManager {
 		hashed = hashManager.encrypt(pass);
 		return hashed;
 	}
-	
+
 	/**
 	 * This method authenticates the given user with it's previous 
 	 * details in the database. if they match , returns true , otherwise
@@ -282,7 +286,7 @@ public class DataBaseManager {
 			if (conn!=null){conn.close();}
 		}
 	}
-	
+
 	/**
 	 * Executes the prepared stamtement query on the database, if some row has returned
 	 * the method returns true, otherwise if empty set returned , the method returns false
@@ -299,7 +303,7 @@ public class DataBaseManager {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Returns true if the given clientName exists , false otherwise
 	 * @param clientName
@@ -310,7 +314,7 @@ public class DataBaseManager {
 		Connection conn= getConnection(DataBaseManager.dbName);
 		return checkUserExists(clientName,conn);
 	}
-	
+
 	/**
 	 * 
 	 * @param username
@@ -320,12 +324,12 @@ public class DataBaseManager {
 	 */
 	private static boolean checkUserExists(String username,Connection conn) throws SQLException
 	{
-			String query= "SELECT * FROM users WHERE username=?";
-			PreparedStatement prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,username);
-			return rowExists(prepareStatement);
+		String query= "SELECT * FROM users WHERE username=?";
+		PreparedStatement prepareStatement = conn.prepareStatement(query);
+		prepareStatement.setString(1,username);
+		return rowExists(prepareStatement);
 	}
-	
+
 	/**
 	 * Retunrs true if the gameId exists  , otherwise returns false
 	 * @param gameId
@@ -340,7 +344,7 @@ public class DataBaseManager {
 		Connection conn= getConnection(DataBaseManager.dbName);
 		return checkGameIdExists(gameId,conn);
 	}
-	
+
 	/**
 	 * Returns true if the given game exists , otherwise returns false.
 	 * this is an auxilary function which uses a given connection
@@ -351,12 +355,12 @@ public class DataBaseManager {
 	 */
 	private static boolean checkGameIdExists(String gameId,Connection conn) throws SQLException
 	{
-			String query= "SELECT * FROM games WHERE gameid=?";
-			PreparedStatement prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,gameId);
-			return rowExists(prepareStatement);
+		String query= "SELECT * FROM games WHERE gameid=?";
+		PreparedStatement prepareStatement = conn.prepareStatement(query);
+		prepareStatement.setString(1,gameId);
+		return rowExists(prepareStatement);
 	}
-	
+
 	/**
 	 * Returns true if the given client name was a player in the given gameId ,
 	 * otherwise returns false
@@ -375,9 +379,9 @@ public class DataBaseManager {
 		prepareStatement.setString(3,clientName);
 		return rowExists(prepareStatement);
 	}
-	
-	
-	
+
+
+
 	/**
 	 * This method Inserts a new username with a given password into the system, if the 
 	 * username already exists , it throws an exception	
@@ -424,9 +428,9 @@ public class DataBaseManager {
 					System.out.println("Exists....");
 					throw new UserAlreadyExists();
 				}
-				
+
 			}
-		
+
 		}
 		catch (SQLException ex)
 		{
@@ -440,7 +444,7 @@ public class DataBaseManager {
 		}
 
 	}
-	
+
 	/**
 	 * Creates a new game with the given gameId , and the two given
 	 * players , if the gameId already exists  , it throws exception
@@ -462,12 +466,12 @@ public class DataBaseManager {
 			prepareStatement.setString(2,username1);
 			prepareStatement.setString(3,username2);
 			synchronized (gameslock) {
-					if(!checkGameIdExists(gameId,conn)){
-						prepareStatement.execute();
-					}
-					else{
-						throw new GameIdAlreadyExists();
-					}
+				if(!checkGameIdExists(gameId,conn)){
+					prepareStatement.execute();
+				}
+				else{
+					throw new GameIdAlreadyExists();
+				}
 			}
 		}
 		finally
@@ -475,9 +479,9 @@ public class DataBaseManager {
 			if(prepareStatement!=null){prepareStatement.close();}
 			if (conn!=null){conn.close();}
 		}	
-		
+
 	}
-	
+
 	/**
 	 * Checks if the user-reports about the result of the given gameId are the same,
 	 * if they are the same , it returns true, otherwise returns false.
@@ -502,9 +506,9 @@ public class DataBaseManager {
 			if(prepareStatement!=null){prepareStatement.close();}
 			if (conn!=null){conn.close();}
 		}	
-		
+
 	}
-	
+
 	/**
 	 * Retuns a StatsReport object which contrains the statistics of the top ten users
 	 * of the system according to their rank. the rank is winw-loses.
@@ -547,8 +551,8 @@ public class DataBaseManager {
 		}	
 
 	}
-	
-	
+
+
 	/**
 	 * Make a user report about game result. The report is from the given username which has to be
 	 * a memeber of the given game (given in the gameId) and the game result which is given in the report
@@ -559,16 +563,29 @@ public class DataBaseManager {
 	 * @throws SQLException
 	 * @throws GameIdNotExists
 	 */
-	public static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
+	public synchronized static void makeReport(String gameId,String username,String report) throws SQLException, GameIdNotExists
 	{
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
+		ResultSet set=null;
+		HashMap<String,String> userReports;
 		try{
 			conn = getConnection(DataBaseManager.dbName);
 			if(checkGameIdExists(gameId, conn)){			
 				conn.setAutoCommit(false);
+				String queryRep= "SELECT user1,user2, user1rep, user2rep FROM games WHERE gameid=?;";
+				prepareStatement = conn.prepareStatement(queryRep);
+				prepareStatement.setString(1,gameId);
+				set=prepareStatement.executeQuery();
+				set.next();
+				userReports = getMapReports(set);
+				try {
+					handleStats(userReports,gameId,username,report,conn);
+				} catch (AlreadyReported e) {
+					return;
+				}
 				String []query= {"UPDATE games SET user1rep=? WHERE gameid=? AND user1=?;","UPDATE games SET user2rep=? WHERE gameid=? AND user2=?;"};
-				synchronized (gameslock) {
+				
 					for (int i=0; i<query.length; i++)
 					{
 						prepareStatement = conn.prepareStatement(query[i]);
@@ -578,8 +595,6 @@ public class DataBaseManager {
 						prepareStatement.executeUpdate();
 					}
 					conn.commit();
-					conn.setAutoCommit(true);
-				}
 			}
 			else{
 				throw new GameIdNotExists();
@@ -596,8 +611,112 @@ public class DataBaseManager {
 			if (conn!=null){conn.close();}
 		}	
 	}
-	
-	
+
+	/**
+	 * Returns a hashmap which maps the username with it's report. if reports not exists
+	 * it maps to null
+	 * @param set
+	 * @return
+	 * @throws SQLException
+	 */
+	private static HashMap<String, String> getMapReports(ResultSet set) throws SQLException {
+		HashMap<String,String> userReports = new HashMap<String, String>();
+		String name=set.getString("user1");
+		set.getString("user1rep");
+		userReports.put(name, (set.wasNull())? null: set.getString("user1rep"));
+		name=set.getString("user2");
+		set.getString("user2rep");
+		userReports.put(name, (set.wasNull())? null: set.getString("user2rep"));
+		return userReports;
+	}
+
+	/**
+	 * This method handles the statistics updates
+	 * @param userReports
+	 * @param gameId
+	 * @param username
+	 * @param report
+	 * @param conn
+	 * @throws AlreadyReported
+	 * @throws SQLException
+	 */
+	private static void handleStats(HashMap<String, String> userReports,
+			String gameId, String username, String report, Connection conn) throws AlreadyReported, SQLException{
+		String [] users = new String[2];
+		int i=0;
+		for (String us : userReports.keySet()) {
+			users[i]=us;
+			i++;
+		}
+		//if the user already reported
+		if (userReports.get(username)!=null)
+		{
+			throw new AlreadyReported();
+		}
+		String opp = (username.equals(users[0]) ? users[1] : users[0]);
+		if (userReports.get(opp)==null)
+		{
+			//the user is the first to report , becuase it's opponent report is null
+			//so you can update without a problem
+			addToStats(gameId, users[0], users[1], report, conn);
+			return;
+		}
+		else
+		{
+			//the user is second to reports, so we must check what was the previous report
+			if (!userReports.get(opp).equals(report))
+			{
+				//the reports are not the same
+				undoPreviousReport(opp,username,userReports.get(opp),conn);
+			}
+			else
+			{
+				//thre reports are the same , so nothing to be done
+				return;
+			}
+		}
+		
+	}
+
+	/**
+	 * This method undo previous statistics changes
+	 * @param opp
+	 * @param username2
+	 * @param report
+	 * @param conn
+	 * @throws SQLException
+	 */
+	private static void undoPreviousReport(String opp, String username2,
+			String report, Connection conn) throws SQLException {
+		//check if someone has won
+		if ((!report.equals(opp))&&(!report.equals(username2)))
+		{
+			return;
+		}	
+		String winner ;
+		String loser ;
+		if (report.equals(username2))
+		{
+			winner=username2;
+			loser=opp;
+		}
+		else
+		{
+			winner=opp;
+			loser=username2;
+		}
+		PreparedStatement prepareStatement = null;
+		String query= "UPDATE stats SET wins = wins - 1 WHERE username=?";
+		prepareStatement = conn.prepareStatement(query);
+		prepareStatement.setString(1,winner);
+		prepareStatement.executeUpdate();
+		query= ("UPDATE stats SET loses = loses-1 WHERE username=?;");
+		prepareStatement = conn.prepareStatement(query);
+		prepareStatement.setString(1,loser);
+		prepareStatement.executeUpdate();
+		
+	}
+
 	/**
 	 * Removes the given gameId from the system
 	 * @param gameId
@@ -606,7 +725,7 @@ public class DataBaseManager {
 	 */
 	public static void  removeGame(String gameId) throws SQLException, GameIdNotExists
 	{
-	
+
 		Connection conn=getConnection(DataBaseManager.dbName);
 		if(!checkGameIdExists(gameId, conn)){	
 			throw new GameIdNotExists();
@@ -615,297 +734,28 @@ public class DataBaseManager {
 		try{
 			String tableName = "`" + DataBaseManager.dbName + "`.`games`";
 			String users="DELETE FROM " + tableName +
-					     " WHERE gameid='"+gameId+"';";
-			 statment= conn.createStatement();
-			 //statment.setString(1,"`database`.`users`");
-			 statment.executeUpdate(users); 
-			 
+			" WHERE gameid='"+gameId+"';";
+			statment= conn.createStatement();
+			//statment.setString(1,"`database`.`users`");
+			statment.executeUpdate(users); 
+
 		}
 		finally
 		{
 			if(statment!=null){statment.close();}
 			if (conn!=null){conn.close();}
 		}
-		
-	}
-	
-	
-	//Liat && Gabby
-	//*******************************************************
-	public static boolean isReported(String gameId) throws SQLException
-	{
-		Connection conn=null;
-		PreparedStatement prepareStatement = null;
-		try{
-			conn = getConnection(DataBaseManager.dbName);
-			String query= "SELECT * FROM games WHERE gameid=? AND user1rep IS NULL AND user2rep IS NULL;";
-			prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,gameId);
-			// false represent that rep#id is null
-			return (true == rowExists(prepareStatement)) ? true : false;
-		}
-		finally
-		{
-			if(prepareStatement!=null){prepareStatement.close();}
-			if (conn!=null){conn.close();}
-		}	
-		
+
 	}
 
-	public static String [] getPlayersName (String gameId)throws SQLException{
-		String [] usernames = new String [2];
-		Connection conn=null;
-		PreparedStatement prepareStatement = null;
-		try{
-			conn = getConnection(DataBaseManager.dbName);
-			String query= "SELECT User1 FROM games WHERE gameid=?;";
-			prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,gameId);
-			usernames[0] = query;
-				query= "SELECT User2 FROM games WHERE gameid=?;";
-				prepareStatement = conn.prepareStatement(query);
-				prepareStatement.setString(1,gameId);
-				usernames[1] = query;
-		}
-		catch (SQLException ex)
-		{
-			conn.rollback();
-		}
-		finally
-		{
-			if(prepareStatement!=null){prepareStatement.close();}
-			if (conn!=null){conn.close();}
-		}
-		return usernames;
-	}
-	
-	public static void addToStats(String gameId,String report)throws SQLException
-	{
-		String usernames[] = new String[2];
-		usernames = getPlayersName(gameId);
-		String username1 = usernames[0];
-		String username2 = usernames[1];
-		Connection conn=null;
-		PreparedStatement prepareStatement = null;
-		try{
-			conn = getConnection(DataBaseManager.dbName);
-			conn.setAutoCommit(false);
-			if(username1.equals(report))
-			{		
-					String []query= {"UPDATE stats SET wins = wins+1 WHERE username=?;"};
-					synchronized (gameslock) {
-						for (int i=0; i<query.length; i++)
-						{
-							prepareStatement = conn.prepareStatement(query[i]);
-							prepareStatement.setString(1,username1);
-							prepareStatement.executeUpdate();
-						}
-						conn.commit();
-						conn.setAutoCommit(true);
-					}
-					String []query1= {"UPDATE stats SET loses = loses +1 WHERE username=?;"};
-					synchronized (gameslock) {
-						for (int i=0; i<query.length; i++)
-						{
-							prepareStatement = conn.prepareStatement(query1[i]);
-							prepareStatement.setString(1,username2);
-							prepareStatement.executeUpdate();
-						}
-						conn.commit();
-						conn.setAutoCommit(true);
-					}
-			}
-			else{ //in case the username lost
-				String []query= {"UPDATE stats SET loses = loses +1 WHERE username=?;"};
-				synchronized (gameslock) {
-					for (int i=0; i<query.length; i++)
-					{
-						prepareStatement = conn.prepareStatement(query[i]);
-						prepareStatement.setString(1,username1);
-						prepareStatement.executeUpdate();
-					}
-					conn.commit();
-					conn.setAutoCommit(true);
-				}
-				String []query1= {"UPDATE stats SET wins = wins +1 WHERE username=?;"};
-				synchronized (gameslock) {
-					for (int i=0; i<query.length; i++)
-					{
-						prepareStatement = conn.prepareStatement(query1[i]);
-						prepareStatement.setString(1,username2);
-						prepareStatement.executeUpdate();
-					}
-					conn.commit();
-					conn.setAutoCommit(true);
-				}
-			}
-		}
-		catch (SQLException ex)
-		{
-			conn.rollback();
-		}
-		finally
-		{
-			if(prepareStatement!=null){prepareStatement.close();}
-			if (conn!=null){conn.close();}
-		}	
-		
-	}
-	
-	public static String getReport(String gameId, int userR) throws SQLException{
-		String report = "";
-		Connection conn=null;
-		PreparedStatement prepareStatement = null;
-		try{
-			if (userR == 1){
-				conn = getConnection(DataBaseManager.dbName);
-				String query= "SELECT user1rep FROM games WHERE gameid=?;";
-				prepareStatement = conn.prepareStatement(query);
-				prepareStatement.setString(1,gameId);
-				return query;
-			}
-			else if (userR == 2)
-			{
-				conn = getConnection(DataBaseManager.dbName);
-				String query= "SELECT user2rep FROM games WHERE gameid=?;";
-				prepareStatement = conn.prepareStatement(query);
-				prepareStatement.setString(1,gameId);
-				return query;
-			}
-		}
-		finally
-		{
-			if(prepareStatement!=null){prepareStatement.close();}
-			if (conn!=null){conn.close();}
-		}	
 
-		return report;
-	}
-	
-	public static void removeFromStats(String gameId, String userR) throws SQLException
-	{
-		String usernames[] = new String[2];
-		usernames = getPlayersName(gameId);
-		String username1 = usernames[0];
-		String username2 = usernames[1];
-		String report = ""; //report = the winner's name as reported the 1st time 
-		if (userR.equals(username1))
-			report = getReport(gameId, 2);
-		else 
-			report = getReport(gameId, 1);
-		Connection conn=null;
-		PreparedStatement prepareStatement = null;
-		try{
-			conn = getConnection(DataBaseManager.dbName);
-			conn.setAutoCommit(false);
-			if(username1.equals(report))
-			{		
-					String []query= {"UPDATE stats SET wins = wins -1 WHERE username=?;"};
-					synchronized (gameslock) {
-						for (int i=0; i<query.length; i++)
-						{
-							prepareStatement = conn.prepareStatement(query[i]);
-							prepareStatement.setString(1,username1);
-							prepareStatement.executeUpdate();
-						}
-						conn.commit();
-						conn.setAutoCommit(true);
-					}
-					String []query1= {"UPDATE stats SET loses = loses -1 WHERE username=?;"};
-					synchronized (gameslock) {
-						for (int i=0; i<query.length; i++)
-						{
-							prepareStatement = conn.prepareStatement(query1[i]);
-							prepareStatement.setString(1,username2);
-							prepareStatement.executeUpdate();
-						}
-						conn.commit();
-						conn.setAutoCommit(true);
-					}
-			}
-			else{ //in case the username lost
-				String []query= {"UPDATE stats SET loses = loses -1 WHERE username=?;"};
-				synchronized (gameslock) {
-					for (int i=0; i<query.length; i++)
-					{
-						prepareStatement = conn.prepareStatement(query[i]);
-						prepareStatement.setString(1,username1);
-						prepareStatement.executeUpdate();
-					}
-					conn.commit();
-					conn.setAutoCommit(true);
-				}
-				String []query1= {"UPDATE stats SET wins = wins -1 WHERE username=?;"};
-				synchronized (gameslock) {
-					for (int i=0; i<query.length; i++)
-					{
-						prepareStatement = conn.prepareStatement(query1[i]);
-						prepareStatement.setString(1,username2);
-						prepareStatement.executeUpdate();
-					}
-					conn.commit();
-					conn.setAutoCommit(true);
-				}
-			}
-		}
-		catch (SQLException ex)
-		{
-			conn.rollback();
-		}
-		finally
-		{
-			if(prepareStatement!=null){prepareStatement.close();}
-			if (conn!=null){conn.close();}
-		}	
-		
-	}
-	
-	public static void updateStats(String gameId,String username,String report) throws SQLException
-	{
-		boolean bool = false;
-		bool = isReported(gameId);
-		if (bool == false) {  // in case we need to update stats
-			addToStats(gameId,report);
-		}
-		else {
-			bool = areReportsTheSame(gameId);
-			if (bool == true) return; // the reports o.k.
-			removeFromStats(gameId, username);
-		}
-	}
-	
-	public static int[] returnStats (String username) throws SQLException{
-		
-		int [] stats = new int [2];
-		Connection conn=null;
-		PreparedStatement prepareStatement = null;
-		String query = "";
-		try{
-			conn = getConnection(DataBaseManager.dbName);
-			query= "SELECT wins FROM stats WHERE username=?;";
-			prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,username);
-			stats[0] = Integer.parseInt(query);
-			
-			query= "SELECT loses FROM stats WHERE username=?;";
-			prepareStatement = conn.prepareStatement(query);
-			prepareStatement.setString(1,username);
-			stats[1] = Integer.parseInt(query);
-		}
-		catch (SQLException ex)
-		{
-			conn.rollback();
-		}
-		finally
-		{
-			if(prepareStatement!=null){prepareStatement.close();}
-			if (conn!=null){conn.close();}
-		}
-		return stats;
-	}
-	
-	
-	//VALERIY
+	/**
+	 * Sets the second player of the of the given game Id.
+	 * @param gameId
+	 * @param clientName
+	 * @throws GameIdNotExists
+	 * @throws SQLException
+	 */
 	public static void updateGamePlayer(String gameId, String clientName) throws GameIdNotExists, SQLException {
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
@@ -915,7 +765,7 @@ public class DataBaseManager {
 				prepareStatement = conn.prepareStatement("UPDATE games SET user2=? WHERE gameid=?;");
 				prepareStatement.setString(1,clientName);
 				prepareStatement.setString(2,gameId);
-				
+
 				synchronized (gameslock) {
 					prepareStatement.executeUpdate();
 				}
@@ -936,6 +786,316 @@ public class DataBaseManager {
 		}	
 	}
 
+	/**
+	 *  Return true if one of the players reported
+	 */
+	public static boolean isReported(String gameId) throws SQLException
+	{
+		ResultSet set = null;
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT * FROM games WHERE gameid=? AND (user1rep IS NULL OR user2rep IS NULL);";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			set=prepareStatement.executeQuery();
+			return (set.next()) ? true : false;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+	}
+
+	/**
+	 *  Return true if both players reported (something)
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
+	 */
+	public static boolean isBothReported(String gameId) throws SQLException
+	{
+		ResultSet set = null;
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT * FROM games WHERE gameid=? AND user1rep IS NOT NULL AND user2rep IS NOT NULL;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			set=prepareStatement.executeQuery();
+			return ((set.next())) ? true : false;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+	}
+
+	// Return the players Usernames of a specific game 
+	public static String [] getPlayersName (String gameId)throws SQLException{
+		String [] usernames = new String [2];
+		ResultSet set=null;
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT User1, User2 FROM games WHERE gameid=?;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			set=prepareStatement.executeQuery();
+			while (set.next())
+			{
+				usernames[0] = set.getString("User1");
+				usernames[1] = set.getString("User2");
+			}
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+			throw ex;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}
+		return usernames;
+	}
+
+	/**
+	 *  updates players stats
+	 * @param gameId
+	 * @param report
+	 * @throws SQLException
+	 */
+	public static void addToStats(String gameId,String user1,String user2,String report,Connection conn)throws SQLException
+	{
+			//check if someone has won
+			if ((!report.equals(user1))&&(!report.equals(user2)))
+			{
+				return;
+			}	
+			String winner ;
+			String loser ;
+			if (report.equals(user1))
+			{
+				winner=user1;
+				loser=user2;
+			}
+			else
+			{
+				winner=user2;
+				loser=user1;
+			}
+			PreparedStatement prepareStatement = null;
+			String query= "UPDATE stats SET wins = wins + 1 WHERE username=?";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,winner);
+			prepareStatement.executeUpdate();
+			query= ("UPDATE stats SET loses = loses+1 WHERE username=?;");
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,loser);
+			prepareStatement.executeUpdate();
+	}
+
+	/**
+	 *  Return the report of a player (userR is the player number)
+	 * @param gameId
+	 * @param userR
+	 * @return
+	 * @throws SQLException
+	 */
+	public static String getReport(String gameId, int userR) throws SQLException{
+
+		ResultSet set = null;
+		Connection conn=null;
+		String ans = "";
+		PreparedStatement prepareStatement = null;
+		try{
+			if (userR == 1){
+				conn = getConnection(DataBaseManager.dbName);
+				String query= "SELECT user1rep FROM games WHERE gameid=?;";
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,gameId);
+				set=prepareStatement.executeQuery();
+				while (set.next())
+				{
+					ans = set.getString("user1rep");
+				}
+			}
+			if (userR == 2)
+			{
+				conn = getConnection(DataBaseManager.dbName);
+				String query= "SELECT user2rep FROM games WHERE gameid=?;";
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,gameId);
+				set=prepareStatement.executeQuery();
+				while (set.next())
+				{
+					ans = set.getString("user2rep");
+				}
+			}
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+		return ans;
+	}
+
+	/**
+	 *  Checks if the user-reports about the result of the given gameId are the same
+	 * @param gameId
+	 * @param username
+	 * @param report
+	 * @return
+	 * @throws SQLException
+	 */
+	public static boolean areReportsTheSame(String gameId, String username,String report) throws SQLException
+	{
+		String [] reports = new String [2];
+		Connection conn=null;
+		ResultSet set=null;
+		PreparedStatement prepareStatement = null;
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			String query= "SELECT user1rep, user2rep FROM games WHERE gameid=?;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,gameId);
+			set=prepareStatement.executeQuery();
+			while (set.next())
+			{
+				reports[0] = set.getString("user1rep");
+				reports[1] = set.getString("user2rep");
+			}
+
+			if (reports[0]==null){
+				if (reports[1].equals(report)) return true;
+				else return false;
+			}
+			else if (reports[1]==null){
+				if (reports[0].equals(report)) return true;
+				else return false;
+			}
+			return false;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+	}
+
+	/**
+	 *  updates players stats when reports aren't equal 
+	 * @param gameId
+	 * @param userR
+	 * @throws SQLException
+	 */
+	public static void removeFromStats(String gameId, String userR) throws SQLException
+	{	
+		String usernames[] = new String[2];
+		usernames = getPlayersName(gameId);
+		String falseReport = ""; //report = the winner's name as reported the 1st time 
+		if (userR.equals(usernames[0]))
+			falseReport = getReport(gameId, 2);
+		else 
+			falseReport = getReport(gameId, 1);
+
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			conn.setAutoCommit(false);
+			String query= ("UPDATE stats SET wins = wins-1 WHERE username=?;");
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,falseReport);
+			prepareStatement.executeUpdate();	
+			boolean bool = usernames[0].equals(falseReport);
+			if (bool)
+			{
+				query= ("UPDATE stats SET loses = loses-1 WHERE username=?;");
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,usernames[1]);
+				prepareStatement.executeUpdate();
+			}
+			else {
+				query= ("UPDATE stats SET loses = loses-1 WHERE username=?;");
+				prepareStatement = conn.prepareStatement(query);
+				prepareStatement.setString(1,usernames[0]);
+				prepareStatement.executeUpdate();
+			}
+			conn.commit();
+		}
+
+		catch (SQLException ex)
+		{
+			conn.rollback();
+			throw ex;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}	
+
+	}
+
+
 
 	
+	/**
+	 * Return user's wins & losts statistic 
+	 * @param username
+	 * @return
+	 * @throws SQLException
+	 */
+	public static int[] returnStats (String username) throws SQLException{
+
+		int [] stats = new int [2];
+		Connection conn=null;
+		PreparedStatement prepareStatement = null;
+		ResultSet set=null;
+		String query = "";
+		try{
+			conn = getConnection(DataBaseManager.dbName);
+			query= "SELECT wins, loses FROM stats WHERE username=?;";
+			prepareStatement = conn.prepareStatement(query);
+			prepareStatement.setString(1,username);
+			set=prepareStatement.executeQuery();
+			while (set.next())
+			{
+				stats[0] = set.getInt("wins");
+				stats[1] = set.getInt("loses");
+			}
+
+
+
+		}
+		catch (SQLException ex)
+		{
+			conn.rollback();
+			throw ex;
+		}
+		finally
+		{
+			if(prepareStatement!=null){prepareStatement.close();}
+			if (conn!=null){conn.close();}
+		}
+		return stats;
+	}
+
+
+
+
 }

@@ -39,27 +39,26 @@ public class LiatGabbyTest {
 		DataBaseManager.createGame("adam1", "adam2", "game#1");
 		
 		
-		int testNumber=1;
+		//int testNumber=1;
 		//int testNumber=2;
-		//int testNumber=3;
+		int testNumber=3;
 		
 		//----------------Test Number 1-------------//
 		if (testNumber==1)
 		{
 			//adam 1 makes a report that he won
-			DataBaseManager.makeReport("game#1", "adam1", "adam1");
-			DataBaseManager.updateStats("game#1", "adam1", "adam1");
+			DataBaseManager.makeReport("game#1", "adam1", "adam2");
 			
 			//adam2 makes a report that adam1 won
-			DataBaseManager.makeReport("game#1", "adam2", "adam1");
-			DataBaseManager.updateStats("game#1", "adam2", "adam1");
+			DataBaseManager.makeReport("game#1", "adam2", "adam2");
+			
 			
 			int [] adam1Stats=DataBaseManager.returnStats("adam1");
 			int [] adam2Stats=DataBaseManager.returnStats("adam2");
 			//should return 1 ,0
 			System.out.println("The stats of adam1 are: wins: "+adam1Stats[0]+" loses: "+adam1Stats[1]);
 			//should return 0 ,1
-			System.out.println("The stats of adam1 are: wins: "+adam2Stats[0]+" loses: "+adam2Stats[1]);
+			System.out.println("The stats of adam2 are: wins: "+adam2Stats[0]+" loses: "+adam2Stats[1]);
 			return;
 		}
 		
@@ -68,18 +67,18 @@ public class LiatGabbyTest {
 		{
 			//adam 1 makes a report that he won
 			DataBaseManager.makeReport("game#1", "adam1", "adam1");
-			DataBaseManager.updateStats("game#1", "adam1", "adam1");
+
 			
 			//adam2 makes a report that he won
 			DataBaseManager.makeReport("game#1", "adam2", "adam2");
-			DataBaseManager.updateStats("game#1", "adam2", "adam2");
+
 			
 			int [] adam1Stats=DataBaseManager.returnStats("adam1");
 			int [] adam2Stats=DataBaseManager.returnStats("adam2");
 			//should return 0 ,0
 			System.out.println("The stats of adam1 are: wins: "+adam1Stats[0]+" loses: "+adam1Stats[1]);
 			//should return 0 ,0
-			System.out.println("The stats of adam1 are: wins: "+adam2Stats[0]+" loses: "+adam2Stats[1]);
+			System.out.println("The stats of adam2 are: wins: "+adam2Stats[0]+" loses: "+adam2Stats[1]);
 			return;
 		}
 		
@@ -87,24 +86,26 @@ public class LiatGabbyTest {
 		if (testNumber==3)
 		{
 			//adam 1 makes a report that he won
-			DataBaseManager.makeReport("game#1", "adam1", "adam1");
-			DataBaseManager.updateStats("game#1", "adam1", "adam1");
+			DataBaseManager.makeReport("game#1", "adam1", "adam2");
+
 			
 			//adam2 makes a report that he won
 			DataBaseManager.makeReport("game#1", "adam2", "adam2");
-			DataBaseManager.updateStats("game#1", "adam2", "adam2");
+
 			
 			//This code should not have an effect because both of the users already reported
 			//adam 1 makes a report that he won
-			DataBaseManager.makeReport("game#1", "adam1", "adam1");
-			DataBaseManager.updateStats("game#1", "adam1", "adam1");
+			DataBaseManager.makeReport("game#1", "adam1", "adam2");
+			DataBaseManager.makeReport("game#1", "adam1", "adam2");
+			DataBaseManager.makeReport("game#1", "adam1", "adam2");
+
 			
 			int [] adam1Stats=DataBaseManager.returnStats("adam1");
 			int [] adam2Stats=DataBaseManager.returnStats("adam2");
 			//should return 1 ,0
 			System.out.println("The stats of adam1 are: wins: "+adam1Stats[0]+" loses: "+adam1Stats[1]);
 			//should return 0 ,1
-			System.out.println("The stats of adam1 are: wins: "+adam2Stats[0]+" loses: "+adam2Stats[1]);
+			System.out.println("The stats of adam2 are: wins: "+adam2Stats[0]+" loses: "+adam2Stats[1]);
 			return;
 		}
 		
