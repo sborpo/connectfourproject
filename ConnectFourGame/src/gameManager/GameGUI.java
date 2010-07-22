@@ -570,10 +570,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 		}
 		
-		if(state.equals(GameState.I_SURRENDED)){
+		if(state.equals(GameState.I_SURRENDED) && !closing){
 			boolean res = AsynchroniousISurrender();
 			if(!res){
-				//errorMessage = "Problem sending surrender message to opponent";
 				errorMessage = "Problem sending surrender message to opponent";
 			}
 		}
