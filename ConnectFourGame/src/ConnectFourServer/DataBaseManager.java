@@ -526,7 +526,7 @@ public class DataBaseManager {
 		ArrayList<UserStatistics> users = new ArrayList<UserStatistics>();
 		try{
 			conn = getConnection(DataBaseManager.dbName);
-			String query= "SELECT username,wins,loses ,(wins-loses) AS score FROM stats ORDER BY score";
+			String query= "SELECT username,wins,loses ,(wins-loses) AS score FROM stats ORDER BY score DESC";
 			prepareStatement = conn.prepareStatement(query);
 			set=prepareStatement.executeQuery();
 			int i=0;
