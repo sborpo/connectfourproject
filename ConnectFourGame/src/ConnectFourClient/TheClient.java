@@ -480,6 +480,18 @@ public class TheClient {
 		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
 		logger.print_info("Client Game port: "+clientGamePort);
 		
+		
+//		serverHost = args[0];
+//		logger.print_info("Server: " + serverHost);
+//		serverPort = Integer.parseInt( args[1]);
+//		logger.print_info("Server TCP port: "+serverPort);
+//		clientUdp = Integer.parseInt (args[2]);
+//		logger.print_info("Client Udp Listen port: "+clientUdp);
+//		clientTransmitWaiterPort = Integer.parseInt( args[3]);
+//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+//		clientGamePort = Integer.parseInt( args[4]);
+//		logger.print_info("Client Game port: "+clientGamePort);
+		
 		clientWatchPort= clientGamePort;
 	}
 	
