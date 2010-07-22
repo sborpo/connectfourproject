@@ -694,7 +694,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				break;
 			}
 			this.sleepAWhile(1000);
-			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
 		}
 		if(succeeded){
 			this.blocked = false;
@@ -833,11 +832,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		boolean succeeded = false;
 		this.blocked = true;
 		theClient.logger.print_info("Handling I_surrender message..." + plays.getTimer());
-		while(succeeded == false && !plays.getTimer().isTimedOut()){
+		while(succeeded == false && plays.getTimer() != null && !plays.getTimer().isTimedOut()){
 			succeeded = sendMessageGetResponse(ClientServerProtocol.ISURRENDER);
 			if(!succeeded){
 				this.sleepAWhile(1000);
 			}
+		}
+		if(plays.getTimer() == null){
+			theClient.logger.print_error("The timer is null!");
 		}
 		this.blocked = false;
 		return succeeded;
@@ -971,7 +973,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 }
 		this.reconnect = true;
 		this.blocked = true;
-		writeToScreen("Handling reconnection, wait...",MsgType.info);
+		writeToScreen("Refreshing the connection, wait...",MsgType.info);
 		while(this.reconnect){
 			if(!state.equals(GameState.PROCEED)){
 				this.reconnect = false;
@@ -989,7 +991,13 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 		}
 		this.blocked = false;
-		writeToScreen("Recconection is Done!",MsgType.info);
+		popupDialog("Recconection is Done!",MsgType.info);
+		if(clientPlayer.equals(plays)){
+			writeToScreen("Enter your Move: ",MsgType.info);
+		}
+		else{
+			writeToScreen("Waiting For Opponent Move: ",MsgType.info);
+		}
 	}
 	
 	private void closeConnection(){
