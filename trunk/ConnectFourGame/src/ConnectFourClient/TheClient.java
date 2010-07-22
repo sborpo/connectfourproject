@@ -81,6 +81,30 @@ public class TheClient {
 	
 	private InetAddress serverAddress;
 	
+	
+	/**
+	 * The client class constructor.
+	 * @param args
+	 * @throws IOException
+	 */
+	public TheClient(String[] args) throws IOException {
+		try {
+			sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+			logger = new LogPrinter("Client");
+		} catch (IOException e) {
+			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
+			throw e;
+		}
+		viewersList= new HashMap<String, Viewer>();
+		parseArguments(args);
+		try {
+			serverAddress = InetAddress.getByName(serverHost);
+		} catch (UnknownHostException e) {
+			logger.print_error("Cannot initialize connection with the server: " + e.getMessage());
+		}
+	}	
+	
+	
 	/**
 	 * Gets the user password string.
 	 * @return password
@@ -331,28 +355,6 @@ public class TheClient {
 	public int serverUDPPort() {
 		return serverUdpPort;
 	}
-
-	/**
-	 * The client class constructor.
-	 * @param args
-	 * @throws IOException
-	 */
-	public TheClient(String[] args) throws IOException {
-		try {
-			sslsocketfactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
-			logger = new LogPrinter("Client");
-		} catch (IOException e) {
-			System.out.println(LogPrinter.error_msg("Cannot open LOG printer: " + e.getMessage()));
-			throw e;
-		}
-		viewersList= new HashMap<String, Viewer>();
-		parseArguments(args);
-		try {
-			serverAddress = InetAddress.getByName(serverHost);
-		} catch (UnknownHostException e) {
-			logger.print_error("Cannot initialize connection with the server: " + e.getMessage());
-		}
-	}	
 	
 	/**
 	 * Actually send a message to server and gets its response.
