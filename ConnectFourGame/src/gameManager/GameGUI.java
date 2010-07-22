@@ -45,9 +45,18 @@ import ConnectFourClient.MainFrame;
 import ConnectFourClient.TheClient;
 import ConnectFourClient.MainFrame.MsgType;
 
+/**
+ * This class implements the Game interface with GUI components
+ * @author Boris
+ *
+ */
 public class GameGUI extends JDialog implements MouseListener,TimerListener,Runnable,Game,WindowListener{
 	
 
+	/**
+	 * This class represents whatever the application waits for user mouse input
+	 *
+	 */
 	public static class Pending{
 		public Pending()
 		{
@@ -111,11 +120,20 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	protected UnhandeledReport gameReport;
 	protected Thread gameThread;
 	
+	/**
+	 * Returns true of the game already have two players, otherwise returns false
+	 * @return
+	 */
 	public boolean isGameFull()
 	{
 		return (blue != null);
 	}
 	
+	/**
+	 * Returns true if the given player Name is one of the participants of the game
+	 * @param playerName
+	 * @return
+	 */
 	public Player isPlayer(String playerName){
 		Player player = null;
 		if((red != null && red.getName().equals(playerName))){
@@ -128,6 +146,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return player;
 	}
 	
+	/**
+	 * Adds a new watcher into the game.
+	 * @param watchName
+	 * @param playerName
+	 * @return
+	 */
 	 public Player addWatcher(String watchName, String playerName){
 		Player player = isPlayer(playerName);
 		
@@ -143,6 +167,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return player;
 	}
 	
+	 /**
+	 	 * Returns  elapsed time of the current  move
+	 	 */
 	 public Integer getCurrMoveTime(){
 		if(plays != null){
 			return plays.getTimer().getElapsed();
@@ -156,6 +183,19 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	{
 		
 	}
+	/**
+	 * The c'tor of the GameGUI which initializes the game parameters and the GUI components
+	 * @param name1
+	 * @param name2
+	 * @param gameId
+	 * @param mainFrame
+	 * @param clientGamePort
+	 * @param opponentHost
+	 * @param opponentGamePort
+	 * @param startedGame
+	 * @param theClient
+	 * @param opponentTransmitWaiterPort
+	 */
 	public GameGUI(String name1,String name2,String gameId,MainFrame mainFrame,
 			int clientGamePort, String opponentHost, int opponentGamePort,
 			boolean startedGame, TheClient theClient,int opponentTransmitWaiterPort) {	
@@ -193,7 +233,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		setLocationRelativeTo(null);
 	}
 	
-	
+	/**
+	 * Creates the usernames box
+	 * @return
+	 */
 	protected Box createUserNamesBox()
 	{
 		//upper box (connected players names)
@@ -206,6 +249,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 	
+	/**
+	 * Creates the grid box , where the game will be played
+	 * @return
+	 */
 	protected Box createGridsBox()
 	{
 		Box gridBox = Box.createVerticalBox();
@@ -216,6 +263,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 	
+	/**
+	 * Updates the GUI components which shows the time that left to move
+	 * @param timer
+	 * @param compNum
+	 */
 	protected void updatePlayerTimer(Timer timer, int compNum){
 		Box timerBox = timer.createTimerBox();
 		Box consoleContainerBox = (Box)this.getContentPane().getComponent(compNum);
@@ -227,7 +279,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
-	
+	/**
+	 * Creates the box for the surrender button
+	 * @return
+	 */
 	protected Box createSurrenderBox()
 	{
 		//surrender
@@ -240,16 +295,26 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return surrenderBox;
 	}
 	
+	/**
+	 * Enables the game
+	 */
 	protected void setGameEnabled(){
 		surrender.addMouseListener(this);
 		surrender.setEnabled(true);
 	}
 	
+	/**
+	 * Disables the game
+	 */
 	protected void setGameDisabled(){
 		surrender.removeMouseListener(this);
 		surrender.setEnabled(false);
 	}
 	
+	/**
+	 * Creates the message console box
+	 * @return
+	 */
 	protected Box createConsolseBox()
 	{
 
@@ -266,7 +331,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 
 	}
 	
-	
+	/**
+	 * Adjusting the grid where the game will played
+	 * @param boxesArr
+	 */
 	protected void AdjustGUIView(Box [] boxesArr)
 	{
 
@@ -279,6 +347,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		setModal(true);	
 	}
 	
+	/**
+	 * Auxilary method which adjust the grid
+	 */
 	private void adjustGrid()
 	{
 		boardPane.setLayout(new GridLayout(6,7));
@@ -297,10 +368,21 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		boardPane.setSize(700,600);
 	}
 	
+	/**
+	 * Returns the report status
+	 * @return
+	 */
 	public UnhandeledReport getReportStatus() {
 		return gameReport;
 	}
 	
+	/**
+	 * Writes the clients which are connected now in the top of the screen
+	 * @param playerName1
+	 * @param player1Col
+	 * @param playerName2
+	 * @param player2Col
+	 */
 	public void writeClients(String playerName1,Color player1Col,String playerName2,Color player2Col)
 	{
 		try {
@@ -314,6 +396,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+	 * Writes the approporiate message in the console box
+	 * @param message
+	 * @param msgType
+	 */
 	public void writeToScreen(String message,String msgType)
 	{
 		try {
@@ -335,11 +422,26 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+	 * Pops up a dialog window for the user
+	 * @param message
+	 * @param type
+	 */
 	public void popupDialog(String message,String type){
 		theClient.logger.print_error(message);
 		mainFrame.showMessageDialog(message, type);
 	}
 	
+	/**
+	 * This method should handle the online game and return an Unhandeled Report object as a result of the game
+	 * @param clientPort
+	 * @param opponentHost
+	 * @param opponentPort
+	 * @param opponentTransmitWaiterPort
+	 * @param startsGame
+	 * @param theClient
+	 * @return
+	 */
 	public UnhandeledReport startOnlineGame(int clientPort, String opponentHost,int opponentPort,
 											int opponentTransmitWaiterPort,boolean startsGame, TheClient theClient) {
 		startedGame = startsGame;
@@ -486,11 +588,17 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 
 	}
 	
+	/**
+	 * initialize timers
+	 */
 	protected void initTimers(){
 		red.setTimer(moveTime,this).pause().start();
 		blue.setTimer(moveTime,this).pause().start();
 	}
 	
+	/**
+	 * stops the timers
+	 */
 	protected void stopTimers(){
 		Timer timer = null;
 		timer = red.getTimer();
@@ -505,6 +613,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 
+	/**
+	 * Excahnges init data between users , their names , address and ect..
+	 * @param clientToOpponent
+	 * @param opponentIn
+	 * @throws IOException
+	 */
 	private void excahngeData(ObjectOutputStream clientToOpponent, ObjectInputStream opponentIn) throws IOException {
 		if(clientPlayer.equals(blue)){
 			clientToOpponent.writeObject((clientPlayer.getName()));
@@ -527,6 +641,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 	
+	/**
+	 * Sends a message on the transmit waiter port (Surrender request , or recconection)
+	 * @param message
+	 * @return
+	 */
 	private boolean sendMessageGetResponse(String message){
 		boolean succeeded = false;
 		try {
@@ -564,6 +683,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return succeeded;
 	}
 	
+	/**
+	 * Handles the reconnection process
+	 */
 	private void handleReconnectionProcess(){
 		boolean succeeded = false;
 		this.blocked = true;
@@ -582,6 +704,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
+	/**
+	 * Decides who was the winner in the game
+	 * @return
+	 */
 	 private String decideWinner() {
 		String winner = null;
 		switch(state){
@@ -617,6 +743,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
+	 /**
+	  * moves to the next player
+	  */
 	protected void nextPlayer() {
 		plays.getTimer().pause().reset();
 		if (plays.getColor().equals(Player.Color.RED)) {
@@ -627,18 +756,35 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		plays.getTimer().resume();
 	}
 	
+	/**
+ 	 * Adds the given player to the game
+ 	 * @param player
+ 	 */
 	 public void addPlayer(String player2){
 		blue = new Player(Player.Color.BLUE,player2);
 	}
 	 
+	 /**
+	 	 * Returns the player of the given color
+	 	 * @param pColor
+	 	 * @return
+	 	 */ 
 	public Player getPlayer(Player.Color pColor){
 		return pColor.equals(Player.Color.RED) ? red : blue;
 	}
 
+	/**
+ 	 * Returns the gameId
+ 	 * @return
+ 	 */
 	public String getId(){
 		return gameId;
 	}
 	
+	/**
+ 	 * Returns the moves history of the game
+ 	 * @return
+ 	 */
 	public ArrayList<String> getGameHistory(){
 		return gameHistory;
 	}
@@ -680,6 +826,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
+	/**
+	 * handles the case that we want to surrender and it is not our turn
+	 * @return
+	 */
 	private boolean AsynchroniousISurrender() {
 		boolean succeeded = false;
 		this.blocked = true;
@@ -718,6 +868,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
+	/**
+	 * Runs the online game in new thread
+	 */
 	@Override
 	public void run() {
 		gameReport=startOnlineGame(clientGamePort,(String)opponentHost,opponentGamePort,opponentTransmitWaiterPort,startedGame,theClient);
@@ -799,12 +952,19 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+ 	 * This method handles the situation that the opponent Surrenders
+ 	 */
 	public void opponentSurrender(){
 		state = GameState.OPPONENT_SURRENDED;
 		this.closeAndNotify();
 		infoMessage = "Opponent has surrended!";
 	}
 
+	
+	/**
+ 	 * Resets the connection between the two players
+ 	 */
 	 public void resetConnection(){
 		 if (reconnect)
 		 {
@@ -854,6 +1014,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+	 * Sends the current move to the game viewers
+	 * @param move
+	 */
 	private void sendMoveToViewers(String move){
 		ClientServerProtocol prot = new ClientServerProtocol(ClientServerProtocol.msgType.CLIENT);
 		String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
@@ -870,6 +1034,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		gameHistory.add(moveMsg);
 	}
 
+	/**
+	 * handles the case that a timeout was recieved
+	 */
 	@Override
 	public void timeOutReceived(TimeOutEvent event) {
 		theClient.logger.print_info("TIMEOUT");
@@ -883,6 +1050,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+	 * The timeout handler
+	 */
 	private void timeOutHandler(){
 		this.stopTimers();
 		if(plays.equals(clientPlayer)){
@@ -921,6 +1091,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		this.closeConnection();
 	}
 	
+	/**
+	 * Sends the played move to the opponenet
+	 * @param colnum
+	 */
 	private void sendMoveToOpponent(int colnum){
 		String move = null;
 		if(state.equals(GameState.I_SURRENDED)){
@@ -967,6 +1141,12 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 		
+	/**
+	 * Auxillary send to opponent move
+	 * @param moveMsg
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	 private void innerSendMoveToOpp(String moveMsg) throws IOException, ClassNotFoundException {
 		 theClient.logger.print_info("Sending move to opponent: " + moveMsg);
 		 opponentSocket.setSoTimeout(ClientServerProtocol.timeout);
@@ -978,6 +1158,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 opponentSocket.setSoTimeout(moveTime*1000);
 	}
 
+	 /**
+	  * checks whenever the opponenet is connected
+	  * @return
+	  */
 	private boolean isOpponentConnected() {
 		 try{
 		 InetAddress address = InetAddress.getByName(opponentHost);
@@ -993,6 +1177,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 }
 	}
 
+	/**
+	 * waits to opponent move and returns it
+	 * @return
+	 */
 	private String getOpponentMove(){
 		String move = null;
 		if(opponentIn != null){
@@ -1043,6 +1231,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return move;
 	}
 	
+	/**
+	 * sleeps for a certain amount of time
+	 * @param sleepTime
+	 */
 	private void sleepAWhile(int sleepTime){
 		try {
 			Thread.sleep(sleepTime);
@@ -1051,6 +1243,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+	 * Initialize a new connection with the opponent
+	 * @throws IOException
+	 */
 	private void setupConnection() throws IOException{
 		if (startedGame == true) {
 			serverSocket = new ServerSocket(clientGamePort);
@@ -1113,6 +1309,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		
 	}
 
+	/**
+ 	 * Removes the second player of the game (Not the host)
+ 	 */
 	@Override
 	public void removeSecondPlayer() {
 		if(blue != null){
