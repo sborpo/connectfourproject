@@ -469,30 +469,30 @@ public class TheClient {
 	 */
 	private void parseArguments(String[] args) {
 		//From Properites
-		Properties props = getProperties();
-		
-		serverHost = props.getProperty("SERVER_HOST");
-		logger.print_info("Server: " + serverHost);
-		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
-		logger.print_info("Server TCP port: "+serverPort);
-		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
-		logger.print_info("Client Udp Listen port: "+clientUdp);
-		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
-		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
-		logger.print_info("Client Game port: "+clientGamePort);
-		
-		
-//		serverHost = args[0];
+//		Properties props = getProperties();
+//		
+//		serverHost = props.getProperty("SERVER_HOST");
 //		logger.print_info("Server: " + serverHost);
-//		serverPort = Integer.parseInt( args[1]);
+//		serverPort = Integer.parseInt(props.getProperty("SERVER_TCP_PORT"));
 //		logger.print_info("Server TCP port: "+serverPort);
-//		clientUdp = Integer.parseInt (args[2]);
+//		clientUdp = Integer.parseInt(props.getProperty("CLIENT_UDP_LISTEN_PORT"));
 //		logger.print_info("Client Udp Listen port: "+clientUdp);
-//		clientTransmitWaiterPort = Integer.parseInt( args[3]);
+//		clientTransmitWaiterPort = Integer.parseInt(props.getProperty("CLIENT_TRANSMIT_WAITER_PORT"));
 //		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-//		clientGamePort = Integer.parseInt( args[4]);
+//		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
 //		logger.print_info("Client Game port: "+clientGamePort);
+		
+		
+		serverHost = args[0];
+		logger.print_info("Server: " + serverHost);
+		serverPort = Integer.parseInt( args[1]);
+		logger.print_info("Server TCP port: "+serverPort);
+		clientUdp = Integer.parseInt (args[2]);
+		logger.print_info("Client Udp Listen port: "+clientUdp);
+		clientTransmitWaiterPort = Integer.parseInt( args[3]);
+		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
+		clientGamePort = Integer.parseInt( args[4]);
+		logger.print_info("Client Game port: "+clientGamePort);
 		
 		clientWatchPort= clientGamePort;
 	}

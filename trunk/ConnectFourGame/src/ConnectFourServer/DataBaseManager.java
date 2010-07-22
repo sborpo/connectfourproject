@@ -837,7 +837,12 @@ public class DataBaseManager {
 
 	}
 
-	// Return the players Usernames of a specific game 
+	/** Return the players Usernames of a specific game 
+	 * 
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
+	 */
 	public static String [] getPlayersName (String gameId)throws SQLException{
 		String [] usernames = new String [2];
 		ResultSet set=null;
