@@ -165,7 +165,7 @@ public class Timer implements Runnable
 	private void updateTimerText() {
 		if(timerText != null){
 			int currT = m_length-m_elapsed;
-			timerText.setText(currT + " sec");
+			timerText.setText(" " + currT + " sec");
 		}
 	}
 

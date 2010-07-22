@@ -176,7 +176,6 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		}
 		if (response==null)
 		{
-			//TODO problem with syntax , server doesn't understand
 			this.showMessageDialog("Internal Error: The Server Didn't understand the sent message",MsgType.error);
 			return;
 		}
@@ -205,6 +204,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	public void setUpOnlineGames(ArrayList<GameForClient> games)
 	{
 		clearTables();
+		
 		DefaultTableModel model= ((DefaultTableModel)openGames.getModel());
 		DefaultTableModel watchModel= ((DefaultTableModel)gamesForWatch.getModel());
 		for (GameForClient game : games) {
