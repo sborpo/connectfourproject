@@ -406,6 +406,9 @@ public class TheClient {
 			if((resp = response.readObject()) != null) {
 				logger.print_info("Server Response is:" + resp);
 			}
+			else{
+				logger.print_error("Server response is NULL!");
+			}
 		}
 		catch (SocketTimeoutException e)
 		{
