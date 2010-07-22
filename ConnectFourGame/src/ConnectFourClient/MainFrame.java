@@ -366,7 +366,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 				getOnlineGames();
 				return;
 			}
-			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 2),this);
+			client.HandleEnjoyWatch(client.parseServerResponse(response),(String)gamesForWatch.getValueAt(rowIndex, 0),(String)gamesForWatch.getValueAt(rowIndex, 1),this);
 			//after watching is completed , now refresh the gamelist
 			getOnlineGames();
 		} catch (Exception e) {
