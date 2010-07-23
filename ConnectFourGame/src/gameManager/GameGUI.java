@@ -971,6 +971,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 {
 			 return;
 		 }
+		 theClient.logger.print_info("making reconnect to be true after entering resetConnection");
 		this.reconnect = true;
 		this.blocked = true;
 		writeToScreen("Refreshing the connection, wait...",MsgType.info);
@@ -984,6 +985,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				this.closeConnection();
 				//restarting
 				this.setupConnection();
+				theClient.logger.print_info("making reconnect be false after setup connection");
 				this.reconnect = false;
 			} catch (IOException e) {
 				theClient.logger.print_error("Problem while reseting the connection: " + e.getMessage());
