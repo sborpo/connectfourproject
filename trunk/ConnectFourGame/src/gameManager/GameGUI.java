@@ -120,6 +120,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	protected UnhandeledReport gameReport;
 	protected Thread gameThread;
 	
+	protected Integer lock ;
+	
 	/**
 	 * Returns true of the game already have two players, otherwise returns false
 	 * @return
@@ -215,6 +217,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		else{
 			blue = null;
 		}
+		lock= new Integer(0);
 		this.theClient=theClient;
 		this.gameId = gameId;
 		timerBoxContainer = Box.createHorizontalBox();
@@ -966,13 +969,17 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	/**
  	 * Resets the connection between the two players
  	 */
-	 public void resetConnection(){
-		 if (reconnect)
+	 public synchronized void resetConnection(){
+		 
+		 synchronized(lock)
 		 {
-			 return;
+			 if (reconnect)
+			 {
+				 return;
+			 }
+			 theClient.logger.print_info("making reconnect to be true after entering resetConnection");
+			this.reconnect = true;
 		 }
-		 theClient.logger.print_info("making reconnect to be true after entering resetConnection");
-		this.reconnect = true;
 		this.blocked = true;
 		writeToScreen("Refreshing the connection, wait...",MsgType.info);
 		while(this.reconnect){
