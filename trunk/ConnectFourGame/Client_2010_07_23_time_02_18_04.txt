@@ -1,0 +1,159 @@
+2010-07-23 02:18:04 Info: Server: 10.0.0.1
+2010-07-23 02:18:04 Info: Server TCP port: 8848
+2010-07-23 02:18:04 Info: Client Udp Listen port: 7463
+2010-07-23 02:18:04 Info: Client TransmitWaiter port: 3413
+2010-07-23 02:18:04 Info: Client Game port: 4643
+2010-07-23 02:18:55 Info: Getting the public key of server...
+2010-07-23 02:18:55 Info: Sending your message: GET_PUB_KEY to the server...
+2010-07-23 02:18:56 Info: READING response from socket...
+2010-07-23 02:18:56 Info: Server Response is:Sun RSA public key, 2048 bits
+  modulus: 18406156749821612885385462449842897901441525036040163918050903681277660755230437451913854733183277932972655778654290512448977841287442883843065222554530932175376537038060722637485807761501477431014666648989025821594234629553514946495495588035279864383495227031082995124305105192010961875993949619481868324471857834980067475411552812887751933094072484467724471927107388213470109767412402448126625482894765366477480342903994578173304903940157334176204244199533064418109562608216441549049562584344696096628621924855907446286272211958909959781389992799768086586650136165845224606404097987228612851031074364388385444362497
+  public exponent: 65537
+2010-07-23 02:18:56 Info: Sending your message: MEETME:PARAM:7463:PARAM:abc:PARAM:Xs/zyCwZheoG035amjbKx/lx7zfE1It5ZaIWzVV2SpWeJN9pJk7mq+E2fVWwbZosc4zHKhOEQbAx
+k71iz5qXQrPwwu1WojwtQ8f7mJX3dGxMx68eqyiTt5GaA+IhOI1FYoh7A+zYZCA6CeIn0LsrMZBs
+gFQs1H3mpympVp5KIYhahnolyekKZ9rjqImqKfALEvkizLBoFJMzFtTGtvaaHnSTQm0ciX3MMVZb
+K1uTZlpiccAtotSBgLmnMtGccuKvOzZ7MLwSHJlmFRSgFFdqd+/t66uHyI2jey/Ym2d87vI60pvl
+mp0YgHlDJL/2aLcIBgq1LIsXX7yKuPT4tIvVfQ==
+ to the server...
+2010-07-23 02:18:56 Info: READING response from socket...
+2010-07-23 02:18:56 Info: Server Response is:NICE_TO_MEET_YOU:PARAM:7834
+2010-07-23 02:18:56 Info: Client starting sending alive messages from: 7463 to: 7834
+2010-07-23 02:18:56 Info: Getting the public key of server...
+2010-07-23 02:18:56 Info: Sending your message: GET_PUB_KEY to the server...
+2010-07-23 02:18:57 Info: READING response from socket...
+2010-07-23 02:18:57 Info: Server Response is:Sun RSA public key, 2048 bits
+  modulus: 18406156749821612885385462449842897901441525036040163918050903681277660755230437451913854733183277932972655778654290512448977841287442883843065222554530932175376537038060722637485807761501477431014666648989025821594234629553514946495495588035279864383495227031082995124305105192010961875993949619481868324471857834980067475411552812887751933094072484467724471927107388213470109767412402448126625482894765366477480342903994578173304903940157334176204244199533064418109562608216441549049562584344696096628621924855907446286272211958909959781389992799768086586650136165845224606404097987228612851031074364388385444362497
+  public exponent: 65537
+2010-07-23 02:18:57 Info: Sending your message: GAME_LIST to the server...
+2010-07-23 02:18:57 Info: READING response from socket...
+2010-07-23 02:18:57 Info: Server Response is:[]
+2010-07-23 02:19:16 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:noGame:PARAM:4643 to port: 7834
+2010-07-23 02:19:17 Info: Getting the public key of server...
+2010-07-23 02:19:17 Info: Sending your message: GET_PUB_KEY to the server...
+2010-07-23 02:19:17 Info: google is reachable: true
+2010-07-23 02:19:17 Info: READING response from socket...
+2010-07-23 02:19:17 Info: Server Response is:Sun RSA public key, 2048 bits
+  modulus: 18406156749821612885385462449842897901441525036040163918050903681277660755230437451913854733183277932972655778654290512448977841287442883843065222554530932175376537038060722637485807761501477431014666648989025821594234629553514946495495588035279864383495227031082995124305105192010961875993949619481868324471857834980067475411552812887751933094072484467724471927107388213470109767412402448126625482894765366477480342903994578173304903940157334176204244199533064418109562608216441549049562584344696096628621924855907446286272211958909959781389992799768086586650136165845224606404097987228612851031074364388385444362497
+  public exponent: 65537
+2010-07-23 02:19:17 Info: Sending your message: NEWGAME:PARAM:4643:PARAM:3413:PARAM:abc:PARAM:S6X6tW0rDceT6vOEGZszGn3s2DDu3Z9NQtkNUkLH9JOq6j0Hk1g++NWdEr3g3/7vJctFo66Pq4UB
+eWXUtT80FcFXKCN6znmlEblqcmlN0xkSSzdr/D3WAKpHIPMTtlIo4QuXKntPRO6HYwuELAWGmDv1
+FlIQy9/+fn14QsY3vyHKWJ4QJCLRFKr1ox3VOt+I866DpNIPckseVXevct1SZZEe+9yRSI6hNRfl
+QHPSavWaTDUCe1Bf/loyypV0Fwtfnlw3rtLG5aQPTjdorc+aqRvM+PXv+3qFIC2zeRFJsj976OKX
+tylK3nFv2apJYubQK8dEr3SNUFHg/iCSSUiX0g==
+ to the server...
+2010-07-23 02:19:17 Info: READING response from socket...
+2010-07-23 02:19:18 Info: Server Response is:GAME:PARAM:abc1279883964017
+2010-07-23 02:19:24 Info: Received game: abc1279883964017, starting waiting on game port...
+2010-07-23 02:19:24 Info: Client starting waiting for transmit message on: 3413
+2010-07-23 02:19:24 Info: Waiting for opponent to connect ...
+2010-07-23 02:19:37 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:19:37 Info: google is reachable: true
+2010-07-23 02:19:57 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:19:57 Info: google is reachable: true
+2010-07-23 02:20:01 Info: Opponent Was Connected ,You Are The Red Player!
+2010-07-23 02:20:01 Info: Please Click Your Move: 
+2010-07-23 02:20:07 Error: Position:  Before sending move to opponent ---Values: reconnect: false
+2010-07-23 02:20:09 Info: Sending move to opponent: GAME_MOVE:PARAM:abc:PARAM:3:PARAM:red
+2010-07-23 02:20:10 Info: Waiting For Opponent Move: 
+2010-07-23 02:20:17 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:20:18 Info: google is reachable: true
+2010-07-23 02:20:23 Info: Please Click Your Move: 
+2010-07-23 02:20:33 Error: Position:  Before sending move to opponent ---Values: reconnect: false
+2010-07-23 02:20:35 Info: Sending move to opponent: GAME_MOVE:PARAM:abc:PARAM:4:PARAM:red
+2010-07-23 02:20:35 Info: Waiting For Opponent Move: 
+2010-07-23 02:20:38 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:20:38 Info: google is reachable: true
+2010-07-23 02:20:40 Error: While reading from opponent socket: Software caused connection abort: recv failed
+2010-07-23 02:20:40 Error: Handling connection problems...
+2010-07-23 02:20:40 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:40 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:41 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:41 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:42 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:42 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:43 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:43 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:44 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:44 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:45 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:45 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:46 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:46 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:47 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:47 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:48 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:48 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:49 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:49 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:50 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:50 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:51 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:51 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:52 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:52 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:53 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:53 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:54 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:54 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:55 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:55 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:56 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:56 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:57 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:57 Error: Problem sending: SOCKET_REFRESH command to the opponent: Network is unreachable: connect
+2010-07-23 02:20:58 Info: Trying to send your message to opponent: SOCKET_REFRESH
+2010-07-23 02:20:58 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:20:58 Info: google is reachable: true
+2010-07-23 02:21:07 Info: Refreshing the connection, wait...
+2010-07-23 02:21:09 Info: Closing connections...
+2010-07-23 02:21:09 Info: Waiting for opponent to connect ...
+2010-07-23 02:21:13 Info: Transmition socket was opened
+2010-07-23 02:21:13 Info: Message received on transmit waiter: 'SOCKET_REFRESH'
+2010-07-23 02:21:14 Info: Opponent Was Connected ,You Are The Red Player!
+2010-07-23 02:21:18 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:21:19 Error: Recconection is Done!
+2010-07-23 02:21:19 Info: Recconection is Done!
+2010-07-23 02:21:19 Info: google is reachable: true
+2010-07-23 02:21:23 Info: Transmition socket was opened
+2010-07-23 02:21:23 Info: Message received on transmit waiter: 'SOCKET_REFRESH'
+2010-07-23 02:21:34 Info: TIMEOUT
+2010-07-23 02:21:34 Info: Opponents timer is timed out!
+2010-07-23 02:21:34 Info: Internet no connection: false
+2010-07-23 02:21:34 Info: Closing connections...
+2010-07-23 02:21:35 Info: Waiting For Opponent Move: 
+2010-07-23 02:21:35 Error: No opponent move
+2010-07-23 02:21:35 Info: The winner is: abc!
+2010-07-23 02:21:35 Info: Closing connections...
+2010-07-23 02:21:35 Info: Trying to send report to viewers...
+2010-07-23 02:21:35 Info: Trying to send report to server...
+2010-07-23 02:21:35 Info: Getting the public key of server...
+2010-07-23 02:21:35 Info: Sending your message: GET_PUB_KEY to the server...
+2010-07-23 02:21:35 Info: READING response from socket...
+2010-07-23 02:21:35 Info: Server Response is:Sun RSA public key, 2048 bits
+  modulus: 18406156749821612885385462449842897901441525036040163918050903681277660755230437451913854733183277932972655778654290512448977841287442883843065222554530932175376537038060722637485807761501477431014666648989025821594234629553514946495495588035279864383495227031082995124305105192010961875993949619481868324471857834980067475411552812887751933094072484467724471927107388213470109767412402448126625482894765366477480342903994578173304903940157334176204244199533064418109562608216441549049562584344696096628621924855907446286272211958909959781389992799768086586650136165845224606404097987228612851031074364388385444362497
+  public exponent: 65537
+2010-07-23 02:21:35 Info: Sending your message: GAME_REPORT:PARAM:abc1279883964017:PARAM:abc:PARAM:true:PARAM:abc:PARAM:ZgfqMq2rTZDxjjRssh+xrpha0LbnlDyNS9HxtGmIZVJipWy/ZISYTo55WA211EO3ugkTtOrpqOy6
+EquNuJLM9rc522NXADZx7+PD5ibO5/CVqRV4OEsaM4rlzQEmvij8SmXAn/09UNdAa8nruS4N5lFy
+wUbOqGZFu2SxkaneYdHsxXTYYc/TooCU/pwFAGE0x1QsOQt1gZkzQdRr2R6MeQbxDHYLBy8BIVns
+OeRgUHJ1dejeOm7KRvJDlAsjwxccC0JVxTJ/hHp4so7YIPwOPnw5KRTIlNw/U6sH3I3FgyrPsyIN
+SCZAj0YUHZcIUd+/dHdbJFEr5OHkffRdqY/P6w==
+ to the server...
+2010-07-23 02:21:36 Info: READING response from socket...
+2010-07-23 02:21:36 Info: Server Response is:OK
+2010-07-23 02:21:36 Error: You are the winner!
+2010-07-23 02:21:36 Info: You are the winner!
+2010-07-23 02:21:36 Info: Refreshing the connection, wait...
+2010-07-23 02:21:39 Info: I say: I'M_ALIVE!:PARAM:abc:PARAM:3413:PARAM:abc1279883964017:PARAM:4643 to port: 7834
+2010-07-23 02:21:39 Info: google is reachable: true
+2010-07-23 02:21:42 Info: Closing transmit waiter socket
+2010-07-23 02:21:42 Info: Transmition socket was closed
+2010-07-23 02:21:49 Info: Send disconnection to server: DISCONNECT:PARAM:abc
+2010-07-23 02:21:49 Info: Getting the public key of server...
+2010-07-23 02:21:49 Info: Sending your message: GET_PUB_KEY to the server...
+2010-07-23 02:21:49 Info: READING response from socket...
+2010-07-23 02:21:49 Info: Server Response is:Sun RSA public key, 2048 bits
+  modulus: 18406156749821612885385462449842897901441525036040163918050903681277660755230437451913854733183277932972655778654290512448977841287442883843065222554530932175376537038060722637485807761501477431014666648989025821594234629553514946495495588035279864383495227031082995124305105192010961875993949619481868324471857834980067475411552812887751933094072484467724471927107388213470109767412402448126625482894765366477480342903994578173304903940157334176204244199533064418109562608216441549049562584344696096628621924855907446286272211958909959781389992799768086586650136165845224606404097987228612851031074364388385444362497
+  public exponent: 65537
+2010-07-23 02:21:49 Info: Sending your message: DISCONNECT:PARAM:abc to the server...
+2010-07-23 02:21:50 Info: READING response from socket...
+2010-07-23 02:21:50 Info: Server Response is:OK
