@@ -1119,6 +1119,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 			reconnectOnRead= false;
 			try{
+				theClient.logger.print_error("Position:  Before sending move to opponent ---Values: reconnect: "+this.reconnect);
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																	plays.getName(),
 																	move,plays.getColor().getColorStr()});
@@ -1133,6 +1134,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			//HANDLE CONNECTIONS PROBLEMS
 			catch (IOException ex)
 			{
+				theClient.logger.print_error("Position:  After recieving timout of the ack IOexcption---Values: reconnect: "+this.reconnect);
 				if(this.reconnect){
 					//this.reconnect = false;
 					reconnectOnRead= true;
