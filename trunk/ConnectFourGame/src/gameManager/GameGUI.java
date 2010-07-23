@@ -969,16 +969,16 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	/**
  	 * Resets the connection between the two players
  	 */
-	 public synchronized void resetConnection(){
+	 public void resetConnection(){
 		 
 		 synchronized(lock)
 		 {
-			 if (reconnect)
-			 {
-				 return;
-			 }
-			 theClient.logger.print_info("making reconnect to be true after entering resetConnection");
-			this.reconnect = true;
+		 if (reconnect)
+		 {
+			 return;
+		 }
+		 theClient.logger.print_info("making reconnect to be true after entering resetConnection");
+		this.reconnect = true;
 		 }
 		this.blocked = true;
 		writeToScreen("Refreshing the connection, wait...",MsgType.info);
@@ -1127,6 +1127,16 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				break;
 			}
 			reconnectOnRead= false;
+			while (this.reconnect)
+			{
+				try {
+					Thread.sleep(1000);
+					continue;
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			try{
 				theClient.logger.print_error("Position:  Before sending move to opponent ---Values: reconnect: "+this.reconnect);
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
