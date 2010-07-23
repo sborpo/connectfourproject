@@ -1127,16 +1127,13 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				break;
 			}
 			reconnectOnRead= false;
-			while (this.reconnect)
+			if (this.reconnect)
 			{
-				try {
-					Thread.sleep(1000);
-					continue;
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				this.sleepAWhile(1000);
+				reconnectOnRead = true;
+				continue;
 			}
+			
 			try{
 				theClient.logger.print_error("Position:  Before sending move to opponent ---Values: reconnect: "+this.reconnect);
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
