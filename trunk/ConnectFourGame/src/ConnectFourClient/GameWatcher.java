@@ -208,6 +208,9 @@ public class GameWatcher extends GameGUI implements Runnable{
 	 * Closes all sockets and stops watching process.
 	 */
 	private void stopWatching(){
+		if(!watching){
+			return;
+		}
 		watching = false;
 		try {
 			if(watchSocket != null){
