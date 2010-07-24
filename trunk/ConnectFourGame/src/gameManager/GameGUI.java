@@ -1058,9 +1058,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	 */
 	@Override
 	public void timeOutReceived(TimeOutEvent event) {
-		theClient.logger.print_info("TIMEOUT");
 		if(!state.equals(GameState.PROCEED)){
-			System.out.println("Ignoring timeout...");
 			return;
 		}
 		boolean timedOut = event.getValue();
