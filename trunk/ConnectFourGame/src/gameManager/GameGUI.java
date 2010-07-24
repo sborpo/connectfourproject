@@ -431,7 +431,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	 * @param type
 	 */
 	public void popupDialog(String message,String type){
-		theClient.logger.print_error(message);
 		mainFrame.showMessageDialog(message, type);
 	}
 	
@@ -792,7 +791,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 
 	@Override
 	public  void mouseClicked(MouseEvent e) {
-		if(this.blocked){
+		if(this.blocked && this.reconnect){
 			return;
 		}
 		synchronized (pending) {
@@ -1014,16 +1013,20 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			theClient.logger.print_info("Closing connections...");
 			if(serverSocket != null){
 				serverSocket.close();
+				serverSocket = null;
 			}
 			if(opponentSocket != null){
 				opponentSocket.close();
+				opponentSocket = null;
 			}
-			if(clientToOpponent!=null){
-				clientToOpponent.close();
-			}
-			if(opponentIn != null){
-				opponentIn.close();
-			}
+//			if(clientToOpponent!=null){
+//				clientToOpponent.close();
+//				clientToOpponent = null;
+//			}
+//			if(opponentIn != null){
+//				opponentIn.close();
+//				opponentIn = null;
+//			}
 		} catch (IOException e) {
 			theClient.logger.print_error("Problem while closing the connection: " + e.getMessage());
 			e.printStackTrace();
@@ -1135,7 +1138,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 			
 			try{
-				theClient.logger.print_error("Position:  Before sending move to opponent ---Values: reconnect: "+this.reconnect);
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																	plays.getName(),
 																	move,plays.getColor().getColorStr()});
@@ -1150,7 +1152,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			//HANDLE CONNECTIONS PROBLEMS
 			catch (IOException ex)
 			{
-				theClient.logger.print_error("Position:  After recieving timout of the ack IOexcption---Values: reconnect: "+this.reconnect);
 				if(this.reconnect){
 					//this.reconnect = false;
 					reconnectOnRead= true;
@@ -1281,9 +1282,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			opponentHost = opponentSocket.getInetAddress().getHostName();
 			opponentPlayer = blue;
 			clientPlayer = red;
-			writeToScreen("Opponent Was Connected ,You Are The Red Player!",MsgType.info);
+			theClient.logger.print_info("Opponent Was Connected ,You Are The Red Player!");
 		
 		} else {
+			writeToScreen("Connecting to the opponent...",MsgType.info);
 			InetAddress address = null;
 			try {
 				address = InetAddress.getByName(opponentHost);
@@ -1295,7 +1297,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			opponentSocket = new Socket(address, opponentPort);
 			clientPlayer = blue;
 			opponentPlayer=red;
-			writeToScreen("You Are The Blue Player!",MsgType.info);
+			theClient.logger.print_info("You Are The Blue Player!");
 			writeClients(blue.getName(),blue.getColor(),red.getName(),red.getColor());
 
 		}
