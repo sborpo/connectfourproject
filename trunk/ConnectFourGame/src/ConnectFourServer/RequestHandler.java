@@ -253,7 +253,6 @@ public class RequestHandler implements Runnable {
 			}
 		} catch (SQLException e) {
 			server.printer.print_error("Server database problems");
-			e.printStackTrace();
 			throw e;
 		}
 		

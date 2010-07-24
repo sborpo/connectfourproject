@@ -58,8 +58,7 @@ public class AliveSender extends Thread implements TimerListener{
 		try {
 			client.aliveSocket = new DatagramSocket(client.getClientAlivePort());
 		} catch (SocketException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			
 		}
 		
 		// open a UDP socket , from which we will do the communications
