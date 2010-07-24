@@ -28,6 +28,7 @@ public interface Game {
 	public static class gameWinner{
 		public static final String NO_WINNER = "0";
 		public static final String GAME_NOT_PLAYED = "-1";
+		public static final String I_DONT_KNOW = "-2";
 	};
 	
 	/**

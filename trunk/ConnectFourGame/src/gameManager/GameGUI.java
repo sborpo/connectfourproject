@@ -712,24 +712,28 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		String winner = null;
 		switch(state){
 			case TIE: 
-				System.out.println("TIE");
+				theClient.logger.print_info("TIE");
 				winner="0";
 				break;
 			case I_SURRENDED:
-				System.out.println("I surrended");
+				theClient.logger.print_info("I surrended");
 				winner= opponentPlayer.getName();
 				break;
 			case OPPONENT_SURRENDED:
-				System.out.println("OPP surrended");
+				theClient.logger.print_info("OPP surrended");
 				winner= clientPlayer.getName();
 				break;
 			case I_TIMED_OUT:
-				System.out.println("I timed OUT");
+				theClient.logger.print_info("I timed OUT");
 				winner= opponentPlayer.getName();
 				break;
 			case OPP_TIMED_OUT:
-				System.out.println("OPP timed OUT");
+				theClient.logger.print_info("OPP timed OUT");
 				winner= clientPlayer.getName();
+				break;
+			case NO_CONN:
+				theClient.logger.print_info("NO connection");
+				winner= gameWinner.I_DONT_KNOW;
 				break;
 		}
 		
@@ -737,8 +741,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(winner == null){
 			winner= plays.getName();
 		}
-		
-		writeToScreen("The winner is: " + winner + "!",MsgType.info);
+		if(!winner.equals(gameWinner.I_DONT_KNOW)){
+			writeToScreen("The winner is: " + winner + "!",MsgType.info);
+		}
 		return winner;
 		
 	}
@@ -881,9 +886,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(gameReport == null){
 			gameReport = theClient.getEmptyReport();
 		}
-		theClient.makeReportToViewers(gameReport);
-		//send the report to the server
-		theClient.makeReportToServer(gameReport);
+		if(!gameReport.getWinner().equals(gameWinner.I_DONT_KNOW)){
+			theClient.makeReportToViewers(gameReport);
+			//send the report to the server
+			theClient.makeReportToServer(gameReport);
+		}
+		else{
+			errorMessage = "No internet connection!";
+		}
 		if(errorMessage != null){
 			popupDialog(errorMessage,MsgType.error);
 		}
@@ -904,7 +914,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 		}
 		this.setVisible(false);
-		System.out.println("GUI IS FINISHED: "+gameReport );
 	}
 
 	@Override
@@ -1076,7 +1085,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			theClient.logger.print_info("My timer is timed out!");
 			//no server connection - my timeout - I lose
 			if(theClient.getAliveSender().noInternetConnection()){
-				state = GameState.I_TIMED_OUT;
+				state = GameState.NO_CONN;
 			}
 			//there is server connection but cannot send move - opp lose
 			else if(this.blocked){
@@ -1259,7 +1268,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	 * sleeps for a certain amount of time
 	 * @param sleepTime
 	 */
-	private void sleepAWhile(int sleepTime){
+	protected void sleepAWhile(int sleepTime){
 		try {
 			Thread.sleep(sleepTime);
 		} catch (InterruptedException e) {

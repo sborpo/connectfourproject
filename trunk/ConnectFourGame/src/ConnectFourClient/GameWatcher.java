@@ -223,6 +223,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		} catch (IOException e) {
 			theClient.logger.print_error("Cannot close input stream for watcher");
 		}
+		popupDialog("The watching is ended!", MsgType.info);
 		theClient.stopWatching();
 	}
 	
@@ -289,7 +290,8 @@ public class GameWatcher extends GameGUI implements Runnable{
 	 */
 	@Override
 	public void timeOutReceived(TimeOutEvent event) {
-		//DO NOTHING
+		this.sleepAWhile(ClientServerProtocol.timeout*2);
+		this.stopWatching();
 	}
 	
 }
