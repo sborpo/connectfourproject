@@ -44,6 +44,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 	private boolean watching;
 	private JButton stopWatch;
 	private boolean timeUpdated;
+	private String winner;
 	
 	/**
 	 * Constructs a new game watcher GUI.
@@ -59,6 +60,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		this.bluePlayer=bluePlayer;
 		red = new Player(Player.Color.RED,redPlayer);
 		blue = new Player(Player.Color.BLUE,bluePlayer);
+		winner = null;
 		gameBoard = new BoardGUI(this);
 		theClient=client;
 		this.watcherIn = null;
@@ -139,7 +141,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 						}
 					}
 					else if(parsed[0].equals(ClientServerProtocol.GAMEREPORT)){
-						String winner = parseReport(parsed);
+						winner = parseReport(parsed);
 						if(winner != null){
 							if(winner.equals(Game.gameWinner.NO_WINNER)){
 								writeToScreen("There is no winner!",MsgType.info);
@@ -223,7 +225,7 @@ public class GameWatcher extends GameGUI implements Runnable{
 		} catch (IOException e) {
 			theClient.logger.print_error("Cannot close input stream for watcher");
 		}
-		popupDialog("The watching is ended!", MsgType.info);
+		popupDialog("The watching is ended,\nWinner: " + winner  + " !", MsgType.info);
 		theClient.stopWatching();
 	}
 	
@@ -233,7 +235,6 @@ public class GameWatcher extends GameGUI implements Runnable{
 	 * @return winner
 	 */
 	private String parseReport(String[] message){
-		String winner = null;
 		if(message[0].equalsIgnoreCase(ClientServerProtocol.GAMEREPORT)){
 			if(Boolean.parseBoolean(message[3]) == Game.gameRes.WINNER){
 				winner = message[4];
