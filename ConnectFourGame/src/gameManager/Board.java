@@ -39,7 +39,7 @@ public class Board implements Serializable{
 	 *
 	 */
 	public static enum GameState implements Serializable{
-		TIE, RED_WON, BLUE_WON, PROCEED , I_SURRENDED,OPPONENT_SURRENDED, I_TIMED_OUT, OPP_TIMED_OUT
+		TIE, RED_WON, BLUE_WON, PROCEED , I_SURRENDED,OPPONENT_SURRENDED, I_TIMED_OUT, OPP_TIMED_OUT, NO_CONN
 	}
 
 	
