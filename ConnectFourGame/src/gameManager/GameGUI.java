@@ -574,7 +574,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(state.equals(GameState.I_SURRENDED) && !closing){
 			boolean res = AsynchroniousISurrender();
 			if(!res){
-				popupDialog("Problem sending surrender message to opponent",MsgType.error);
+				errorMessage = "Problem sending surrender message to opponent";
 			}
 		}
 		System.out.println("DECIDING WINNER");
@@ -897,21 +897,19 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(errorMessage != null){
 			popupDialog(errorMessage,MsgType.error);
 		}
-		else if(infoMessage != null){
+		if(infoMessage != null){
 			popupDialog(infoMessage,MsgType.info);
 		}
-		else{
-			if(Boolean.parseBoolean(gameReport.getGameResult()) == Game.gameRes.WINNER){
-				if(gameReport.getWinner().equals(clientPlayer.getName())){
-					popupDialog("You are the winner!",MsgType.info);
-				}
-				else{
-					popupDialog("You are the loser!",MsgType.info);
-				}
+		if(Boolean.parseBoolean(gameReport.getGameResult()) == Game.gameRes.WINNER){
+			if(gameReport.getWinner().equals(clientPlayer.getName())){
+				popupDialog("You are the winner!",MsgType.info);
 			}
 			else{
-				popupDialog("Noboody had won!", MsgType.info);
+				popupDialog("You are the loser!",MsgType.info);
 			}
+		}
+		else{
+			popupDialog("Noboody had won!", MsgType.info);
 		}
 		this.setVisible(false);
 	}
@@ -1081,14 +1079,14 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	 */
 	private void timeOutHandler(){
 		this.stopTimers();
-		if(plays.equals(clientPlayer)){
+		//no server connection
+		if(theClient.getAliveSender().noInternetConnection()){
+			state = GameState.NO_CONN;
+		}
+		else if(plays.equals(clientPlayer)){
 			theClient.logger.print_info("My timer is timed out!");
-			//no server connection - my timeout - I lose
-			if(theClient.getAliveSender().noInternetConnection()){
-				state = GameState.NO_CONN;
-			}
 			//there is server connection but cannot send move - opp lose
-			else if(this.blocked){
+			if(this.blocked){
 				state = GameState.OPP_TIMED_OUT;
 			}
 			//else- there are all connection - I lose
@@ -1256,8 +1254,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						handleReconnectionProcess();
 					}
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					//DOES NOT HAPPEN
 				}
 			}
 		}
