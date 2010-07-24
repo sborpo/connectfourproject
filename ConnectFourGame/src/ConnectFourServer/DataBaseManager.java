@@ -109,20 +109,16 @@ public class DataBaseManager {
 					makeReport(report.getGameId(), report.getClientName(), report.getWinner());
 
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					System.out.println("DatabaseError");
 				} catch (GameIdNotExists e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					
 				}
 			}
 			reports.removeReportsFile();
 		} catch (NoReports e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		} catch (FileChanged e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		}
 	}
 
@@ -223,12 +219,10 @@ public class DataBaseManager {
 			Class.forName("com.mysql.jdbc.Driver");
 			return DriverManager.getConnection (url+dbName, userName, password);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("DatabaseError");
 		} 
 		catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		} 
 		return null; 
 	}

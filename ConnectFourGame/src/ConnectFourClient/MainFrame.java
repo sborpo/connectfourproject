@@ -254,6 +254,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private void joinGameClicked()
 	{
 		int rowIndex=openGames.getSelectedRow();
+		if (rowIndex==-1)
+		{
+			this.showMessageDialog("Please select game first!", MsgType.error);
+			return;
+		}
 		if (((String)openGames.getValueAt(rowIndex, 0)).equals(client.getClientName()))
 		{
 			this.showMessageDialog("Unfortunately you cannot play agains yourself!", MsgType.error);
@@ -339,6 +344,11 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 	private void watchGameClicked()
 	{
 		int rowIndex=gamesForWatch.getSelectedRow();
+		if (rowIndex==-1)
+		{
+			this.showMessageDialog("Please select game first!", MsgType.error);
+			return;
+		}
 		try {
 			String response =(String)client.sendMessageToServer(ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.WATCH,
 																												String.valueOf(client.getWatchPort()),
