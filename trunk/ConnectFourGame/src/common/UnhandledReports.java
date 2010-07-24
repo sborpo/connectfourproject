@@ -50,15 +50,13 @@ public class UnhandledReports {
 			stream.close();
 			if (reports.size()==0)
 			{
-				System.out.println("NO REPORTS IN THE FILE..");
 				this.removeReportsFile();
 				throw new NoReports();
 			}
 		} catch (FileNotFoundException e) {
 			throw new NoReports();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(LogPrinter.error_msg("Problem reading the report file: " + e.getMessage()));
 		} catch (ClassNotFoundException e) {
 			throw new FileChanged();
 		}
@@ -89,16 +87,13 @@ public class UnhandledReports {
 	public void removeReportsFile()
 	{
 		synchronized (reportsLock) {
-			
-		
-		System.out.println("INSIDE");
 		File f= new File(fileName);
 		boolean isExists = f.exists();
 		System.out.println("FLAG: "+ isExists);
 		if (f.exists())
 		{
 			boolean res = f.delete();
-			System.out.println(res+" :removed..." + fileName);
+			System.out.println(LogPrinter.info_msg(res+" :removed:" + fileName));
 		}
 		reports = null;
 		}
