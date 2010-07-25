@@ -877,7 +877,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	@Override
 	public void run() {
 		gameReport=startOnlineGame(clientGamePort,(String)opponentHost,opponentGamePort,opponentTransmitWaiterPort,startedGame,theClient);
-		//this.setVisible(false);
 		if(gameReport == null){
 			gameReport = theClient.getEmptyReport();
 		}
