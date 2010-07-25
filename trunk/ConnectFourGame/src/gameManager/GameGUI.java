@@ -827,7 +827,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	private boolean AsynchroniousISurrender() {
 		boolean succeeded = false;
 		this.blocked = true;
-		theClient.logger.print_info("Handling I_surrender message..." + plays.getTimer());
+		writeToScreen("Surrender handling..." + plays.getTimer(),MsgType.info);
 		while(succeeded == false && plays.getTimer() != null && !plays.getTimer().isTimedOut()){
 			succeeded = sendMessageGetResponse(ClientServerProtocol.ISURRENDER);
 			if(!succeeded){
@@ -901,7 +901,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			if(gameReport.getWinner().equals(clientPlayer.getName())){
 				popupDialog("You are the winner!",MsgType.info);
 			}
-			else{
+			else if(gameReport.getWinner().equals(opponentPlayer.getName())){
 				popupDialog("You are the loser!",MsgType.info);
 			}
 		}
