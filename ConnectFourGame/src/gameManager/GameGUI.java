@@ -983,7 +983,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 {
 			 return;
 		 }
-		 theClient.logger.print_info("making reconnect to be true after entering resetConnection");
 		this.reconnect = true;
 		 }
 		this.blocked = true;
@@ -998,7 +997,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				this.closeConnection();
 				//restarting
 				this.setupConnection();
-				theClient.logger.print_info("making reconnect be false after setup connection");
 				this.reconnect = false;
 			} catch (IOException e) {
 				theClient.logger.print_error("Problem while reseting the connection: " + e.getMessage());
@@ -1146,11 +1144,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				String moveMsg = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAMEMOVE,
 																	plays.getName(),
 																	move,plays.getColor().getColorStr()});
-//				if (!isOpponentConnected())
-//				{
-//					writeToScreen("Connection problem to opponent ",MsgType.info);
-//					throw new IOException();
-//				}
 				
 				this.innerSendMoveToOpp(moveMsg);				
 			}
@@ -1187,25 +1180,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 //now get the response to be sure the opponent is connected
 		 String response = (String)opponentIn.readObject();
 		 opponentSocket.setSoTimeout(moveTime*1000);
-	}
-
-	 /**
-	  * checks whenever the opponenet is connected
-	  * @return
-	  */
-	private boolean isOpponentConnected() {
-		 try{
-		 InetAddress address = InetAddress.getByName(opponentHost);
-		 Socket opponentTransmitSocket = new Socket(address, opponentTransmitWaiterPort);
-		 //if we got to this line , so the opponent is connected
-		 opponentTransmitSocket.close();
-		 return true;
-		 }
-		 catch (Exception e)
-		 {
-			 System.out.println("Opponent Not Responding");
-			 return false;
-		 }
 	}
 
 	/**
@@ -1310,28 +1284,39 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		opponentIn = new ObjectInputStream((opponentSocket.getInputStream()));
 	
 		if(!this.reconnect){
+			writeToScreen("Exchanging data...",MsgType.info);
 			excahngeData(clientToOpponent,opponentIn);
 		}
 	}
 
+	/**
+	 * Overrides the windowDeactivated handler.
+	 * @param e
+	 */
 	@Override
 	public void windowDeactivated(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides the windowDeiconified handler.
+	 * @param e
+	 */
 	@Override
 	public void windowDeiconified(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides the windowIconified handler.
+	 * @param e
+	 */
 	@Override
 	public void windowIconified(WindowEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides the windowOpened handler.
+	 * @param e
+	 */
 	@Override
 	public void windowOpened(WindowEvent e) {
 
