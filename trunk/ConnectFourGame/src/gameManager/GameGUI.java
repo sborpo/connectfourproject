@@ -903,7 +903,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				popupDialog("You are the loser!",MsgType.info);
 			}
 			else{
-				popupDialog("Some problems durring the game!", MsgType.info);
+				popupDialog("Some problems durring the game,\n the second player will report!", MsgType.info);
 			}
 		}
 		else{
