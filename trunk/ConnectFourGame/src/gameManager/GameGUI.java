@@ -277,7 +277,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		timerBoxContainer.removeAll();
 		timerBoxContainer.add(timerBox);
 		if(!consoleContainerBox.isAncestorOf(timerBoxContainer)){
-			//consoleContainerBox.remove(timerBoxContainer);
 			consoleContainerBox.add(timerBoxContainer);
 		}
 	}
@@ -324,7 +323,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		//the console box
 		Box containerBox = Box.createHorizontalBox();
 		Box consoleBox = Box.createHorizontalBox();
-		//consoleBox.setSize(700, 200);
 		consoleArea = new JLabel("Console Printer ");
 		consoleBox.setAlignmentX(SwingConstants.LEFT);
 		consoleArea.setAlignmentX(LEFT_ALIGNMENT);
@@ -368,7 +366,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			boardPane.add(slots[row][column]);
 		}
 		}
-		boardPane.setSize(700,600);
+		boardPane.setSize(300,300);
 	}
 	
 	/**
@@ -390,12 +388,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 	{
 		try {
 			SwingUtilities.invokeAndWait(new BoardGUI.ConnectionBoxPrinter(connAs1, connAs2, playerName1, player1Col, playerName2, player2Col));
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e){
+			theClient.logger.print_error("Problem writing the clients: " + e.getMessage());
 		}
 	}
 	
@@ -416,12 +410,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			if(!closing){
 				SwingUtilities.invokeAndWait(new BoardGUI.MessagePrinter(consoleArea,message));
 			}
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+			theClient.logger.print_error("Problem writing to screen: " + e.getMessage());
 		}
 	}
 	
@@ -549,12 +539,8 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 					state = gameBoard.playColumn(colnum, plays.getColor());
 					try {
 						SwingUtilities.invokeAndWait(new BoardGUI.Painter(((BoardGUI)gameBoard).getColumnsFil(), colnum, plays.getColor(), slots));
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (InvocationTargetException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (Exception e){
+						theClient.logger.print_error("Problem processing the move: " + e.getMessage());
 					}
 				}
 			} catch (IllegalMove e) {
@@ -794,6 +780,11 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return gameHistory;
 	}
 
+	/**
+	 * Overrides the mouseClicked handler. 
+	 * Handles the clicked button and calls appropriate functions.
+	 * @param e
+	 */
 	@Override
 	public  void mouseClicked(MouseEvent e) {
 		if(this.blocked && this.reconnect){
@@ -806,8 +797,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			if (buttonName.equals(ClientServerProtocol.ISURRENDER))
 			{
 				this.clickedByPlayer=buttonName;
-//				theButton.removeMouseListener(this);
-//				theButton.setEnabled(false);
 			}
 			
 			if (pending.isPending())
@@ -852,28 +841,36 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		return succeeded;
 	}
 
+	/**
+	 * Overrides the mouseEntered handler.
+	 * @param e
+	 */
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides the mouseExited handler.
+	 * @param e
+	 */
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides the mousePressed handler.
+	 * @param e
+	 */
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
+	/**
+	 * Overrides the mouseReleased handler.
+	 * @param e
+	 */
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	/**
@@ -914,16 +911,26 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		this.setVisible(false);
 	}
 
+	/**
+	 * Overrides the windowActivated handler.
+	 * @param e 
+	 */
 	@Override
 	public void windowActivated(WindowEvent e) {
-		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Overrides the windowClosed handler.
+	 * @param e 
+	 */
 	@Override
 	public void windowClosed(WindowEvent e) {
-		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Overrides the windowClosing handler.
+	 * @param e 
+	 */
 	@Override
 	public void windowClosing(WindowEvent e) {
 		closing = true;
@@ -952,6 +959,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		this.removeWindowListener(this);
 	}
 	
+	/**
+	 * Stops the timers and notifies if needed.
+	 */
 	private void closeAndNotify(){
 		this.stopTimers();
 		synchronized (pending) {
@@ -1013,6 +1023,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		}
 	}
 	
+	/**
+	 * Closing the connection sockets. 
+	 */
 	private void closeConnection(){
 		try {
 			theClient.logger.print_info("Closing connections...");
@@ -1034,7 +1047,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 //			}
 		} catch (IOException e) {
 			theClient.logger.print_error("Problem while closing the connection: " + e.getMessage());
-			e.printStackTrace();
 		}
 	}
 	
@@ -1268,8 +1280,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			try {
 				address = InetAddress.getByName(opponentHost);
 			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				theClient.logger.print_error("Wrong host exception: " + e.getMessage());
 			}
 			// the opponent starts the game
 			opponentSocket = new Socket(address, opponentPort);

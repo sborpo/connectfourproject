@@ -125,8 +125,7 @@ public class RequestHandler implements Runnable {
 			}
 		} catch (IOException e) {
 			server.printer.print_error("Problem closing socket from Client: "
-					+ clientHost + " with IP: " + clientIP);
-			e.printStackTrace();
+					+ clientHost + " with IP: " + clientIP + " :" + e.getMessage());
 		}
 	}
 	
@@ -284,7 +283,6 @@ public class RequestHandler implements Runnable {
 			out.println(message);		
 		} catch (IOException e) {
 			server.printer.print_error("Problem sending transmit command: " + e.getMessage());
-			e.printStackTrace();
 			throw e;
 		}
 		
@@ -438,8 +436,6 @@ public class RequestHandler implements Runnable {
 				server.printer.print_error("The client: " + clientName + " is not in the game: "+gameId);
 				response = ClientServerProtocol.DENIED;
 			} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 						try {
 							UnhandledReports reports = new UnhandledReports(MainServer.ReportFileName);
 							try {
@@ -662,7 +658,6 @@ public class RequestHandler implements Runnable {
 			return response;
 		} catch (Exception e) {
 			server.printer.print_error("Cannot decrypt and save password: " + e.getMessage());
-			e.printStackTrace();
 		}
 		response= ClientServerProtocol.OK;
 		return response;
