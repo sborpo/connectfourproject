@@ -953,7 +953,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			this.closeAndNotify();
 		}
 		while(this.gameReport == null || this.gameReport.equals("")){
-			System.out.println("waittttt: " + gameReport);
 			this.sleepAWhile(1000);
 		}
 		this.removeWindowListener(this);
@@ -1064,7 +1063,10 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		if(parsed == null){
 			theClient.logger.print_error(prot.result + ". Bad move report: "+ moveMsg);
 		}
-		theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
+		
+		if(theClient.getTransmitWaiter() != null){
+			theClient.getTransmitWaiter().sendMoveToViewers(moveMsg);
+		}
 		
 		//save the move in the game history
 		gameHistory.add(moveMsg);
