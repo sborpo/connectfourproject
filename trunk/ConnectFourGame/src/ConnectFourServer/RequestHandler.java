@@ -342,11 +342,19 @@ public class RequestHandler implements Runnable {
 	 * @return
 	 */
 	private synchronized String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
-		String response = ClientServerProtocol.KNOWYA ;
+		String response = ClientServerProtocol.DENIED ;
 		//check if the client is online
-		if(!isClientOnline(clientName)){
-			server.printer.print_error("The client is not online: "+clientName);
-			return ClientServerProtocol.DENIED;
+//		if(!isClientOnline(clientName)){
+//			server.printer.print_error("The client is not online: "+clientName);
+//			return ClientServerProtocol.DENIED;
+//		}
+		try {
+			if(!authenticateUser(clientName,password)){
+				return response;
+			}
+		} catch (Exception e1) {
+			response = ClientServerProtocol.SERVPROB;
+			return response;
 		}
 		try {
 			//get the game from the online games
@@ -538,11 +546,6 @@ public class RequestHandler implements Runnable {
 						server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");
 						response = ClientServerProtocol.SERVPROB;
 					}
-//				}
-//				else{
-//					server.printer.print_error("Other man playing..." + thePlayer.getName() +"\n");
-//					response = ClientServerProtocol.DENIED;
-//				}
 			}
 			else{
 				server.printer.print_error("No such gameId:" + gameId);

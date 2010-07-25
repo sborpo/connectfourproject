@@ -45,7 +45,6 @@ public class ClientServerProtocol {
 	public static final String OK = "OK";
 	public static final String GAME = "GAME";
 	public static final String NOCONN = "NO_CONNECTION";
-	public static final String KNOWYA = "KNOW_YOU?";
 	public static final String WHAT = "DON'T_UNDERSTAND";
 	public static final String DENIED = "DENIED";
 	public static final String NICETM = "NICE_TO_MEET_YOU";
@@ -104,7 +103,6 @@ public class ClientServerProtocol {
 		//Commands CLIENT can receive
 		else{
 			legalCommands.add(NOCONN);
-			legalCommands.add(KNOWYA);
 			legalCommands.add(WHAT);
 			legalCommands.add(DENIED);
 			legalCommands.add(NICETM);
@@ -134,7 +132,6 @@ public class ClientServerProtocol {
 		numOfParametersForCmd.put(WATCH, 4);
 		numOfParametersForCmd.put(OK, 0);
 		numOfParametersForCmd.put(NOCONN, 0);
-		numOfParametersForCmd.put(KNOWYA, 1);
 		numOfParametersForCmd.put(WHAT, 0);
 		numOfParametersForCmd.put(DENIED, 0);
 		numOfParametersForCmd.put(NICETM, 1);
