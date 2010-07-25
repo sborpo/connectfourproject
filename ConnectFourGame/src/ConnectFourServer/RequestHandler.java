@@ -511,7 +511,7 @@ public class RequestHandler implements Runnable {
 																					enemy.getAddress().getHostAddress(),
 																					enemy.getName(),
 																					Integer.toString(enemy.getTransmitPort())});
-						server.printer.print_info("Player has been added to the game: " + gameId + "\n");
+						server.printer.print_info("Player has been added to the game: " + gameId );
 						theClient.setGameForClient(gameId);
 						try {
 							if(DataBaseManager.isGameIdExists(gameId)){
@@ -523,7 +523,7 @@ public class RequestHandler implements Runnable {
 								}
 							}
 							else{
-								server.printer.print_info("Adding the game to database: " + gameId + "\n");
+								server.printer.print_info("Adding the game to database: " + gameId);
 								DataBaseManager.createGame(enemy.getName(), clientName, gameId);
 							}
 						} catch (SQLException e) {
@@ -535,7 +535,7 @@ public class RequestHandler implements Runnable {
 						}
 					}
 					else{
-						server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN\n");
+						server.printer.print_error("WE HAVE PROBLEM IN SERVER MAN");
 						response = ClientServerProtocol.SERVPROB;
 					}
 			}
