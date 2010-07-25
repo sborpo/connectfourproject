@@ -781,7 +781,10 @@ public class DataBaseManager {
 	}
 
 	/**
-	 *  Return true if one of the players reported
+	 * Return true if one of the players reported
+	 * @param gameId
+	 * @return
+	 * @throws SQLException
 	 */
 	public static boolean isReported(String gameId) throws SQLException
 	{
@@ -1077,9 +1080,6 @@ public class DataBaseManager {
 				stats[0] = set.getInt("wins");
 				stats[1] = set.getInt("loses");
 			}
-
-
-
 		}
 		catch (SQLException ex)
 		{
