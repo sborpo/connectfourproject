@@ -123,7 +123,6 @@ public class LoginWindow extends JDialog implements MouseListener  {
 																												password.getText()}));
 				if (father.client.parseServerResponse(response)==null)
 				{
-					//TODO problem with syntax , server doesn't understand
 					father.showMessageDialog("Internal Error: The Server bad response",MsgType.error);
 					return;
 				}

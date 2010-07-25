@@ -62,9 +62,6 @@ public class OnlineClients {
 		 if(udpClients.containsKey(clientName)){
 			 return udpClients.get(clientName);
 		 }
-		 for(String name : udpClients.keySet()){
-			 System.out.println("Client: '" + name + "'");
-		 }
 		 return null;
 	 }
 	 

@@ -16,6 +16,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import common.LogPrinter;
 import common.PasswordHashManager;
 import common.RSAgenerator;
 import common.StatsReport;
@@ -109,7 +110,7 @@ public class DataBaseManager {
 					makeReport(report.getGameId(), report.getClientName(), report.getWinner());
 
 				} catch (SQLException e) {
-					System.out.println("DatabaseError");
+					System.out.println(LogPrinter.info_msg("DatabaseError"));
 				} catch (GameIdNotExists e) {
 					
 				}
@@ -219,7 +220,7 @@ public class DataBaseManager {
 			Class.forName("com.mysql.jdbc.Driver");
 			return DriverManager.getConnection (url+dbName, userName, password);
 		} catch (SQLException e) {
-			System.out.println("DatabaseError");
+			System.out.println(LogPrinter.info_msg("DatabaseError"));
 		} 
 		catch (ClassNotFoundException e) {
 			
@@ -264,7 +265,7 @@ public class DataBaseManager {
 		Connection conn=null;
 		PreparedStatement prepareStatement = null;
 		try{
-			System.out.println("Trying to authenticate: "+username + " PASS: '" + hashedPswd + "'");
+			System.out.println(LogPrinter.info_msg("Trying to authenticate: "+username + " PASS: '" + hashedPswd + "'"));
 			conn = getConnection(DataBaseManager.dbName);
 			String query= "SELECT * FROM users WHERE username=? AND password=?";
 			prepareStatement = conn.prepareStatement(query);
@@ -413,13 +414,11 @@ public class DataBaseManager {
 			synchronized (userslock) {
 				if (!checkUserExists(username, conn))
 				{
-					System.out.println("Inserting....");
 					prepareStatement.execute();
 					preparedStatementStas.execute();
 					conn.commit();
 				}
 				else{
-					System.out.println("Exists....");
 					throw new UserAlreadyExists();
 				}
 
