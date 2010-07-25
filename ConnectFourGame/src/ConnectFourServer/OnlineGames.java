@@ -31,7 +31,7 @@ public class OnlineGames {
 	 */
 	public synchronized void addGame(Game game){
 		playingGames.put(game.getId(), game);
-		server.printer.print_info("Game has been added : " + game.getId() + "\n");
+		server.printer.print_info("Game has been added : " + game.getId());
 	}
 	
 	/**
