@@ -114,7 +114,7 @@ public class UdpListener implements Runnable,TimerListener {
 					Timer clientTimer = this.clientTimers.get(clientName);
 					clientTimer.reset();
 					
-					System.out.println("Checking the players...");
+					server.printer.print_info("Checking the players...");
 					checkTimers();
 					
 				} 

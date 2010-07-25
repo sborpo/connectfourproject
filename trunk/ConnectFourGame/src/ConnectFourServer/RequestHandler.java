@@ -313,7 +313,6 @@ public class RequestHandler implements Runnable {
 			server.printer.print_info("Trying to add report: " + unhandeledReport);
 			String result =this.gamesReportTreat(unhandeledReport.getGameId(), unhandeledReport.getClientName(), 
 					Boolean.getBoolean(unhandeledReport.getGameResult()), unhandeledReport.getWinner(), params[params.length-1]);
-			System.out.println("RESUT: " +result);
 			if(result.equals(ClientServerProtocol.OK)){
 				correctGameIds.add(unhandeledReport);
 			}
@@ -344,10 +343,6 @@ public class RequestHandler implements Runnable {
 	private synchronized String gamesReportTreat(String gameId, String clientName, boolean gameRes, String winner,String password){
 		String response = ClientServerProtocol.DENIED ;
 		//check if the client is online
-//		if(!isClientOnline(clientName)){
-//			server.printer.print_error("The client is not online: "+clientName);
-//			return ClientServerProtocol.DENIED;
-//		}
 		try {
 			if(!authenticateUser(clientName,password)){
 				return response;
@@ -431,7 +426,6 @@ public class RequestHandler implements Runnable {
 						server.printer.print_info("Adding the report to the database: winner = " + winner);
 						//throw new SQLException("MY EXCEPTION");
 						DataBaseManager.makeReport(gameId, clientName, winner);
-						//TODO: TREAT STATISTICS FOR THIS GAME PLAYERS
 					}  catch (GameIdNotExists e) {
 								server.printer.print_error("Problem while adding report to the database: " + e.getMessage());
 								response = ClientServerProtocol.SERVPROB;
@@ -535,11 +529,9 @@ public class RequestHandler implements Runnable {
 						} catch (SQLException e) {
 							server.printer.print_error("Cannot insert the game to the database: " + e.getMessage());
 							response = ClientServerProtocol.SERVPROB;
-							//TODO to do something
 						} catch (GameIdAlreadyExists e) {
 							server.printer.print_error("The game is already in the database: " + e.getMessage());
 							response = ClientServerProtocol.SERVPROB;
-							//TODO something
 						}
 					}
 					else{
@@ -638,7 +630,7 @@ public class RequestHandler implements Runnable {
 			}
 		}
 		else{
-			System.out.println("No such user: '" + watcherName + "'");
+			server.printer.print_error("No such user: '" + watcherName + "'");
 		}
 		return response;
 	}

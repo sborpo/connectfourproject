@@ -485,18 +485,6 @@ public class TheClient {
 		clientGamePort = Integer.parseInt(props.getProperty("CLIENT_GAME_PORT"));
 		logger.print_info("Client Game port: "+clientGamePort);
 		
-		
-//		serverHost = args[0];
-//		logger.print_info("Server: " + serverHost);
-//		serverPort = Integer.parseInt( args[1]);
-//		logger.print_info("Server TCP port: "+serverPort);
-//		clientUdp = Integer.parseInt (args[2]);
-//		logger.print_info("Client Udp Listen port: "+clientUdp);
-//		clientTransmitWaiterPort = Integer.parseInt( args[3]);
-//		logger.print_info("Client TransmitWaiter port: "+clientTransmitWaiterPort);
-//		clientGamePort = Integer.parseInt( args[4]);
-//		logger.print_info("Client Game port: "+clientGamePort);
-		
 		clientWatchPort= clientGamePort;
 	}
 	
@@ -530,7 +518,6 @@ public class TheClient {
 	private void startTransmitionWaiter(){
 		try {
 			transmitWaiterSocket = new ServerSocket(clientTransmitWaiterPort);
-			System.out.println("Transmitter server socket was opened");
 		} catch (IOException e) {
 			this.logger.print_error("Problem open transmit waiter socket: " + e.getMessage());
 		}
@@ -863,7 +850,7 @@ public class TheClient {
 					reports.removeReport(unhandeledReport.getGameId(),unhandeledReport.getClientName());
 				}
 				if(reports.getReportNumber() == 0){
-					System.out.println("REMOVE REPORT FILE");
+					this.logger.print_info("REMOVE REPORT FILE...");
 					reports.removeReportsFile();
 				}
 			}
@@ -891,7 +878,6 @@ public class TheClient {
 	 * Calls the resetConnection method of the game.
 	 */
 	public void refreshGameConnection(){
-		System.out.println("The game is Null? : "+(game==null));
 		if(game != null){
 			game.resetConnection();
 		}

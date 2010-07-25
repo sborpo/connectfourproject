@@ -445,7 +445,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		this.opponentHost = opponentHost;
 		this.opponentPort = opponentPort;
 		this.opponentTransmitWaiterPort = opponentTransmitWaiterPort;
-		System.out.println("Opponent port transmit: "+opponentTransmitWaiterPort);
 		this.theClient = theClient;
 		
 		try{
@@ -485,7 +484,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 						}
 						inLine=clickedByPlayer;
 						clickedByPlayer = null;
-						System.out.println("Move ENTERED");
 						if (inLine != null && inLine.equals(ClientServerProtocol.ISURRENDER))
 						{
 							state=GameState.I_SURRENDED;
@@ -562,7 +560,7 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				errorMessage = "Problem sending surrender message to opponent";
 			}
 		}
-		System.out.println("DECIDING WINNER");
+		theClient.logger.print_info("DECIDING WINNER");
 		String winner = null;
 		winner=decideWinner();
 		Boolean gameRes = (state.equals(GameState.TIE)) ? Game.gameRes.NO_WINNER : Game.gameRes.WINNER;
@@ -1190,7 +1188,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		 opponentSocket.setSoTimeout(ClientServerProtocol.timeout);
 		 clientToOpponent.writeObject(moveMsg);
 		 clientToOpponent.flush();
-		 System.out.println("getting response...");
 		 //now get the response to be sure the opponent is connected
 		 String response = (String)opponentIn.readObject();
 		 opponentSocket.setSoTimeout(moveTime*1000);
@@ -1224,7 +1221,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				} catch (IOException e) {
 					
 					if(this.reconnect){
-						System.out.println("RECONNECTIng...");
 						this.sleepAWhile(1000);
 						//this.reconnect = false;
 						reconnectOnRead = true;
