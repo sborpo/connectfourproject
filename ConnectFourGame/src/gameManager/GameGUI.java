@@ -453,7 +453,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 		} catch (IOException e) {
 			if(!closing){
 				errorMessage = "Problem initializing the game connection: " + e.getMessage();
-				//popupDialog("Problem initializing the game connection: " + e.getMessage());
 			}
 			return null;
 		}
@@ -812,7 +811,6 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 				if (buttonName.equals(ClientServerProtocol.ISURRENDER))
 				{
 					state = GameState.I_SURRENDED;
-					//this.closeAndNotify();
 					this.closeConnection();
 				}
 			}
@@ -903,6 +901,9 @@ public class GameGUI extends JDialog implements MouseListener,TimerListener,Runn
 			}
 			else if(gameReport.getWinner().equals(opponentPlayer.getName())){
 				popupDialog("You are the loser!",MsgType.info);
+			}
+			else{
+				popupDialog("Noboody had won!", MsgType.info);
 			}
 		}
 		else{
