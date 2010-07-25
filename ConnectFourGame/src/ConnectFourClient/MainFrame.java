@@ -82,7 +82,7 @@ public class MainFrame extends JFrame implements MouseListener , ActionListener 
 		setJMenuBar(menuBar);
 		setGamesPanel();
 		this.add(gamesPanel);
-		setSize(500, 500);
+		setSize(500, 300);
 		client=new TheClient(args);
 		this.addWindowListener(this);
 		setLocationRelativeTo(null);
