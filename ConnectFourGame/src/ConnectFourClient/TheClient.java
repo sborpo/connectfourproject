@@ -684,7 +684,9 @@ public class TheClient {
 		if(parsed == null){
 			logger.print_error(prot.result + ". Bad game report: "+ gameReport);
 		}
-		getTransmitWaiter().sendMoveToViewers(gameReport);
+		if(getTransmitWaiter() != null){
+			getTransmitWaiter().sendMoveToViewers(gameReport);
+		}
 	}
 	
 	/**
