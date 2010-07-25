@@ -51,8 +51,6 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		super(father, "Sign Up Window", true);
 		this.main=main;
 		mainPane = new JPanel();
-		serversResponsePanel= new JPanel();
-		setServersResponsePanel();
 		mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.PAGE_AXIS));
 		command = new JLabel("Please Enter Your Details!");
 		setDetailsPane();
@@ -62,8 +60,7 @@ public class SingUpWindow extends JDialog implements MouseListener{
 		mainPane.add(upperBox);
 		mainPane.add(detailsGrid);
 		mainPane.add(singButton);
-		mainPane.add(new JSeparator());
-		mainPane.add(serversResponsePanel);
+
 		
 		singButton.addMouseListener(this);
 		getContentPane().setLayout(new BorderLayout());
