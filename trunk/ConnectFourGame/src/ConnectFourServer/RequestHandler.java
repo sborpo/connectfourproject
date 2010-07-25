@@ -69,7 +69,7 @@ public class RequestHandler implements Runnable {
 		BufferedReader in = null;
 		String clientHost = clientSock.getInetAddress().getHostName();
 		String clientIP = clientSock.getInetAddress().getHostAddress();
-		server.printer.print_info("Starting new socket...\n");
+		server.printer.print_info("Starting new socket...");
 		try {
 			out = new ObjectOutputStream(clientSock.getOutputStream());
 			//out = new PrintWriter(clientSock.getOutputStream(),true);
@@ -279,7 +279,7 @@ public class RequestHandler implements Runnable {
 																			viewerAddr.getHostAddress(),
 																			watcherName,
 																			clientSock.getInetAddress().getHostAddress()});
-			server.printer.print_info("Transmit message: " + message +"\n");
+			server.printer.print_info("Transmit message: " + message);
 			out.println(message);		
 		} catch (IOException e) {
 			server.printer.print_error("Problem sending transmit command: " + e.getMessage());
@@ -615,7 +615,7 @@ public class RequestHandler implements Runnable {
 				int clientPort= client.getTransmitPort();
 				
 				InetAddress viewerAddr= viewer.getAddress();
-				server.printer.print_info("Sending transmit command to: " + client.getName() + "\n");
+				server.printer.print_info("Sending transmit command to: " + client.getName());
 				try {
 					SendToClient(clientAddr,clientPort,viewerAddr,watcherPort,watcherName);
 				} catch (IOException e) {
@@ -739,7 +739,7 @@ public class RequestHandler implements Runnable {
 			server.games.addGame(newGame);
 			theClient.setGameForClient(gameId);
 			response = ClientServerProtocol.buildCommand(new String[] {ClientServerProtocol.GAME,gameId});
-			server.printer.print_info("The game has been created: " + theClient.getGame() + "\n");
+			server.printer.print_info("The game has been created: " + theClient.getGame());
 
 		}
 		return response;
