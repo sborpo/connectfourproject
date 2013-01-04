@@ -233,6 +233,7 @@ public class Timer implements Runnable
 		this.pause();
 		m_elapsed = time;
 		this.updateTimerText();
+		int x=0;
 		this.resume();
 	}
 	
