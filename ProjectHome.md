@@ -1,0 +1,1 @@
+The game "Connect four" for the "distributed information systems" course in Technion.
